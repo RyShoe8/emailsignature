@@ -9,7 +9,11 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "email-client-smoke": "tsx scripts/email-client-smoke.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2"
   },
   "license": "UNLICENSED"
 }

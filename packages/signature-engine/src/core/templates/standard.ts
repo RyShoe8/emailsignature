@@ -5,10 +5,15 @@
 export const STANDARD_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing="0" border="0" style="font-family: {{fontFamily}}, Arial, Helvetica, sans-serif; font-size:14px; color:#1a1a1a; line-height:1.4;">
   <tr>
     <!-- LEFT: LOGO -->
-    <td style="vertical-align:top; padding-right:16px;">
+    <td style="vertical-align:top;line-height:0;font-size:0;padding-right:16px;">
       {{#if hasLogo}}
-      <a href="{{logoLink}}" style="text-decoration:none;">
-        <img src="{{logoUrl}}" width="110" style="display:block; border:0;" />
+      <a href="{{logoLink}}" style="text-decoration:none; border:0; outline:none; display:inline-block;">
+{{#if hasLogoSizedHeight}}
+        <img src="{{logoUrl}}" width="{{logoWidth}}" height="{{logoDisplayHeight}}" border="0" alt="" style="display:block;max-width:{{logoWidth}}px;width:{{logoWidth}}px;height:{{logoDisplayHeight}}px;border:0;outline:none;text-decoration:none;" />
+{{/if}}
+{{#if hasLogoAutoHeight}}
+        <img src="{{logoUrl}}" width="{{logoWidth}}" border="0" alt="" style="display:block;max-width:{{logoWidth}}px;width:{{logoWidth}}px;height:auto;border:0;outline:none;text-decoration:none;" />
+{{/if}}
       </a>
       {{/if}}
     </td>
@@ -70,25 +75,17 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing="
       {{/if}}
 
       {{#if showSocialBlock}}
-      <div style="margin-top:10px;">
+      <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-top:10px;"><tr>
         {{#if hasLinkedin}}
-        <a href="{{linkedin}}" style="text-decoration:none; margin-right:8px;">
-          <img src="{{iconLinkedin}}" width="16" style="display:inline-block; border:0;" />
-        </a>
+        <td style="{{socialTdLiStyle}}"><a href="{{linkedin}}" style="text-decoration:none;border:0;outline:none;display:inline-block;"><img src="{{iconLinkedin}}" width="16" height="16" border="0" alt="" style="display:block;border:0;outline:none;text-decoration:none;" /></a></td>
         {{/if}}
-
         {{#if hasFacebook}}
-        <a href="{{facebook}}" style="text-decoration:none; margin-right:8px;">
-          <img src="{{iconFacebook}}" width="16" style="display:inline-block; border:0;" />
-        </a>
+        <td style="{{socialTdFbStyle}}"><a href="{{facebook}}" style="text-decoration:none;border:0;outline:none;display:inline-block;"><img src="{{iconFacebook}}" width="16" height="16" border="0" alt="" style="display:block;border:0;outline:none;text-decoration:none;" /></a></td>
         {{/if}}
-
         {{#if hasInstagram}}
-        <a href="{{instagram}}" style="text-decoration:none;">
-          <img src="{{iconInstagram}}" width="16" style="display:inline-block; border:0;" />
-        </a>
+        <td style="{{socialTdIgStyle}}"><a href="{{instagram}}" style="text-decoration:none;border:0;outline:none;display:inline-block;"><img src="{{iconInstagram}}" width="16" height="16" border="0" alt="" style="display:block;border:0;outline:none;text-decoration:none;" /></a></td>
         {{/if}}
-      </div>
+      </tr></table>
       {{/if}}
     </td>
   </tr>
@@ -96,7 +93,11 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing="
   {{#if hasDivider}}
   <tr>
     <td colspan="2" style="padding-top:14px;">
-      <div style="height:1px; background:#e5e5e5;"></div>
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" role="presentation" style="border-collapse:collapse;width:100%;">
+        <tr>
+          <td bgcolor="#e5e5e5" height="1" style="font-size:0;line-height:0;mso-line-height-rule:exactly;padding:0;height:1px;background-color:#e5e5e5;border:0;">&nbsp;</td>
+        </tr>
+      </table>
     </td>
   </tr>
   {{/if}}

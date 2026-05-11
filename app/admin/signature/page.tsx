@@ -14,6 +14,22 @@ import { SignaturePreview } from '@/components/admin/signature/SignaturePreview'
 import { CopyButton } from '@/components/admin/signature/CopyButton';
 import styles from './page.module.css';
 
+/** Resolves relative social icon paths and logo URLs in preview/copy; set NEXT_PUBLIC_SITE_URL in production. */
+const SIGNATURE_PUBLIC_ORIGIN = (
+  typeof process.env.NEXT_PUBLIC_SITE_URL === 'string' && process.env.NEXT_PUBLIC_SITE_URL.trim()
+    ? process.env.NEXT_PUBLIC_SITE_URL.trim().replace(/\/+$/, '')
+    : 'http://localhost:3000'
+);
+
+/** Org-wide main office line shown when the Office field is empty (not persisted per user). */
+const DEFAULT_OFFICE_PHONE = '833-779-3744';
+
+function withDefaultOfficePhone(p: SignatureProfile): SignatureProfile {
+  const t = p.officePhone?.trim();
+  if (t) return { ...p, officePhone: t };
+  return { ...p, officePhone: DEFAULT_OFFICE_PHONE };
+}
+
 type Layout = SignatureTemplate['layout'];
 
 type ToggleState = {
@@ -73,6 +89,8 @@ function coerceBrandFromApi(brand: SignatureBrand): SignatureBrand {
     companyName: brand.companyName ?? '',
     website: brand.website ?? '',
     logoUrl: brand.logoUrl ?? '',
+    logoHeightPx:
+      typeof brand.logoHeightPx === 'number' && brand.logoHeightPx > 0 ? brand.logoHeightPx : undefined,
     logoLink: brand.logoLink ?? '',
     primaryColor: brand.primaryColor?.trim() ? brand.primaryColor.trim() : '#CDAA7D',
     fontFamily: brand.fontFamily?.trim() ? brand.fontFamily.trim() : 'Arial',
@@ -98,7 +116,7 @@ const defaultProfile: SignatureProfile = {
   lastName: '',
   title: '',
   email: '',
-  officePhone: '',
+  officePhone: DEFAULT_OFFICE_PHONE,
   mobilePhone: '',
 };
 
@@ -158,11 +176,16 @@ export default function AdminSignaturePage() {
         typeof data.updatedAt === 'string' ? data.updatedAt : data.updatedAt ? String(data.updatedAt) : null
       );
       setPreviewKey((k) => k + 1);
+      setProfile(withDefaultOfficePhone);
     } catch {
       setSettingsError('Could not load organization settings. You can retry, or continue with defaults.');
     } finally {
       setIsSettingsLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    setProfile(withDefaultOfficePhone);
   }, []);
 
   useEffect(() => {
@@ -186,7 +209,7 @@ export default function AdminSignaturePage() {
   );
 
   const html = useMemo(
-    () => renderSignature({ profile, brand, template }),
+    () => renderSignature({ profile, brand, template, publicSiteOrigin: SIGNATURE_PUBLIC_ORIGIN }),
     [profile, brand, template]
   );
 
@@ -420,8 +443,54 @@ export default function AdminSignaturePage() {
                   maxWidth: '100%',
                 }}
               />
-              <div style={{ marginTop: '0.35rem', fontSize: '12px', color: '#666' }}>
-                For best iPhone/email compatibility, use a PNG URL on your own domain and avoid spaces.
+              <div style={{ marginTop: '0.35rem', fontSize: '12px', color: '#666', maxWidth: '560px' }}>
+                Use a full <code style={{ fontSize: '11px' }}>https://…</code> URL that opens in a private
+                window (Outlook and Mail cannot use site-relative paths like{' '}
+                <code style={{ fontSize: '11px' }}>/images/…</code>). For best Outlook reliability, host the
+                file under{' '}
+                <code style={{ fontSize: '11px' }}>
+                  https://seniorbydesign.com/email-assets/…
+                </code>
+                {' '}— that path is served with long-lived immutable caching and matched MIME headers. Avoid{' '}
+                <code style={{ fontSize: '11px' }}>/api/image-proxy</code> URLs, short links, and redirect
+                URLs (for example <code style={{ fontSize: '11px' }}>bit.ly</code>). PNG or GIF only — no
+                SVG/WebP, and avoid spaces or query strings in the path.
+              </div>
+            </label>
+
+            <label style={{ display: 'block', marginBottom: '0.75rem', fontSize: '14px' }}>
+              Logo height (px at 110px width)
+              <input
+                type="number"
+                min={1}
+                max={400}
+                placeholder="Auto"
+                disabled={isSettingsLoading}
+                value={brand.logoHeightPx ?? ''}
+                onChange={(e) => {
+                  const v = e.target.value.trim();
+                  if (v === '') {
+                    setBrand((b) => ({ ...b, logoHeightPx: undefined }));
+                    return;
+                  }
+                  const n = Math.round(Number(v));
+                  if (!Number.isFinite(n) || n < 1) return;
+                  setBrand((b) => ({ ...b, logoHeightPx: Math.min(400, n) }));
+                }}
+                style={{
+                  display: 'block',
+                  marginTop: '0.35rem',
+                  padding: '0.5rem',
+                  width: '100%',
+                  maxWidth: '160px',
+                }}
+              />
+              <div style={{ marginTop: '0.35rem', fontSize: '12px', color: '#666', maxWidth: '560px' }}>
+                Optional. Leave blank so the logo keeps its natural proportions at 110px wide (best for Gmail
+                and Apple Mail). If{' '}
+                <strong style={{ fontWeight: 600 }}>Outlook for Windows</strong> shows a clipped or stretched
+                logo while other apps look fine, measure the image height at 110px width and enter that number
+                here, then copy the signature again.
               </div>
             </label>
 
@@ -465,6 +534,10 @@ export default function AdminSignaturePage() {
                   maxWidth: '100%',
                 }}
               />
+              <div style={{ marginTop: '0.35rem', fontSize: '12px', color: '#666', maxWidth: '560px' }}>
+                Same rules as the logo URL: full <code style={{ fontSize: '11px' }}>https://…</code>, no
+                image-proxy, relative paths, or redirect links.
+              </div>
             </label>
 
             <label style={{ display: 'block', marginBottom: '0.75rem', fontSize: '14px' }}>

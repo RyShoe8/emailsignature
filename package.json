@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "verify:signature": "npm run email-client-smoke --workspace=emailsignature-engine"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

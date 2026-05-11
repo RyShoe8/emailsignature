@@ -1,7 +1,11 @@
-/** Default icons load over HTTPS so pasted HTML works in mail clients (replace with your own URLs later). */
+/**
+ * Signature social icons served from /email-assets/ for Outlook reliability:
+ * dedicated static path with immutable Cache-Control, no query strings, no redirects.
+ * Rotate by renaming the file (for example icon-linkedin-v2.png) if ever updated.
+ */
 export const SOCIAL_ICON_LINKEDIN =
-  'https://placehold.co/16x16/0077b5/ffffff/png?text=';
+  'https://seniorbydesign.com/email-assets/icon-linkedin.png';
 export const SOCIAL_ICON_FACEBOOK =
-  'https://placehold.co/16x16/1877f2/ffffff/png?text=';
+  'https://seniorbydesign.com/email-assets/icon-facebook.png';
 export const SOCIAL_ICON_INSTAGRAM =
-  'https://placehold.co/16x16/E4405F/ffffff/png?text=';
+  'https://seniorbydesign.com/email-assets/icon-instagram.png';

@@ -10,6 +10,7 @@ Standalone Next.js app for building and saving organization-wide HTML email sign
    - `MONGODB_DB_NAME` — optional; defaults to `emailsignature`.
    - `NEXTAUTH_SECRET` — generate a random string for production.
    - `NEXTAUTH_URL` — e.g. `http://localhost:3000` locally, or your deployed URL.
+   - `NEXT_PUBLIC_SITE_URL` — **required for production** pasted signatures (e.g. `https://signatures.example.com`). Used to turn relative `/images/...` asset paths into absolute `https://` URLs in copied HTML. Defaults to `http://localhost:3000` when unset (local dev only).
 
 2. Install dependencies and run:
 
@@ -35,4 +36,4 @@ Standalone Next.js app for building and saving organization-wide HTML email sign
 - `app/admin/signature` — admin UI.
 - `app/api/admin/signature` — loads/saves org settings (`signatureSettings` collection, `scope: 'organization'`).
 
-Replace placeholder logo URLs, social icon URLs (defaults use remote placeholders), and mock defaults after first deploy.
+Replace placeholder logo URLs and mock defaults after first deploy. Social icons ship as PNGs under `public/images/signature/` and resolve against `NEXT_PUBLIC_SITE_URL` when you copy a signature.

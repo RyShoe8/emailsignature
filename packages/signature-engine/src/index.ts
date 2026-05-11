@@ -6,7 +6,12 @@ export type {
   RenderSignatureInput,
 } from './core/types';
 
-export { renderSignature, mergeRenderContext } from './core/renderer';
+export {
+  renderSignature,
+  mergeRenderContext,
+  ensureAbsolutePublicUrl,
+  unwrapImageProxyUrl,
+} from './core/renderer';
 
 export {
   SOCIAL_ICON_LINKEDIN,
