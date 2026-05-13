@@ -5,7 +5,7 @@
 export const STANDARD_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing="0" border="0" style="font-family: {{fontFamily}}, Arial, Helvetica, sans-serif; font-size:14px; color:#1a1a1a; line-height:1.4;">
   <tr>
     <!-- LEFT: LOGO -->
-    <td style="vertical-align:top;line-height:0;font-size:0;padding-right:16px;">
+    <td width="{{logoWidth}}" style="vertical-align:top;line-height:0;font-size:0;padding-right:8px;width:{{logoWidth}}px;">
       {{#if hasLogo}}
       <a href="{{logoLink}}" style="text-decoration:none; border:0; outline:none; display:inline-block;">
 {{#if hasLogoSizedHeight}}
