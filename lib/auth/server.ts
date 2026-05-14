@@ -11,10 +11,15 @@ export async function getAuth() {
   const db = getMongoDb();
   const client = getMongoClient();
 
+  const secret = process.env.BETTER_AUTH_SECRET;
+  if (!secret) {
+    throw new Error('BETTER_AUTH_SECRET is required');
+  }
+
   authInstance = betterAuth({
-    secret: process.env.BETTER_AUTH_SECRET,
+    secret,
     baseURL: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-    database: mongodbAdapter(db, { client }),
+    database: mongodbAdapter(db as never, { client: client as never }),
     emailAndPassword: {
       enabled: true,
       sendResetPassword: async ({ user, url }) => {
@@ -32,7 +37,7 @@ export async function getAuth() {
       },
     },
     plugins: [nextCookies()],
-  });
+  }) as unknown as ReturnType<typeof betterAuth>;
 
   return authInstance;
 }

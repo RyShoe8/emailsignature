@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { connectMongoose } from '@/lib/mongoose';
-import { EmployeeModel } from '@/models/Employee';
+import { EmployeeModel, type EmployeeDoc } from '@/models/Employee';
 import { OrganizationModel } from '@/models/Organization';
 import { SignatureTemplateModel } from '@/models/SignatureTemplate';
 import { renderSignatureForEmployee } from '@/lib/renderEmployeeSignature';
@@ -12,7 +12,7 @@ export const metadata = {
 export default async function PublicSignaturePage({ params }: { params: Promise<{ previewToken: string }> }) {
   const { previewToken } = await params;
   await connectMongoose();
-  const employee = await EmployeeModel.findOne({ previewToken }).lean();
+  const employee = await EmployeeModel.findOne({ previewToken }).lean<EmployeeDoc | null>();
   if (!employee) notFound();
   const org = await OrganizationModel.findById(employee.organizationId).lean();
   const tmpl = await SignatureTemplateModel.findOne({

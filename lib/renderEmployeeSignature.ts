@@ -22,7 +22,7 @@ export function orgToBrandInput(org: OrganizationDoc): OrgBrandInput {
       instagram: sl?.instagram,
     },
     locations: { dallas: loc?.dallas, boulder: loc?.boulder },
-    warehouseAddress: org.warehouseAddress,
+    warehouseAddress: org.warehouseAddress ?? undefined,
     animation: org.animation as OrgBrandInput['animation'],
   };
 }

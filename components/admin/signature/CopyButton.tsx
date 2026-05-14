@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { copyHtmlToClipboard } from '@/app/admin/signature/utils/clipboard';
+import { copyHtmlToClipboard } from '@/lib/clipboard';
 
 type Props = {
   html: string;

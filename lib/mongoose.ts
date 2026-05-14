@@ -1,13 +1,6 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI) {
-  throw new Error('MONGODB_URI is not set');
-}
-
 const DB_NAME = process.env.MONGODB_DB_NAME || 'emailsignature';
-
 type GlobalMongoose = typeof globalThis & {
   mongooseConn?: { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null };
 };
@@ -19,9 +12,13 @@ if (!g.mongooseConn) {
 }
 
 export async function connectMongoose(): Promise<typeof mongoose> {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error('MONGODB_URI is not set');
+  }
   if (g.mongooseConn!.conn) return g.mongooseConn!.conn;
   if (!g.mongooseConn!.promise) {
-    g.mongooseConn!.promise = mongoose.connect(MONGODB_URI, {
+    g.mongooseConn!.promise = mongoose.connect(uri, {
       dbName: DB_NAME,
     });
   }

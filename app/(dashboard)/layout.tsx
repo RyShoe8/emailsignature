@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation';
 import { getServerSession } from '@/lib/auth/session';
 import { SignOutButton } from '@/components/dashboard/SignOutButton';
 
+export const dynamic = 'force-dynamic';
+
 const links = [
   { href: '/dashboard', label: 'Overview' },
   { href: '/dashboard/employees', label: 'Employees' },

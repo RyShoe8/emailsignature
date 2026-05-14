@@ -6,6 +6,9 @@ let cached: ReturnType<typeof toNextJsHandler> | undefined;
 async function handlers() {
   if (!cached) {
     const auth = await getAuth();
+    if (!auth) {
+      throw new Error('Better Auth failed to initialize');
+    }
     cached = toNextJsHandler(auth);
   }
   return cached;
