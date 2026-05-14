@@ -45,11 +45,12 @@ export async function POST(request: Request) {
 
   try {
     const auth = await getAuth();
+    const userUpdate = {
+      organizationId: org._id.toString(),
+      role: 'owner',
+    };
     await auth.api.updateUser({
-      body: {
-        organizationId: org._id.toString(),
-        role: 'owner',
-      },
+      body: userUpdate as never,
       headers: await headers(),
     });
   } catch (err) {
