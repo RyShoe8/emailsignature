@@ -18,14 +18,15 @@ async function main() {
   }
 
   await connectMongoose();
-  const slug = 'migrated-legacy';
-  let org = await OrganizationModel.findOne({ slug });
+  const b = legacy.brand as Record<string, unknown>;
+  const companyName = String(b.companyName || '');
+  const name = companyName || 'Migrated organization';
+
+  let org = await OrganizationModel.findOne({ name, companyName });
   if (!org) {
-    const b = legacy.brand as Record<string, unknown>;
     org = await OrganizationModel.create({
-      name: String(b.companyName || 'Migrated organization'),
-      slug,
-      companyName: String(b.companyName || ''),
+      name,
+      companyName,
       website: String(b.website || ''),
       logoUrl: String(b.logoUrl || ''),
       logoLink: String(b.logoLink || ''),
@@ -37,9 +38,9 @@ async function main() {
       animation: b.animation as object | undefined,
     });
     await seedDefaultTemplates(org._id);
-    console.log('Created organization', org._id.toString(), 'slug=', slug);
+    console.log('Created organization', org._id.toString());
   } else {
-    console.log('Organization already exists for migration slug', slug);
+    console.log('Organization already exists for this legacy import:', org._id.toString());
   }
   process.exit(0);
 }

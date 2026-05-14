@@ -3,7 +3,6 @@ import mongoose, { Schema, type InferSchemaType } from 'mongoose';
 const OrganizationSchema = new Schema(
   {
     name: { type: String, required: true, trim: true },
-    slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
     logoUrl: { type: String, default: '' },
     primaryColor: { type: String, default: '#0a0a0a' },
     website: { type: String, default: '' },

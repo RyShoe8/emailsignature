@@ -8,11 +8,6 @@ import { seedDefaultTemplates } from '@/lib/seedOrgTemplates';
 
 const BodySchema = z.object({
   name: z.string().min(1).max(120),
-  slug: z
-    .string()
-    .min(2)
-    .max(48)
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
 });
 
 export async function POST(request: Request) {
@@ -37,14 +32,9 @@ export async function POST(request: Request) {
   }
 
   await connectMongoose();
-  const exists = await OrganizationModel.findOne({ slug: parsed.data.slug });
-  if (exists) {
-    return NextResponse.json({ error: 'Slug already taken' }, { status: 409 });
-  }
 
   const org = await OrganizationModel.create({
     name: parsed.data.name,
-    slug: parsed.data.slug,
     companyName: parsed.data.name,
   });
 

@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export default function OnboardingPage() {
   const router = useRouter();
   const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -30,7 +29,7 @@ export default function OnboardingPage() {
       const res = await fetch('/api/onboarding/organization', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, slug: slug.toLowerCase().trim() }),
+        body: JSON.stringify({ name }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -57,17 +56,6 @@ export default function OnboardingPage() {
             <div className="space-y-2">
               <Label htmlFor="name">Company name</Label>
               <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="slug">URL slug</Label>
-              <Input
-                id="slug"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                placeholder="acme-design"
-                required
-              />
-              <p className="text-xs text-muted-foreground">Lowercase letters, numbers, and hyphens only.</p>
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" className="w-full" disabled={loading}>

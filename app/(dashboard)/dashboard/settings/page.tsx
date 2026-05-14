@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export default function SettingsPage() {
   const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
+  const [orgId, setOrgId] = useState('');
   const [website, setWebsite] = useState('');
   const [message, setMessage] = useState<string | null>(null);
 
@@ -18,7 +18,7 @@ export default function SettingsPage() {
       .then((d) => {
         if (d.organization) {
           setName(String(d.organization.name || ''));
-          setSlug(String(d.organization.slug || ''));
+          setOrgId(String(d.organization._id || ''));
           setWebsite(String(d.organization.website || ''));
         }
       });
@@ -40,7 +40,7 @@ export default function SettingsPage() {
     <div className="max-w-lg space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground text-sm mt-1">Organization profile. Slug is fixed after creation.</p>
+        <p className="text-muted-foreground text-sm mt-1">Organization profile and public brand fields.</p>
       </div>
       <Card>
         <CardHeader>
@@ -54,8 +54,9 @@ export default function SettingsPage() {
               <Input value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Slug</Label>
-              <Input value={slug} disabled />
+              <Label>Organization ID</Label>
+              <Input value={orgId} disabled className="font-mono text-xs" />
+              <p className="text-xs text-muted-foreground">Internal reference for support and billing.</p>
             </div>
             <div className="space-y-2">
               <Label>Website</Label>

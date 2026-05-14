@@ -16,8 +16,10 @@ Auth is **Better Auth** (`/api/auth/*`). Marketing routes: `/`, `/pricing`, `/te
 
 ## Scripts (optional, DB maintenance)
 
-- `npm run seed` — demo organization (`slug: demo`) + default templates  
-- `npm run migrate:legacy` — import legacy `signatureSettings` into a new org (`slug: migrated-legacy`)  
+- `npm run seed` — demo organization (`Demo organization`) + default templates  
+- `npm run migrate:legacy` — import legacy `signatureSettings` into a new org (idempotent by name + companyName)  
 - `npm run verify:signature` — workspace smoke script for the signature engine
 
 These do not run on **Vercel** during deploy by default. Run only with a deliberate `MONGODB_URI` aligned with your **Vercel** **Production** (or staging **Preview**) secrets — see **SETUP.md**.
+
+If you upgraded from a build that stored **`slug`** on organizations, drop the old index in MongoDB if it remains (e.g. `db.organizations.dropIndex("slug_1")` when the field is gone). Optionally remove leftover values: `db.organizations.updateMany({}, { $unset: { slug: "" } })`.
