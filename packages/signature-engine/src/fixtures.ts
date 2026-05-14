@@ -23,6 +23,7 @@ export const mockSignatureBrand: SignatureBrand = {
     linkedin: 'https://www.linkedin.com/company/example',
     facebook: 'https://www.facebook.com/example',
     instagram: 'https://www.instagram.com/example',
+    reddit: 'https://www.reddit.com/user/example',
   },
   locations: {
     dallas: '123 Design Way, Dallas, TX',

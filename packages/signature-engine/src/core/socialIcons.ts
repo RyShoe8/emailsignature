@@ -5,3 +5,4 @@
 export const SOCIAL_ICON_LINKEDIN = '/email-assets/icon-linkedin.png';
 export const SOCIAL_ICON_FACEBOOK = '/email-assets/icon-facebook.png';
 export const SOCIAL_ICON_INSTAGRAM = '/email-assets/icon-instagram.png';
+export const SOCIAL_ICON_REDDIT = '/email-assets/icon-reddit.png';

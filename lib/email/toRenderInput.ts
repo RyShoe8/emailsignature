@@ -17,6 +17,7 @@ export type OrgBrandInput = {
     linkedin?: string;
     facebook?: string;
     instagram?: string;
+    reddit?: string;
   };
   /** Pro-only extras in UI; engine uses dallas/boulder/warehouse strings. */
   locations?: { dallas?: string; boulder?: string };
@@ -46,6 +47,7 @@ export function toSignatureBrand(input: OrgBrandInput): SignatureBrand {
       linkedin: input.socialLinks.linkedin?.trim() || undefined,
       facebook: input.socialLinks.facebook?.trim() || undefined,
       instagram: input.socialLinks.instagram?.trim() || undefined,
+      reddit: input.socialLinks.reddit?.trim() || undefined,
     },
     locations: {
       dallas: loc.dallas?.trim() || undefined,

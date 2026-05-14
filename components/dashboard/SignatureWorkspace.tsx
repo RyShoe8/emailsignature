@@ -27,7 +27,7 @@ type OrgResponse = {
   logoLink?: string;
   primaryColor?: string;
   fontFamily?: string;
-  socialLinks?: { linkedin?: string; facebook?: string; instagram?: string };
+  socialLinks?: { linkedin?: string; facebook?: string; instagram?: string; reddit?: string };
   locations?: { dallas?: string; boulder?: string };
   warehouseAddress?: string;
   animation?: { enabled?: boolean; gifUrl?: string };
@@ -56,6 +56,7 @@ function orgToBrand(org: OrgResponse, displayName: string): SignatureBrand {
       linkedin: sl.linkedin?.trim(),
       facebook: sl.facebook?.trim(),
       instagram: sl.instagram?.trim(),
+      reddit: sl.reddit?.trim(),
     },
     locations: {
       dallas: loc.dallas?.trim(),
@@ -86,6 +87,8 @@ export function SignatureWorkspace() {
   const [profile, setProfile] = useState<SignatureProfile>(defaultProfile);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileMessage, setProfileMessage] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [gmailConnected, setGmailConnected] = useState(false);
@@ -95,14 +98,16 @@ export function SignatureWorkspace() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [oRes, tRes, gRes] = await Promise.all([
+      const [oRes, tRes, gRes, pRes] = await Promise.all([
         fetch('/api/dashboard/organization', { credentials: 'include' }),
         fetch('/api/dashboard/templates', { credentials: 'include' }),
         fetch('/api/integrations/gmail/status', { credentials: 'include' }),
+        fetch('/api/dashboard/me/signature-profile', { credentials: 'include' }),
       ]);
       const oJson = await oRes.json();
       const tJson = await tRes.json();
       const gJson = await gRes.json().catch(() => ({}));
+      const pJson = await pRes.json().catch(() => ({}));
       if (oJson.organization) {
         const o = oJson.organization as OrgResponse;
         setOrg(o);
@@ -117,6 +122,18 @@ export function SignatureWorkspace() {
       } else {
         setGmailConnected(false);
         setGmailEmail('');
+      }
+      if (pJson.profile && typeof pJson.profile === 'object') {
+        const sp = pJson.profile as Partial<SignatureProfile>;
+        setProfile({
+          ...defaultProfile,
+          firstName: typeof sp.firstName === 'string' ? sp.firstName : defaultProfile.firstName,
+          lastName: typeof sp.lastName === 'string' ? sp.lastName : defaultProfile.lastName,
+          title: typeof sp.title === 'string' ? sp.title : defaultProfile.title,
+          email: typeof sp.email === 'string' ? sp.email : defaultProfile.email,
+          officePhone: typeof sp.officePhone === 'string' ? sp.officePhone : '',
+          mobilePhone: typeof sp.mobilePhone === 'string' ? sp.mobilePhone : '',
+        });
       }
     } finally {
       setLoading(false);
@@ -172,6 +189,50 @@ export function SignatureWorkspace() {
 
   const canCopy =
     Boolean(profile.firstName.trim() && profile.lastName.trim() && profile.email.trim() && engineTemplate);
+
+  const handleSaveProfile = async () => {
+    if (!profile.firstName.trim() || !profile.lastName.trim() || !profile.email.trim()) {
+      setProfileMessage('First name, last name, and email are required to save.');
+      return;
+    }
+    setSavingProfile(true);
+    setProfileMessage(null);
+    try {
+      const res = await fetch('/api/dashboard/me/signature-profile', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+          title: profile.title,
+          email: profile.email,
+          officePhone: profile.officePhone ?? '',
+          mobilePhone: profile.mobilePhone ?? '',
+        }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setProfileMessage(typeof j.error === 'string' ? j.error : 'Could not save your details');
+        return;
+      }
+      if (j.profile && typeof j.profile === 'object') {
+        const sp = j.profile as Partial<SignatureProfile>;
+        setProfile({
+          ...defaultProfile,
+          firstName: typeof sp.firstName === 'string' ? sp.firstName : profile.firstName,
+          lastName: typeof sp.lastName === 'string' ? sp.lastName : profile.lastName,
+          title: typeof sp.title === 'string' ? sp.title : profile.title,
+          email: typeof sp.email === 'string' ? sp.email : profile.email,
+          officePhone: typeof sp.officePhone === 'string' ? sp.officePhone : '',
+          mobilePhone: typeof sp.mobilePhone === 'string' ? sp.mobilePhone : '',
+        });
+      }
+      setProfileMessage('Saved. We will pre-fill these fields next time you open Signature.');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!org) return;
@@ -355,6 +416,20 @@ export function SignatureWorkspace() {
               />
             </div>
             <div className="space-y-2">
+              <Label>Reddit</Label>
+              <Input
+                type="url"
+                value={org.socialLinks?.reddit ?? ''}
+                onChange={(e) =>
+                  setOrg((o) => ({
+                    ...(o || {}),
+                    socialLinks: { ...(o?.socialLinks ?? {}), reddit: e.target.value },
+                  }))
+                }
+                placeholder="https://www.reddit.com/user/… or https://www.reddit.com/r/…"
+              />
+            </div>
+            <div className="space-y-2">
               <Label>Logo</Label>
               <div className="flex flex-wrap items-center gap-3">
                 <Input type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="max-w-xs" onChange={handleLogoFile} disabled={uploadingLogo} />
@@ -458,10 +533,19 @@ export function SignatureWorkspace() {
       <Card className="max-w-full">
         <CardHeader>
           <CardTitle>Live preview</CardTitle>
-          <CardDescription>Sample person — employees use their own saved details.</CardDescription>
+          <CardDescription>
+            Sample person for preview — save your details below so they persist when you return. Employees use their own
+            records on the employee page.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-8 max-w-full min-w-0">
           <SignatureForm value={profile} onChange={setProfile} />
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="button" variant="secondary" disabled={savingProfile} onClick={() => void handleSaveProfile()}>
+              {savingProfile ? 'Saving…' : 'Save my details'}
+            </Button>
+            {profileMessage ? <p className="text-sm text-muted-foreground">{profileMessage}</p> : null}
+          </div>
           <div className="grid grid-cols-1 gap-10 min-w-0">
             <div className="min-w-0 space-y-2">
               <p className="text-xs text-muted-foreground font-medium">Desktop</p>

@@ -51,6 +51,10 @@ assert.ok(
   htmlStandard.includes(`${iconBase}icon-instagram.png`),
   'standard: Instagram icon resolves to publicSiteOrigin /email-assets/'
 );
+assert.ok(
+  htmlStandard.includes(`${iconBase}icon-reddit.png`),
+  'standard: Reddit icon resolves to publicSiteOrigin /email-assets/'
+);
 assert.doesNotMatch(
   htmlStandard,
   /src="[^"]*\?v=/i,

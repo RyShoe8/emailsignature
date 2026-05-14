@@ -80,6 +80,9 @@ export const STACKED_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing="0
         {{#if hasInstagram}}
         <td style="{{socialTdIgStyle}}"><a href="{{instagram}}" style="text-decoration:none;border:0;outline:none;display:inline-block;"><img src="{{iconInstagram}}" width="16" height="16" border="0" alt="" style="display:block;border:0;outline:none;text-decoration:none;" /></a></td>
         {{/if}}
+        {{#if hasReddit}}
+        <td style="{{socialTdRedditStyle}}"><a href="{{reddit}}" style="text-decoration:none;border:0;outline:none;display:inline-block;"><img src="{{iconReddit}}" width="16" height="16" border="0" alt="" style="display:block;border:0;outline:none;text-decoration:none;" /></a></td>
+        {{/if}}
       </tr></table>
       {{/if}}
     </td>

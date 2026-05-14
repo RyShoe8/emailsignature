@@ -7,7 +7,7 @@ import type { SignatureTemplateDoc } from '@/models/SignatureTemplate';
 import { getPublicSiteOrigin } from '@/lib/siteOrigin';
 
 export function orgToBrandInput(org: OrganizationDoc): OrgBrandInput {
-  const sl = org.socialLinks as { linkedin?: string; facebook?: string; instagram?: string } | undefined;
+  const sl = org.socialLinks as { linkedin?: string; facebook?: string; instagram?: string; reddit?: string } | undefined;
   const loc = org.locations as { dallas?: string; boulder?: string } | undefined;
   return {
     companyName: (org.companyName || org.name || '').trim(),
@@ -20,6 +20,7 @@ export function orgToBrandInput(org: OrganizationDoc): OrgBrandInput {
       linkedin: sl?.linkedin,
       facebook: sl?.facebook,
       instagram: sl?.instagram,
+      reddit: sl?.reddit,
     },
     locations: { dallas: loc?.dallas, boulder: loc?.boulder },
     warehouseAddress: org.warehouseAddress ?? undefined,

@@ -22,6 +22,7 @@ const OrganizationSchema = new Schema(
       linkedin: { type: String },
       facebook: { type: String },
       instagram: { type: String },
+      reddit: { type: String },
     },
     locations: {
       dallas: { type: String },

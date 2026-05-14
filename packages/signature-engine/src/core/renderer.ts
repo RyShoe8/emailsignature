@@ -11,6 +11,7 @@ import {
   SOCIAL_ICON_FACEBOOK,
   SOCIAL_ICON_INSTAGRAM,
   SOCIAL_ICON_LINKEDIN,
+  SOCIAL_ICON_REDDIT,
 } from './socialIcons';
 
 type ElementType = SignatureElement['type'];
@@ -236,6 +237,10 @@ export function mergeRenderContext(
     hasSocial && brand.socialLinks.instagram?.trim()
       ? brand.socialLinks.instagram.trim()
       : '';
+  const reddit =
+    hasSocial && brand.socialLinks.reddit?.trim()
+      ? brand.socialLinks.reddit.trim()
+      : '';
 
   const dallas =
     hasLocations && brand.locations.dallas?.trim()
@@ -251,24 +256,30 @@ export function mergeRenderContext(
       ? brand.warehouseAddress.trim()
       : '';
 
-  const showSocialBlock = hasSocial && Boolean(linkedin || facebook || instagram);
+  const showSocialBlock = hasSocial && Boolean(linkedin || facebook || instagram || reddit);
 
   let socialTdLiStyle = '';
   let socialTdFbStyle = '';
   let socialTdIgStyle = '';
+  let socialTdRedditStyle = '';
   if (linkedin) {
     socialTdLiStyle =
-      facebook || instagram
+      facebook || instagram || reddit
         ? 'padding:0 8px 0 0;vertical-align:middle;'
         : 'padding:0;vertical-align:middle;';
   }
   if (facebook) {
-    socialTdFbStyle = instagram
+    socialTdFbStyle = instagram || reddit
       ? 'padding:0 8px 0 0;vertical-align:middle;'
       : 'padding:0;vertical-align:middle;';
   }
   if (instagram) {
-    socialTdIgStyle = 'padding:0;vertical-align:middle;';
+    socialTdIgStyle = reddit
+      ? 'padding:0 8px 0 0;vertical-align:middle;'
+      : 'padding:0;vertical-align:middle;';
+  }
+  if (reddit) {
+    socialTdRedditStyle = 'padding:0;vertical-align:middle;';
   }
 
   const showLocationsLines = hasLocations && Boolean(dallas || boulder);
@@ -297,6 +308,7 @@ export function mergeRenderContext(
     hasLinkedin: Boolean(linkedin),
     hasFacebook: Boolean(facebook),
     hasInstagram: Boolean(instagram),
+    hasReddit: Boolean(reddit),
     hasDallas: Boolean(dallas),
     hasBoulder: Boolean(boulder),
     hasLogoSizedHeight,
@@ -322,15 +334,18 @@ export function mergeRenderContext(
     linkedin: escapeHtml(linkedin),
     facebook: escapeHtml(facebook),
     instagram: escapeHtml(instagram),
+    reddit: escapeHtml(reddit),
     dallas: escapeHtml(dallas),
     boulder: escapeHtml(boulder),
     warehouseAddress: escapeHtml(warehouseAddress),
     iconLinkedin: normalizeImageUrl(ensureAbsolutePublicUrl(SOCIAL_ICON_LINKEDIN, origin)),
     iconFacebook: normalizeImageUrl(ensureAbsolutePublicUrl(SOCIAL_ICON_FACEBOOK, origin)),
     iconInstagram: normalizeImageUrl(ensureAbsolutePublicUrl(SOCIAL_ICON_INSTAGRAM, origin)),
+    iconReddit: normalizeImageUrl(ensureAbsolutePublicUrl(SOCIAL_ICON_REDDIT, origin)),
     socialTdLiStyle,
     socialTdFbStyle,
     socialTdIgStyle,
+    socialTdRedditStyle,
   };
 
   return { evalCtx, stringCtx };

@@ -20,6 +20,7 @@ export type SignatureBrand = {
     linkedin?: string;
     facebook?: string;
     instagram?: string;
+    reddit?: string;
   };
   locations: {
     dallas?: string;
