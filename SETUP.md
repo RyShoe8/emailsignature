@@ -1,0 +1,63 @@
+# Tailnote — Vercel deployment
+
+This Next.js app is built and run on **Vercel**. Connect your **Git** repository to a **Vercel Project**, then **push** to deploy **Production** or **Preview** deployments.
+
+Configure secrets in the **Vercel Dashboard** — you do not need a local `.env.local` for normal work.
+
+## Prerequisites
+
+- A **Vercel** account and a **Project** linked to this repo (**Vercel Dashboard** → **Add New…** → **Project** → import the Git repository).
+- **MongoDB Atlas** (or another MongoDB provider) — store the connection string in **Vercel** **Environment Variables**.
+- **Stripe** — API keys and a webhook endpoint aimed at your **Vercel** deployment URL (see below).
+- Optional: **Resend** (or SMTP) for password-reset email — implement `sendResetPassword` in `lib/auth/server.ts`.
+
+## Environment variables (Vercel Dashboard)
+
+**Vercel Dashboard** → your **Project** → **Settings** → **Environment Variables**.
+
+Add each variable for **Production** (and **Preview** if you want previews fully working). Names match `.env.example`:
+
+| Variable | Purpose |
+|----------|---------|
+| `MONGODB_URI` | Mongo connection string |
+| `MONGODB_DB_NAME` | Database name (default `emailsignature`) |
+| `BETTER_AUTH_SECRET` | Strong random secret for Better Auth |
+| `BETTER_AUTH_URL` | **Public origin** of this deployment (your **Vercel** URL or custom domain), e.g. `https://your-app.vercel.app` or `https://your-domain.com` |
+| `NEXT_PUBLIC_APP_URL` | Same value as `BETTER_AUTH_URL` (exposed to the browser for the auth client) |
+| `STRIPE_SECRET_KEY` | Stripe secret key |
+| `STRIPE_WEBHOOK_SECRET` | Webhook signing secret from Stripe (see below) |
+| `STRIPE_BASIC_PRICE_ID` | Yearly Basic Price id |
+| `STRIPE_PRO_PRICE_ID` | Yearly Pro Price id |
+
+`BETTER_AUTH_URL` and `NEXT_PUBLIC_APP_URL` must match the URL users open in the browser (**Vercel** default domain or your **Domains** entry), or sessions and redirects will break.
+
+After changing variables, trigger a new **deployment** (**Deployments** tab → **Redeploy** on the latest deployment, or push an empty commit).
+
+## Custom domains
+
+**Vercel Dashboard** → **Project** → **Settings** → **Domains** — add your domain and follow DNS instructions. Use the resulting **https** URL for `BETTER_AUTH_URL` and `NEXT_PUBLIC_APP_URL` in **Production**.
+
+## Stripe webhooks
+
+In the [Stripe Dashboard](https://dashboard.stripe.com/webhooks), create an endpoint whose URL is your live app on **Vercel**:
+
+- **URL:** `https://<your-vercel-or-custom-domain>/api/webhooks/stripe`
+- **Events (minimum):** `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
+
+Copy the endpoint **Signing secret** into `STRIPE_WEBHOOK_SECRET` in **Vercel** **Environment Variables** (**Production**), then **Redeploy**.
+
+## Build on Vercel
+
+**Vercel** installs dependencies and runs **`npm run build`** for this framework automatically on each push. Inspect logs under **Project** → **Deployments** → select a deployment → **Build Logs**.
+
+## One-off scripts (optional)
+
+`npm run seed` and `npm run migrate:legacy` are **not** run by **Vercel** during build by default. Run them only when you intend to change the database, from a context that uses the same `MONGODB_URI` as **Production** (for example your provider’s tooling, or a short workflow in the same Git repo with secrets aligned to **Vercel**). See `scripts/` for behavior; prefer a staging **Vercel Preview** + Preview env vars first.
+
+## Email password reset
+
+Wire `sendResetPassword` in `lib/auth/server.ts` to your mail provider for **Production** on **Vercel**. Until then, password reset is not suitable for real users.
+
+## Signature HTML engine
+
+The package `packages/signature-engine` is **frozen** for HTML output. See `packages/signature-engine/FROZEN.md`. App code maps presets and org/employee data into the engine via `lib/email/` and `lib/renderEmployeeSignature.ts`.

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
 
-export default function AdminIndexPage() {
-  redirect('/admin/signature');
+export default function AdminRootRedirect() {
+  redirect('/dashboard');
 }

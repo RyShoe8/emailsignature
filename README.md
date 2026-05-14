@@ -1,38 +1,20 @@
-# Email Signature
+# Tailnote
 
-Standalone Next.js app for building and saving organization-wide HTML email signatures (ported from an internal admin tool).
+SaaS for **professional company email signatures**: organizations, employees, curated templates, Stripe billing, and hosted previews. Signature **HTML** is produced by the frozen workspace package `emailsignature-engine` (see `packages/signature-engine/FROZEN.md`).
 
-## Setup
+## Deploy on Vercel
 
-1. Copy `.env.example` to `.env.local` and set:
+1. In the **Vercel Dashboard**, create a **Project** and import this **Git** repository.
+2. Add **Environment Variables** under **Project** → **Settings** → **Environment Variables** (see **[SETUP.md](./SETUP.md)** for the full list and Stripe webhook URL).
+3. **Push** to your connected branch; **Vercel** creates a **Production** or **Preview** **deployment** and runs **`npm run build`**.
 
-   - `MONGODB_URI` — MongoDB connection string (use a **dedicated database** for this app, not shared with other sites).
-   - `MONGODB_DB_NAME` — optional; defaults to `emailsignature`.
-   - `NEXTAUTH_SECRET` — generate a random string for production.
-   - `NEXTAUTH_URL` — e.g. `http://localhost:3000` locally, or your deployed URL.
+To confirm a build before merging, open the **Pull Request** on GitHub and use the **Vercel** **Preview Deployment** link, or check **Build Logs** on the deployment.
 
-2. Install dependencies and run:
+Auth is **Better Auth** (`/api/auth/*`). Marketing routes: `/`, `/pricing`, `/templates`. App shell: `/dashboard/*`.
 
-   ```bash
-   npm install
-   npm run dev
-   ```
+## Scripts (optional, DB maintenance)
 
-3. Create at least one user in MongoDB `users` collection with a **bcrypt-hashed** password and `role: "admin"` (required to save organization settings). Example using Node:
+- `npm run seed` — demo organization (`slug: demo`) + default templates  
+- `npm run migrate:legacy` — import legacy `signatureSettings` into a new org (`slug: migrated-legacy`)
 
-   ```js
-   const bcrypt = require('bcryptjs');
-   console.log(await bcrypt.hash('your-password', 10));
-   ```
-
-   Insert `{ email, password: '<hash>', role: 'admin', createdAt: new Date(), updatedAt: new Date() }`.
-
-4. Open [http://localhost:3000](http://localhost:3000) — sign in at `/admin/login`, edit branding under **Organization signature**, save.
-
-## Project layout
-
-- `packages/signature-engine` — published locally as npm workspace package `emailsignature-engine` (rendering + types).
-- `app/admin/signature` — admin UI.
-- `app/api/admin/signature` — loads/saves org settings (`signatureSettings` collection, `scope: 'organization'`).
-
-Replace placeholder logo URLs, social icon URLs (defaults use remote placeholders), and mock defaults after first deploy.
+These do not run on **Vercel** during deploy by default. Run only with a deliberate `MONGODB_URI` aligned with your **Vercel** **Production** (or staging **Preview**) secrets — see **SETUP.md**.

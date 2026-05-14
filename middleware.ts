@@ -1,52 +1,52 @@
-import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { getSessionCookie } from 'better-auth/cookies';
 
-export default withAuth(
-  function middleware(req) {
-    const token = req.nextauth.token;
-    const isLoginPage = req.nextUrl.pathname === '/admin/login';
-    const isAdminPageRoute = req.nextUrl.pathname.startsWith('/admin');
-    const isAdminApiRoute = req.nextUrl.pathname.startsWith('/api/admin');
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
 
-    if (isLoginPage) {
-      return NextResponse.next();
+  if (pathname === '/onboarding') {
+    const token = getSessionCookie(request);
+    if (!token) {
+      return NextResponse.redirect(new URL('/login', request.url));
     }
-
-    if (isAdminPageRoute && !token) {
-      return NextResponse.redirect(new URL('/admin/login', req.url));
-    }
-
-    if (isAdminApiRoute && !token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ token, req }) => {
-        const isLoginPage = req.nextUrl.pathname === '/admin/login';
-        const isAdminPageRoute = req.nextUrl.pathname.startsWith('/admin');
-        const isAdminApiRoute = req.nextUrl.pathname.startsWith('/api/admin');
-
-        if (isLoginPage) {
-          return true;
-        }
-
-        if (isAdminPageRoute) {
-          return !!token;
-        }
-
-        if (isAdminApiRoute) {
-          return !!token;
-        }
-
-        return true;
-      },
-    },
   }
-);
+
+  if (pathname.startsWith('/admin')) {
+    if (pathname.startsWith('/admin/login')) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+    const suffix = pathname === '/admin' ? '' : pathname.replace(/^\/admin/, '');
+    return NextResponse.redirect(new URL(`/dashboard${suffix || ''}`, request.url));
+  }
+
+  const needsAuth =
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/api/dashboard') ||
+    pathname.startsWith('/api/stripe/checkout') ||
+    pathname.startsWith('/api/stripe/portal') ||
+    pathname.startsWith('/api/onboarding');
+
+  if (needsAuth) {
+    const token = getSessionCookie(request);
+    if (!token) {
+      const login = new URL('/login', request.url);
+      login.searchParams.set('next', pathname);
+      return NextResponse.redirect(login);
+    }
+  }
+
+  return NextResponse.next();
+}
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/admin/:path*'],
+  matcher: [
+    '/onboarding',
+    '/admin/:path*',
+    '/dashboard/:path*',
+    '/api/dashboard/:path*',
+    '/api/stripe/checkout',
+    '/api/stripe/portal',
+    '/api/onboarding/:path*',
+  ],
 };
