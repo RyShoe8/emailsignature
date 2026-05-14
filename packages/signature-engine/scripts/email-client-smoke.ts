@@ -25,13 +25,33 @@ const htmlStandard = renderSignature({
 
 assert.match(
   htmlStandard,
-  /height="134"/,
-  'standard: static logo gets explicit height when logoHeightPx unset (measured SBD ratio fallback)'
+  /height:auto/,
+  'standard: generic static logo uses height:auto so aspect ratio is preserved'
 );
 assert.doesNotMatch(
   htmlStandard,
+  /height="134"/,
+  'standard: generic logo must not use SBD-only measured height'
+);
+
+const htmlStandardSbd = renderSignature({
+  profile,
+  brand: {
+    ...mockSignatureBrand,
+    logoUrl: 'https://seniorbydesign.com/email-assets/sbd-logo.png',
+  },
+  template: mockSignatureTemplate('standard'),
+  publicSiteOrigin: origin,
+});
+assert.match(
+  htmlStandardSbd,
+  /height="134"/,
+  'standard: canonical SBD static asset keeps explicit height for email clients'
+);
+assert.doesNotMatch(
+  htmlStandardSbd,
   /height:auto/,
-  'standard: static logo avoids height:auto so Gmail keeps proportion'
+  'standard: SBD static logo avoids height:auto so Gmail keeps proportion'
 );
 assert.match(
   htmlStandard,
@@ -78,12 +98,19 @@ const htmlStacked = renderSignature({
   template: mockSignatureTemplate('stacked'),
   publicSiteOrigin: origin,
 });
-assert.match(
-  htmlStacked,
-  /height="134"/,
-  'stacked: static logo gets explicit height when logoHeightPx unset'
-);
-assert.doesNotMatch(htmlStacked, /height:auto/, 'stacked: static logo avoids height:auto');
+assert.match(htmlStacked, /height:auto/, 'stacked: generic static logo uses height:auto');
+
+const htmlStackedSbd = renderSignature({
+  profile,
+  brand: {
+    ...mockSignatureBrand,
+    logoUrl: 'https://seniorbydesign.com/email-assets/sbd-logo.png',
+  },
+  template: mockSignatureTemplate('stacked'),
+  publicSiteOrigin: origin,
+});
+assert.match(htmlStackedSbd, /height="134"/, 'stacked: canonical SBD asset keeps explicit height');
+assert.doesNotMatch(htmlStackedSbd, /height:auto/, 'stacked: SBD static logo avoids height:auto');
 
 const htmlAnimatedLogo = renderSignature({
   profile,

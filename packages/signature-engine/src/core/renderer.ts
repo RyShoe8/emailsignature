@@ -34,16 +34,9 @@ const LOGO_SBD_NO_TAGLINE_HEIGHT_AT_110 = Math.round(
   LOGO_DISPLAY_WIDTH_PX * (LOGO_SBD_NO_TAGLINE_NATURAL_HEIGHT / LOGO_SBD_NO_TAGLINE_NATURAL_WIDTH)
 );
 
-/**
- * Static logo height at {@link LOGO_DISPLAY_WIDTH_PX}px width when admin does not set logoHeightPx.
- * Canonical SBD asset uses measured aspect ratio; other URLs use the same ratio as a conservative
- * fallback (custom logos: set Logo height in admin until natural dimensions are modeled).
- */
-function staticLogoHeightAt110Px(absoluteLogoUrl: string): number {
-  if (/(?:email-assets\/sbd-logo|sbd-logo-no-tagline)/i.test(absoluteLogoUrl)) {
-    return LOGO_SBD_NO_TAGLINE_HEIGHT_AT_110;
-  }
-  return LOGO_SBD_NO_TAGLINE_HEIGHT_AT_110;
+/** True when the logo URL is the canonical Senior By Design static asset (known natural dimensions). */
+function isCanonicalSbdStaticLogoUrl(absoluteLogoUrl: string): boolean {
+  return /(?:email-assets\/sbd-logo|sbd-logo-no-tagline)/i.test(absoluteLogoUrl);
 }
 
 function stripTrailingSlash(u: string): string {
@@ -267,8 +260,10 @@ export function mergeRenderContext(
       logoDisplayHeightStr = String(logoHeightPxRounded);
     } else if (useAnimation) {
       logoDisplayHeightStr = '';
+    } else if (isCanonicalSbdStaticLogoUrl(logoUrl)) {
+      logoDisplayHeightStr = String(LOGO_SBD_NO_TAGLINE_HEIGHT_AT_110);
     } else {
-      logoDisplayHeightStr = String(staticLogoHeightAt110Px(logoUrl));
+      logoDisplayHeightStr = '';
     }
   }
   const hasLogoSizedHeight = hasLogo && logoDisplayHeightStr !== '';
