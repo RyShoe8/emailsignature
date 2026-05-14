@@ -1,0 +1,156 @@
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { renderSignature, type RenderSignatureInput } from 'emailsignature-engine';
+import { connectMongoose } from '@/lib/mongoose';
+import { getServerSession } from '@/lib/auth/session';
+import { OrganizationModel } from '@/models/Organization';
+import { SignatureTemplateModel } from '@/models/SignatureTemplate';
+import { UserSignatureProfileModel } from '@/models/UserSignatureProfile';
+import { buildRenderInput, type EmployeeProfileInput } from '@/lib/email/toRenderInput';
+import { EmployeeModel } from '@/models/Employee';
+import { employeeToProfile, mergeEmployeeSocialIntoOrgBrand, orgToBrandInput } from '@/lib/renderEmployeeSignature';
+import { engineTemplateFromStoredConfig, type TemplatePresetId } from '@/lib/email/templatePresets';
+import { appendSignatureClickTrackingIfEnabled } from '@/lib/signatureTrackingHtml';
+
+export const dynamic = 'force-dynamic';
+
+const BodySchema = z.object({
+  templateId: z.string().min(1),
+  /** When set, tracking tokens include this employee; LinkedIn merge uses `linkedin` body or saved employee. */
+  employeeId: z.string().min(1).optional(),
+  linkedin: z.string().trim().max(500).optional(),
+  profile: z
+    .object({
+      firstName: z.string().trim().max(120),
+      lastName: z.string().trim().max(120),
+      title: z.string().trim().max(200),
+      email: z.string().trim().email().max(320),
+      officePhone: z.string().trim().max(80).optional(),
+      mobilePhone: z.string().trim().max(80).optional(),
+    })
+    .optional(),
+});
+
+type SessionUser = { id?: string; organizationId?: string };
+
+export async function POST(request: Request) {
+  const session = await getServerSession();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  const user = session.user as SessionUser;
+  if (!user.organizationId) {
+    return NextResponse.json({ error: 'No organization' }, { status: 400 });
+  }
+
+  let json: unknown;
+  try {
+    json = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
+  const parsed = BodySchema.safeParse(json);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues.map((i) => i.message).join(' ') }, { status: 400 });
+  }
+
+  await connectMongoose();
+  const org = await OrganizationModel.findById(user.organizationId);
+  if (!org) {
+    return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
+  }
+
+  const tmpl = await SignatureTemplateModel.findOne({
+    _id: parsed.data.templateId,
+    organizationId: org._id,
+  });
+  if (!tmpl) {
+    return NextResponse.json({ error: 'Template not found' }, { status: 404 });
+  }
+
+  let employeeIdForTracking: string | undefined;
+  let employee: EmployeeProfileInput;
+  let orgBrand = orgToBrandInput(org as never);
+
+  if (parsed.data.employeeId) {
+    const empDoc = await EmployeeModel.findOne({
+      _id: parsed.data.employeeId,
+      organizationId: org._id,
+    });
+    if (!empDoc) {
+      return NextResponse.json({ error: 'Employee not found' }, { status: 404 });
+    }
+    employeeIdForTracking = String(empDoc._id);
+    const li = parsed.data.linkedin ?? (typeof empDoc.linkedin === 'string' ? empDoc.linkedin : '');
+    orgBrand = mergeEmployeeSocialIntoOrgBrand(org as never, { linkedin: li });
+
+    if (parsed.data.profile) {
+      const p = parsed.data.profile;
+      employee = {
+        firstName: p.firstName,
+        lastName: p.lastName,
+        title: p.title,
+        email: p.email,
+        officePhone: p.officePhone ?? '',
+        mobilePhone: p.mobilePhone ?? '',
+      };
+    } else {
+      employee = employeeToProfile(empDoc);
+    }
+  } else if (parsed.data.profile) {
+    const p = parsed.data.profile;
+    employee = {
+      firstName: p.firstName,
+      lastName: p.lastName,
+      title: p.title,
+      email: p.email,
+      officePhone: p.officePhone ?? '',
+      mobilePhone: p.mobilePhone ?? '',
+    };
+  } else {
+    const row = await UserSignatureProfileModel.findOne({ userId: user.id }).lean();
+    if (!row) {
+      return NextResponse.json({ error: 'No saved profile; pass profile in request body' }, { status: 400 });
+    }
+    employee = {
+      firstName: row.firstName,
+      lastName: row.lastName,
+      title: row.title,
+      email: row.email,
+      officePhone: row.officePhone ?? '',
+      mobilePhone: row.mobilePhone ?? '',
+    };
+  }
+
+  const presetId = tmpl.presetId as TemplatePresetId;
+  const includeAnimation = org.plan === 'pro' && Boolean(tmpl.includeAnimationSlot);
+  const template = engineTemplateFromStoredConfig({
+    templateId: tmpl._id.toString(),
+    name: tmpl.name,
+    presetId,
+    includeAnimationSlot: includeAnimation,
+  });
+
+  const publicSiteOrigin = new URL(request.url).origin;
+  const renderInput: RenderSignatureInput = {
+    ...buildRenderInput({
+      orgBrand,
+      employee,
+      template,
+      publicSiteOrigin,
+    }),
+    publicSiteOrigin,
+  };
+
+  let html = renderSignature(renderInput);
+  html = appendSignatureClickTrackingIfEnabled({
+    html,
+    org: org as never,
+    organizationId: String(org._id),
+    employeeId: employeeIdForTracking,
+    input: renderInput,
+    baseUrl: publicSiteOrigin,
+  });
+
+  return NextResponse.json({ html });
+}

@@ -21,6 +21,7 @@ const PATCHABLE_FIELDS = [
   'locations',
   'warehouseAddress',
   'animation',
+  'signatureClickTrackingEnabled',
 ] as const;
 
 type PatchableField = (typeof PATCHABLE_FIELDS)[number];

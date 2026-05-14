@@ -27,7 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <aside className="w-56 shrink-0 border-r bg-muted/20 p-4 flex flex-col gap-6">
         <div>
           <Link href="/dashboard" className="block shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm">
-            <TailnoteLogo heightClass="h-9" />
+            <TailnoteLogo heightClass="h-12 md:h-14" />
           </Link>
           {user.email && <p className="text-xs text-muted-foreground mt-1 truncate">{user.email}</p>}
         </div>

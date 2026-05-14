@@ -1,0 +1,153 @@
+import { load } from 'cheerio';
+import { mergeRenderContext, type RenderSignatureInput } from 'emailsignature-engine';
+import type { OrganizationDoc } from '@/models/Organization';
+import type { SignatureClickKind } from '@/models/SignatureClickEvent';
+import { createSignatureTrackingToken } from '@/lib/signatureTrackingToken';
+import { getSignatureTrackingSecret } from '@/lib/signatureTrackingSecret';
+
+function decodeHtmlEntities(s: string): string {
+  return s
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#x27;/g, "'");
+}
+
+function stripTrailingSlash(u: string): string {
+  return u.replace(/\/+$/, '');
+}
+
+function normalizeHref(raw: string): string {
+  const t = decodeHtmlEntities(raw).trim();
+  if (!t) return '';
+  if (/^mailto:/i.test(t)) return t;
+  if (/^tel:/i.test(t)) return t.replace(/\s/g, '');
+  try {
+    return new URL(t).href;
+  } catch {
+    return t;
+  }
+}
+
+function classifyAnchor(
+  hrefRaw: string,
+  hasImg: boolean,
+  ctx: {
+    socialByHref: Map<string, SignatureClickKind>;
+    logoHrefNorm: string;
+    mailtoNorm: string;
+    officeTelNorm: string;
+    mobileTelNorm: string;
+    websiteNorm: string;
+  }
+): SignatureClickKind | null {
+  const h = normalizeHref(hrefRaw);
+  if (!h) return null;
+  if (hasImg) {
+    const sk = ctx.socialByHref.get(h);
+    if (sk) return sk;
+    if (ctx.logoHrefNorm && h === ctx.logoHrefNorm) return 'logo';
+    return null;
+  }
+  if (ctx.mailtoNorm && h === ctx.mailtoNorm) return 'email';
+  if (ctx.officeTelNorm && h === ctx.officeTelNorm) return 'office_phone';
+  if (ctx.mobileTelNorm && h === ctx.mobileTelNorm) return 'mobile_phone';
+  if (ctx.websiteNorm && h === ctx.websiteNorm) return 'website';
+  return null;
+}
+
+function buildClassificationContext(input: RenderSignatureInput) {
+  const origin = stripTrailingSlash(
+    (input.publicSiteOrigin ?? 'http://localhost:3000').trim() || 'http://localhost:3000'
+  );
+  const { stringCtx } = mergeRenderContext(input.profile, input.brand, input.template, origin);
+  const dec = decodeHtmlEntities;
+
+  const socialByHref = new Map<string, SignatureClickKind>();
+  for (const [val, kind] of [
+    [stringCtx.linkedin, 'social_linkedin'],
+    [stringCtx.facebook, 'social_facebook'],
+    [stringCtx.instagram, 'social_instagram'],
+    [stringCtx.reddit, 'social_reddit'],
+  ] as const) {
+    const v = dec(val);
+    if (v) socialByHref.set(normalizeHref(v), kind);
+  }
+
+  const logoHrefNorm = stringCtx.logoLink ? normalizeHref(dec(stringCtx.logoLink)) : '';
+  const mailtoNorm = stringCtx.email ? normalizeHref(`mailto:${dec(stringCtx.email)}`) : '';
+  const officeTelNorm = stringCtx.officePhoneTelHref ? normalizeHref(dec(stringCtx.officePhoneTelHref)) : '';
+  const mobileTelNorm = stringCtx.mobilePhoneTelHref ? normalizeHref(dec(stringCtx.mobilePhoneTelHref)) : '';
+  const websiteNorm = stringCtx.website ? normalizeHref(dec(stringCtx.website)) : '';
+
+  return { socialByHref, logoHrefNorm, mailtoNorm, officeTelNorm, mobileTelNorm, websiteNorm };
+}
+
+/**
+ * Rewrites trackable `<a href>` values to signed `/api/track/signature` URLs.
+ * Caller must pass organizationId (and optional employeeId) for attribution.
+ */
+export function appendSignatureClickTracking(args: {
+  html: string;
+  organizationId: string;
+  employeeId?: string;
+  input: RenderSignatureInput;
+  baseUrl: string;
+}): string {
+  const secret = getSignatureTrackingSecret();
+  if (!secret || !args.html.trim()) return args.html;
+
+  const ctx = buildClassificationContext(args.input);
+  const root = stripTrailingSlash(args.baseUrl.trim());
+  const $ = load(args.html, null, false);
+
+  $('a[href]').each((_, el) => {
+    const $a = $(el);
+    const rawHref = $a.attr('href');
+    if (!rawHref || rawHref.startsWith('#')) return;
+    const hasImg = $a.find('img').length > 0;
+    const kind = classifyAnchor(rawHref, hasImg, ctx);
+    if (!kind) return;
+    const destination = decodeHtmlEntities(rawHref).trim();
+    if (!destination) return;
+    let token: string;
+    try {
+      token = createSignatureTrackingToken(
+        {
+          organizationId: args.organizationId,
+          employeeId: args.employeeId,
+          kind,
+          destination,
+        },
+        secret
+      );
+    } catch {
+      return;
+    }
+    const trackUrl = `${root}/api/track/signature?t=${encodeURIComponent(token)}`;
+    $a.attr('href', trackUrl);
+  });
+
+  return $.html();
+}
+
+export function appendSignatureClickTrackingIfEnabled(args: {
+  html: string;
+  org: OrganizationDoc & { signatureClickTrackingEnabled?: boolean };
+  organizationId: string;
+  employeeId?: string;
+  input: RenderSignatureInput;
+  baseUrl: string;
+}): string {
+  if (!args.org.signatureClickTrackingEnabled) return args.html;
+  if (!getSignatureTrackingSecret()) return args.html;
+  return appendSignatureClickTracking({
+    html: args.html,
+    organizationId: args.organizationId,
+    employeeId: args.employeeId,
+    input: args.input,
+    baseUrl: args.baseUrl,
+  });
+}

@@ -33,6 +33,7 @@ type OrgResponse = {
   animation?: { enabled?: boolean; gifUrl?: string };
   name?: string;
   plan?: string;
+  signatureClickTrackingEnabled?: boolean;
 };
 
 type TemplateRow = {
@@ -94,6 +95,8 @@ export function SignatureWorkspace() {
   const [gmailConnected, setGmailConnected] = useState(false);
   const [gmailEmail, setGmailEmail] = useState('');
   const [gmailBusy, setGmailBusy] = useState(false);
+  /** Server-rendered HTML with signed tracking URLs when org flag is on. */
+  const [trackedHtml, setTrackedHtml] = useState<string | null>(null);
   /** Bumps after mount so signature HTML re-renders with real `window` origin (SSR memo used localhost). */
   const [assetOriginNonce, setAssetOriginNonce] = useState(0);
 
@@ -193,6 +196,82 @@ export function SignatureWorkspace() {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- assetOriginNonce forces post-mount recompute so preview URLs use window origin, not SSR fallback
   }, [profile, brand, engineTemplate, assetOriginNonce]);
+
+  useEffect(() => {
+    if (!org?.signatureClickTrackingEnabled || !selectedTemplateId || !engineTemplate) {
+      setTrackedHtml(null);
+      return;
+    }
+    if (!profile.firstName.trim() || !profile.lastName.trim() || !profile.email.trim()) {
+      setTrackedHtml(null);
+      return;
+    }
+    const ac = new AbortController();
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        try {
+          const res = await fetch('/api/dashboard/me/signature-html', {
+            method: 'POST',
+            credentials: 'include',
+            signal: ac.signal,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              templateId: selectedTemplateId,
+              profile: {
+                firstName: profile.firstName,
+                lastName: profile.lastName,
+                title: profile.title,
+                email: profile.email,
+                officePhone: profile.officePhone ?? '',
+                mobilePhone: profile.mobilePhone ?? '',
+              },
+            }),
+          });
+          const j = (await res.json().catch(() => ({}))) as { html?: unknown };
+          if (!res.ok || typeof j.html !== 'string') {
+            setTrackedHtml(null);
+            return;
+          }
+          setTrackedHtml(j.html);
+        } catch (e) {
+          if ((e as Error).name === 'AbortError') return;
+          setTrackedHtml(null);
+        }
+      })();
+    }, 450);
+    return () => {
+      ac.abort();
+      window.clearTimeout(timer);
+    };
+  }, [
+    org?.signatureClickTrackingEnabled,
+    selectedTemplateId,
+    profile.firstName,
+    profile.lastName,
+    profile.title,
+    profile.email,
+    profile.officePhone,
+    profile.mobilePhone,
+    brand.website,
+    brand.logoUrl,
+    brand.logoLink,
+    brand.primaryColor,
+    brand.fontFamily,
+    brand.socialLinks?.linkedin,
+    brand.socialLinks?.facebook,
+    brand.socialLinks?.instagram,
+    brand.socialLinks?.reddit,
+    brand.locations?.dallas,
+    brand.locations?.boulder,
+    brand.warehouseAddress,
+    brand.animation?.enabled,
+    brand.animation?.gifUrl,
+    org?.plan,
+    engineTemplate,
+    assetOriginNonce,
+  ]);
+
+  const previewHtml = trackedHtml ?? html;
 
   const canCopy =
     Boolean(profile.firstName.trim() && profile.lastName.trim() && profile.email.trim() && engineTemplate);
@@ -306,7 +385,7 @@ export function SignatureWorkspace() {
   };
 
   const handleApplyGmail = async () => {
-    if (!html.trim()) return;
+    if (!previewHtml.trim()) return;
     setGmailBusy(true);
     setMessage(null);
     try {
@@ -314,7 +393,7 @@ export function SignatureWorkspace() {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ html }),
+        body: JSON.stringify({ html: previewHtml }),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -556,21 +635,21 @@ export function SignatureWorkspace() {
           <div className="grid grid-cols-1 gap-10 min-w-0">
             <div className="min-w-0 space-y-2">
               <p className="text-xs text-muted-foreground font-medium">Desktop</p>
-              <SignaturePreviewFrame html={html} variant="desktop" />
+              <SignaturePreviewFrame html={previewHtml} variant="desktop" />
             </div>
             <div className="min-w-0 space-y-2">
               <p className="text-xs text-muted-foreground font-medium">Mobile</p>
-              <SignaturePreviewFrame html={html} variant="mobile" />
+              <SignaturePreviewFrame html={previewHtml} variant="mobile" />
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <CopySignatureButton html={html} disabled={!canCopy} />
-            <CopyRichTextButton html={html} disabled={!canCopy} />
+            <CopySignatureButton html={previewHtml} disabled={!canCopy} />
+            <CopyRichTextButton html={previewHtml} disabled={!canCopy} />
             <Button
               type="button"
               variant="outline"
               disabled={!canCopy}
-              onClick={() => downloadHtml('tailnote-signature.html', html)}
+              onClick={() => downloadHtml('tailnote-signature.html', previewHtml)}
             >
               Download HTML
             </Button>

@@ -33,6 +33,8 @@ const OrganizationSchema = new Schema(
       enabled: { type: Boolean, default: false },
       gifUrl: { type: String },
     },
+    /** When true, signature links are rewritten through /api/track/signature for click analytics. */
+    signatureClickTrackingEnabled: { type: Boolean, default: false },
   },
   { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } }
 );

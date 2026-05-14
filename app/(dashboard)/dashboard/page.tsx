@@ -1,10 +1,16 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import mongoose from 'mongoose';
 import { getServerSession } from '@/lib/auth/session';
 import { connectMongoose } from '@/lib/mongoose';
 import { EmployeeModel } from '@/models/Employee';
 import { SignatureTemplateModel } from '@/models/SignatureTemplate';
+import { SignatureClickEventModel } from '@/models/SignatureClickEvent';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+function sumKinds(byKind: Record<string, number>, keys: string[]) {
+  return keys.reduce((acc, k) => acc + (byKind[k] ?? 0), 0);
+}
 
 export default async function DashboardHomePage() {
   const session = await getServerSession();
@@ -14,10 +20,33 @@ export default async function DashboardHomePage() {
     redirect('/onboarding');
   }
   await connectMongoose();
-  const [employees, templates] = await Promise.all([
+  const oid = new mongoose.Types.ObjectId(user.organizationId);
+  const since30 = new Date(Date.now() - 30 * 86400000);
+
+  const [employees, templates, clickAgg] = await Promise.all([
     EmployeeModel.countDocuments({ organizationId: user.organizationId }),
     SignatureTemplateModel.countDocuments({ organizationId: user.organizationId }),
+    SignatureClickEventModel.aggregate<{ _id: string; count: number }>([
+      { $match: { organizationId: oid, createdAt: { $gte: since30 } } },
+      { $group: { _id: '$kind', count: { $sum: 1 } } },
+    ]),
   ]);
+
+  const byKind: Record<string, number> = {};
+  for (const row of clickAgg) {
+    byKind[row._id] = row.count;
+  }
+
+  const logoClicks = byKind.logo ?? 0;
+  const websiteClicks = byKind.website ?? 0;
+  const phoneClicks = sumKinds(byKind, ['office_phone', 'mobile_phone']);
+  const socialClicks = sumKinds(byKind, [
+    'social_linkedin',
+    'social_facebook',
+    'social_instagram',
+    'social_reddit',
+  ]);
+  const emailClicks = byKind.email ?? 0;
 
   return (
     <div className="space-y-8 max-w-3xl">
@@ -50,6 +79,60 @@ export default async function DashboardHomePage() {
             </Link>
           </CardContent>
         </Card>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold tracking-tight mb-1">Signature clicks (last 30 days)</h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          Counts when recipients follow links in sent signatures. Enable tracking under Settings.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardTitle>Logo</CardTitle>
+              <CardDescription>Logo link clicks</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold">{logoClicks}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Website</CardTitle>
+              <CardDescription>Website URL in signature</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold">{websiteClicks}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Email</CardTitle>
+              <CardDescription>mailto: link clicks</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold">{emailClicks}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Phone</CardTitle>
+              <CardDescription>Office + mobile tel: links</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold">{phoneClicks}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Social</CardTitle>
+              <CardDescription>LinkedIn, Facebook, Instagram, Reddit</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold">{socialClicks}</p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

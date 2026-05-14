@@ -10,6 +10,7 @@ export default function SettingsPage() {
   const [name, setName] = useState('');
   const [orgId, setOrgId] = useState('');
   const [website, setWebsite] = useState('');
+  const [signatureClickTrackingEnabled, setSignatureClickTrackingEnabled] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -17,9 +18,16 @@ export default function SettingsPage() {
       .then((r) => r.json())
       .then((d) => {
         if (d.organization) {
-          setName(String(d.organization.name || ''));
-          setOrgId(String(d.organization._id || ''));
-          setWebsite(String(d.organization.website || ''));
+          const o = d.organization as {
+            name?: string;
+            _id?: string;
+            website?: string;
+            signatureClickTrackingEnabled?: boolean;
+          };
+          setName(String(o.name || ''));
+          setOrgId(String(o._id || ''));
+          setWebsite(String(o.website || ''));
+          setSignatureClickTrackingEnabled(Boolean(o.signatureClickTrackingEnabled));
         }
       });
   }, []);
@@ -30,10 +38,13 @@ export default function SettingsPage() {
     const res = await fetch('/api/dashboard/organization', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, website }),
+      body: JSON.stringify({ name, website, signatureClickTrackingEnabled }),
     });
     if (res.ok) setMessage('Saved');
-    else setMessage('Could not save');
+    else {
+      const j = await res.json().catch(() => ({}));
+      setMessage(typeof j.error === 'string' ? j.error : 'Could not save');
+    }
   }
 
   return (
@@ -61,6 +72,25 @@ export default function SettingsPage() {
             <div className="space-y-2">
               <Label>Website</Label>
               <Input value={website} onChange={(e) => setWebsite(e.target.value)} />
+            </div>
+            <div className="flex items-start gap-3 rounded-md border p-3">
+              <input
+                id="signatureClickTrackingEnabled"
+                type="checkbox"
+                className="mt-1 h-4 w-4 rounded border-input"
+                checked={signatureClickTrackingEnabled}
+                onChange={(e) => setSignatureClickTrackingEnabled(e.target.checked)}
+              />
+              <div className="space-y-1">
+                <Label htmlFor="signatureClickTrackingEnabled" className="cursor-pointer font-normal leading-snug">
+                  Log signature link clicks (analytics)
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  When enabled, links in rendered signatures go through a signed redirect that records click counts by
+                  link type (logo, website, email, phone, social). Requires{' '}
+                  <code className="text-[11px]">SIGNATURE_TRACKING_SECRET</code> or auth secret in production.
+                </p>
+              </div>
             </div>
             {message && <p className="text-sm text-muted-foreground">{message}</p>}
             <Button type="submit">Save</Button>

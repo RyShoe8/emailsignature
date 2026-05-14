@@ -7,7 +7,7 @@ export function SiteHeader() {
     <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="mx-auto flex min-h-28 md:min-h-32 items-center justify-between gap-4 px-4 py-3 max-w-5xl">
         <Link href="/" className="flex items-center shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm">
-          <TailnoteLogo heightClass="h-24 sm:h-28 md:h-32" priority />
+          <TailnoteLogo heightClass="h-28 sm:h-32 md:h-36" priority />
         </Link>
         <nav className="flex items-center gap-6 text-sm text-muted-foreground">
           <Link href="/pricing" className="hover:text-foreground transition-colors">

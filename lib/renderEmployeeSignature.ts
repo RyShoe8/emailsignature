@@ -1,10 +1,11 @@
-import { renderSignature } from 'emailsignature-engine';
+import { renderSignature, type RenderSignatureInput } from 'emailsignature-engine';
 import { buildRenderInput, type OrgBrandInput, type EmployeeProfileInput } from '@/lib/email/toRenderInput';
 import { engineTemplateFromStoredConfig, type TemplatePresetId } from '@/lib/email/templatePresets';
 import type { OrganizationDoc } from '@/models/Organization';
 import type { EmployeeDoc } from '@/models/Employee';
 import type { SignatureTemplateDoc } from '@/models/SignatureTemplate';
 import { getSignatureAssetOrigin } from '@/lib/siteOrigin';
+import { appendSignatureClickTrackingIfEnabled } from '@/lib/signatureTrackingHtml';
 
 export function orgToBrandInput(org: OrganizationDoc): OrgBrandInput {
   const sl = org.socialLinks as { linkedin?: string; facebook?: string; instagram?: string; reddit?: string } | undefined;
@@ -69,12 +70,23 @@ export function renderSignatureForEmployee(
     includeAnimationSlot: includeAnimation,
   });
   const publicSiteOrigin = options?.publicSiteOrigin?.trim() || getSignatureAssetOrigin();
-  return renderSignature(
-    buildRenderInput({
+  const renderInput: RenderSignatureInput = {
+    ...buildRenderInput({
       orgBrand: mergeEmployeeSocialIntoOrgBrand(org, emp),
       employee: employeeToProfile(emp),
       template,
       publicSiteOrigin,
-    })
-  );
+    }),
+    publicSiteOrigin,
+  };
+  let html = renderSignature(renderInput);
+  html = appendSignatureClickTrackingIfEnabled({
+    html,
+    org,
+    organizationId: String(org._id),
+    employeeId: String(emp._id),
+    input: renderInput,
+    baseUrl: publicSiteOrigin,
+  });
+  return html;
 }
