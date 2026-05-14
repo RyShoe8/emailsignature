@@ -4,7 +4,6 @@
  */
 export const STANDARD_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing="0" border="0" style="font-family: {{fontFamily}}, Arial, Helvetica, sans-serif; font-size:14px; color:#1a1a1a; line-height:1.4;">
   <tr>
-    <!-- LEFT: LOGO -->
     <td width="{{logoWidth}}" style="vertical-align:top;line-height:0;font-size:0;padding-right:8px;width:{{logoWidth}}px;">
       {{#if hasLogo}}
       <a href="{{logoLink}}" style="text-decoration:none; border:0; outline:none; display:inline-block;">
@@ -17,8 +16,6 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing="
       </a>
       {{/if}}
     </td>
-
-    <!-- RIGHT: CONTACT -->
     <td style="vertical-align:top; border-left:2px solid {{primaryColor}}; padding-left:16px;">
       
       {{#if hasName}}
