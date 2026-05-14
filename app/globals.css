@@ -77,10 +77,10 @@
   }
 
   /* Social glyphs only — avoids altering logo <img> dimensions in the same preview. */
-  .signature-email-preview img[src$='/email-assets/icon-linkedin.png'],
-  .signature-email-preview img[src$='/email-assets/icon-facebook.png'],
-  .signature-email-preview img[src$='/email-assets/icon-instagram.png'],
-  .signature-email-preview img[src$='/email-assets/icon-reddit.png'] {
+  .signature-email-preview img[src*='/email-assets/icon-linkedin'],
+  .signature-email-preview img[src*='/email-assets/icon-facebook'],
+  .signature-email-preview img[src*='/email-assets/icon-instagram'],
+  .signature-email-preview img[src*='/email-assets/icon-reddit'] {
     width: 16px;
     height: 16px;
     max-width: none;

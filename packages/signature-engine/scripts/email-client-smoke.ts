@@ -40,25 +40,20 @@ assert.ok(
 
 const iconBase = `${origin}/email-assets/`;
 assert.ok(
-  htmlStandard.includes(`${iconBase}icon-linkedin.png`),
-  'standard: LinkedIn icon resolves to publicSiteOrigin /email-assets/'
+  htmlStandard.includes(`${iconBase}icon-linkedin.png?v=2`),
+  'standard: LinkedIn icon resolves to publicSiteOrigin /email-assets/ with cache-bust query'
 );
 assert.ok(
-  htmlStandard.includes(`${iconBase}icon-facebook.png`),
-  'standard: Facebook icon resolves to publicSiteOrigin /email-assets/'
+  htmlStandard.includes(`${iconBase}icon-facebook.png?v=2`),
+  'standard: Facebook icon resolves to publicSiteOrigin /email-assets/ with cache-bust query'
 );
 assert.ok(
-  htmlStandard.includes(`${iconBase}icon-instagram.png`),
-  'standard: Instagram icon resolves to publicSiteOrigin /email-assets/'
+  htmlStandard.includes(`${iconBase}icon-instagram.png?v=2`),
+  'standard: Instagram icon resolves to publicSiteOrigin /email-assets/ with cache-bust query'
 );
 assert.ok(
-  htmlStandard.includes(`${iconBase}icon-reddit.png`),
-  'standard: Reddit icon resolves to publicSiteOrigin /email-assets/'
-);
-assert.doesNotMatch(
-  htmlStandard,
-  /src="[^"]*\?v=/i,
-  'standard: no ?v= cache-busting query strings on signature image URLs (immutable Cache-Control handles freshness)'
+  htmlStandard.includes(`${iconBase}icon-reddit.png?v=2`),
+  'standard: Reddit icon resolves to publicSiteOrigin /email-assets/ with cache-bust query'
 );
 assert.doesNotMatch(htmlStandard, /\/api\/image-proxy/i, 'standard: no image proxy URLs in img src');
 assert.doesNotMatch(htmlStandard, /src="http:\/\//i, 'standard: no non-HTTPS image URLs');
