@@ -14,7 +14,7 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch('/api/dashboard/organization')
+    fetch('/api/dashboard/organization', { credentials: 'include' })
       .then((r) => r.json())
       .then((d) => {
         if (d.organization) router.replace('/dashboard');
@@ -28,6 +28,7 @@ export default function OnboardingPage() {
     try {
       const res = await fetch('/api/onboarding/organization', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),
       });
