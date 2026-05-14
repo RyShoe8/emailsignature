@@ -11,6 +11,8 @@ export type SignatureBrand = {
   companyName: string;
   website: string;
   logoUrl: string;
+  /** Display height in px at fixed 110px width (Outlook); omit for default aspect. */
+  logoHeightPx?: number;
   logoLink: string;
   primaryColor: string;
   fontFamily: string;
@@ -52,4 +54,6 @@ export type RenderSignatureInput = {
   profile: SignatureProfile;
   brand: SignatureBrand;
   template: SignatureTemplate;
+  /** Origin for resolving relative /images/... URLs (e.g. process.env.NEXT_PUBLIC_SITE_URL). */
+  publicSiteOrigin?: string;
 };

@@ -10,11 +10,14 @@ SaaS for **professional company email signatures**: organizations, employees, cu
 
 To confirm a build before merging, open the **Pull Request** on GitHub and use the **Vercel** **Preview Deployment** link, or check **Build Logs** on the deployment.
 
+If copied signatures must turn relative **`/images/...`** paths into absolute URLs, set **`NEXT_PUBLIC_SITE_URL`** on Vercel to the same public origin as the app (see `.env.example`).
+
 Auth is **Better Auth** (`/api/auth/*`). Marketing routes: `/`, `/pricing`, `/templates`. App shell: `/dashboard/*`.
 
 ## Scripts (optional, DB maintenance)
 
 - `npm run seed` — demo organization (`slug: demo`) + default templates  
-- `npm run migrate:legacy` — import legacy `signatureSettings` into a new org (`slug: migrated-legacy`)
+- `npm run migrate:legacy` — import legacy `signatureSettings` into a new org (`slug: migrated-legacy`)  
+- `npm run verify:signature` — workspace smoke script for the signature engine
 
 These do not run on **Vercel** during deploy by default. Run only with a deliberate `MONGODB_URI` aligned with your **Vercel** **Production** (or staging **Preview**) secrets — see **SETUP.md**.
