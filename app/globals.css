@@ -71,6 +71,19 @@
   }
 
   .signature-email-preview img {
+    display: revert-layer;
+    vertical-align: revert-layer;
     height: revert-layer;
+  }
+
+  /* Social glyphs only — avoids altering logo <img> dimensions in the same preview. */
+  .signature-email-preview img[src$='/email-assets/icon-linkedin.png'],
+  .signature-email-preview img[src$='/email-assets/icon-facebook.png'],
+  .signature-email-preview img[src$='/email-assets/icon-instagram.png'],
+  .signature-email-preview img[src$='/email-assets/icon-reddit.png'] {
+    width: 16px;
+    height: 16px;
+    max-width: none;
+    object-fit: contain;
   }
 }
