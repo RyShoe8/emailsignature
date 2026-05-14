@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { renderSignature } from 'emailsignature-engine';
 import { buildRenderInput } from '@/lib/email/toRenderInput';
 import { engineTemplateFromStoredConfig, type TemplatePresetId } from '@/lib/email/templatePresets';
-import { orgToBrandInput } from '@/lib/renderEmployeeSignature';
+import { mergeEmployeeSocialIntoOrgBrand } from '@/lib/renderEmployeeSignature';
 import { getSignatureAssetOrigin } from '@/lib/siteOrigin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -139,7 +139,7 @@ export default function EmployeeDetailPage() {
     });
     return renderSignature(
       buildRenderInput({
-        orgBrand: orgToBrandInput(org as never),
+        orgBrand: mergeEmployeeSocialIntoOrgBrand(org as never, { linkedin }),
         employee: {
           firstName: profile.firstName,
           lastName: profile.lastName,
@@ -153,7 +153,7 @@ export default function EmployeeDetailPage() {
       })
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps -- assetOriginNonce forces post-mount recompute so preview URLs use window origin, not SSR fallback
-  }, [org, selectedTemplate, profile, assetOriginNonce]);
+  }, [org, selectedTemplate, profile, assetOriginNonce, linkedin]);
 
   const previewUrl = useMemo(() => {
     if (!previewToken) return '';

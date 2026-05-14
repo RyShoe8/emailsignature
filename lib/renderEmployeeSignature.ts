@@ -38,6 +38,22 @@ export function employeeToProfile(emp: EmployeeDoc): EmployeeProfileInput {
   };
 }
 
+/** Employee LinkedIn overrides org default when set (dashboard + server renders stay aligned). */
+export function mergeEmployeeSocialIntoOrgBrand(
+  org: OrganizationDoc,
+  employee: Pick<EmployeeDoc, 'linkedin'>
+): OrgBrandInput {
+  const base = orgToBrandInput(org);
+  const li = employee.linkedin?.trim();
+  return {
+    ...base,
+    socialLinks: {
+      ...base.socialLinks,
+      linkedin: li || base.socialLinks.linkedin?.trim() || undefined,
+    },
+  };
+}
+
 export function renderSignatureForEmployee(
   org: OrganizationDoc,
   emp: EmployeeDoc,
@@ -55,7 +71,7 @@ export function renderSignatureForEmployee(
   const publicSiteOrigin = options?.publicSiteOrigin?.trim() || getSignatureAssetOrigin();
   return renderSignature(
     buildRenderInput({
-      orgBrand: orgToBrandInput(org),
+      orgBrand: mergeEmployeeSocialIntoOrgBrand(org, emp),
       employee: employeeToProfile(emp),
       template,
       publicSiteOrigin,
