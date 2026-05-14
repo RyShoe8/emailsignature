@@ -33,6 +33,10 @@ assert.doesNotMatch(
   /height="134"/,
   'standard: generic logo must not use legacy fixed aspect height'
 );
+assert.ok(
+  htmlStandard.includes('white-space:nowrap') && htmlStandard.includes('Office:'),
+  'standard: Office/Mobile label column uses nowrap so values stay beside labels'
+);
 
 const iconBase = `${origin}/email-assets/`;
 assert.ok(

@@ -307,6 +307,54 @@ export function SignatureWorkspace() {
               />
             </div>
             <div className="space-y-2">
+              <p className="text-sm font-medium">Social links</p>
+              <p className="text-xs text-muted-foreground">
+                Shown as icon links when the template includes social. Full profile URLs (https://…).
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>LinkedIn</Label>
+              <Input
+                type="url"
+                value={org.socialLinks?.linkedin ?? ''}
+                onChange={(e) =>
+                  setOrg((o) => ({
+                    ...(o || {}),
+                    socialLinks: { ...(o?.socialLinks ?? {}), linkedin: e.target.value },
+                  }))
+                }
+                placeholder="https://www.linkedin.com/company/…"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Facebook</Label>
+              <Input
+                type="url"
+                value={org.socialLinks?.facebook ?? ''}
+                onChange={(e) =>
+                  setOrg((o) => ({
+                    ...(o || {}),
+                    socialLinks: { ...(o?.socialLinks ?? {}), facebook: e.target.value },
+                  }))
+                }
+                placeholder="https://www.facebook.com/…"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Instagram</Label>
+              <Input
+                type="url"
+                value={org.socialLinks?.instagram ?? ''}
+                onChange={(e) =>
+                  setOrg((o) => ({
+                    ...(o || {}),
+                    socialLinks: { ...(o?.socialLinks ?? {}), instagram: e.target.value },
+                  }))
+                }
+                placeholder="https://www.instagram.com/…"
+              />
+            </div>
+            <div className="space-y-2">
               <Label>Logo</Label>
               <div className="flex flex-wrap items-center gap-3">
                 <Input type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="max-w-xs" onChange={handleLogoFile} disabled={uploadingLogo} />
@@ -414,7 +462,7 @@ export function SignatureWorkspace() {
         </CardHeader>
         <CardContent className="space-y-8 max-w-full min-w-0">
           <SignatureForm value={profile} onChange={setProfile} />
-          <div className="grid gap-10 xl:grid-cols-2 min-w-0">
+          <div className="grid grid-cols-1 gap-10 min-w-0">
             <div className="min-w-0 space-y-2">
               <p className="text-xs text-muted-foreground font-medium">Desktop</p>
               <SignaturePreviewFrame html={html} variant="desktop" />

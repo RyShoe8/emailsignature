@@ -39,7 +39,7 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing="
       <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
         {{#if hasOfficePhone}}
         <tr>
-          <td valign="top" style="padding:0 4px 4px 0; color:#000; font-weight:700;">Office:</td>
+          <td width="1%" valign="top" style="width:1%;white-space:nowrap;padding:0 8px 4px 0; color:#000; font-weight:700;">Office:</td>
           <td valign="top" style="padding:0 0 4px 0;">
             <a href="{{officePhoneTelHref}}" style="color:#1a1a1a; text-decoration:none;">
               {{officePhone}}
@@ -49,7 +49,7 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing="
         {{/if}}
         {{#if hasMobilePhone}}
         <tr>
-          <td valign="top" style="padding:0 4px 4px 0; color:#000; font-weight:700;">Mobile:</td>
+          <td width="1%" valign="top" style="width:1%;white-space:nowrap;padding:0 8px 4px 0; color:#000; font-weight:700;">Mobile:</td>
           <td valign="top" style="padding:0 0 4px 0;">
             <a href="{{mobilePhoneTelHref}}" style="color:#1a1a1a; text-decoration:none;">
               {{mobilePhone}}

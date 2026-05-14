@@ -352,7 +352,7 @@ export default function EmployeeDetailPage() {
         </CardHeader>
         <CardContent className="space-y-8 max-w-full min-w-0">
           <SignatureForm value={profile} onChange={setProfile} />
-          <div className="grid gap-10 xl:grid-cols-2 min-w-0">
+          <div className="grid grid-cols-1 gap-10 min-w-0">
             <div className="min-w-0 space-y-2">
               <p className="text-xs text-muted-foreground font-medium">Desktop</p>
               <SignaturePreviewFrame html={html} variant="desktop" />
