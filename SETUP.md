@@ -28,8 +28,24 @@ Add each variable for **Production** (and **Preview** if you want previews fully
 | `STRIPE_WEBHOOK_SECRET` | Webhook signing secret from Stripe (see below) |
 | `STRIPE_BASIC_PRICE_ID` | Yearly Basic Price id |
 | `STRIPE_PRO_PRICE_ID` | Yearly Pro Price id |
+| `BLOB_READ_WRITE_TOKEN` | [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) read/write token for dashboard logo uploads (`POST /api/dashboard/organization/logo`) |
+| `GOOGLE_CLIENT_ID` | Google OAuth client id for **Connect Gmail** / signature apply |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
+| `GOOGLE_REDIRECT_URI` | Optional. Defaults to `{BETTER_AUTH_URL or NEXT_PUBLIC_APP_URL}/api/integrations/gmail/callback`. Must exactly match an **Authorized redirect URI** in [Google Cloud Console](https://console.cloud.google.com/apis/credentials) for the OAuth client. |
+| `GOOGLE_OAUTH_ENCRYPTION_KEY` | Optional. Strong secret used to encrypt stored Gmail refresh tokens at rest; if omitted, a key is derived from `BETTER_AUTH_SECRET` (set an explicit value in production). |
 
 `BETTER_AUTH_URL` and `NEXT_PUBLIC_APP_URL` must match the URL users open in the browser (**Vercel** default domain or your **Domains** entry), or sessions and redirects will break.
+
+### Gmail integration
+
+1. In **Google Cloud Console**, create an OAuth **Web application** client. Add redirect URI: `https://<your-app>/api/integrations/gmail/callback` (or the value of `GOOGLE_REDIRECT_URI` if you set it).
+2. Enable the **Gmail API** for the project.
+3. OAuth consent screen: add scope `https://www.googleapis.com/auth/gmail.settings.basic` (sensitive; may require verification for public apps).
+4. Put `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in **Vercel** env vars and redeploy.
+
+### Organization logos (Blob)
+
+In **Vercel** → **Storage** → **Blob**, create a store and copy the **Read/Write** token into `BLOB_READ_WRITE_TOKEN`. Without it, logo upload returns **503** and the UI shows an error.
 
 After changing variables, trigger a new **deployment** (**Deployments** tab → **Redeploy** on the latest deployment, or push an empty commit).
 

@@ -16,6 +16,7 @@ import { SignatureForm } from '@/components/signature/SignatureForm';
 import { SignaturePreviewFrame } from '@/components/signature/SignaturePreviewFrame';
 import { CopySignatureButton } from '@/components/signature/CopySignatureButton';
 import { CopyRichTextButton } from '@/components/signature/CopyRichTextButton';
+import { OutlookInstallHelp } from '@/components/signature/OutlookInstallHelp';
 import { downloadHtml } from '@/lib/clipboard';
 import type { SignatureProfile } from 'emailsignature-engine';
 
@@ -47,14 +48,19 @@ export default function EmployeeDetailPage() {
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [gmailConnected, setGmailConnected] = useState(false);
+  const [gmailEmail, setGmailEmail] = useState('');
+  const [gmailBusy, setGmailBusy] = useState(false);
+  const [installMessage, setInstallMessage] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [empRes, tmplRes, orgRes] = await Promise.all([
-        fetch(`/api/dashboard/employees/${id}`),
-        fetch('/api/dashboard/templates'),
-        fetch('/api/dashboard/organization'),
+      const [empRes, tmplRes, orgRes, gRes] = await Promise.all([
+        fetch(`/api/dashboard/employees/${id}`, { credentials: 'include' }),
+        fetch('/api/dashboard/templates', { credentials: 'include' }),
+        fetch('/api/dashboard/organization', { credentials: 'include' }),
+        fetch('/api/integrations/gmail/status', { credentials: 'include' }),
       ]);
       const empJson = await empRes.json();
       const tmplJson = await tmplRes.json();
@@ -83,6 +89,14 @@ export default function EmployeeDetailPage() {
       });
       setTemplates(tmplJson.templates || []);
       setOrg(orgJson.organization || null);
+      const gJson = await gRes.json().catch(() => ({}));
+      if (gJson.connected) {
+        setGmailConnected(true);
+        setGmailEmail(String(gJson.googleEmail || ''));
+      } else {
+        setGmailConnected(false);
+        setGmailEmail('');
+      }
     } finally {
       setLoading(false);
     }
@@ -176,12 +190,53 @@ export default function EmployeeDetailPage() {
   const canCopy =
     profile.firstName.trim() && profile.lastName.trim() && profile.email.trim() && html.trim();
 
+  async function handleApplyGmail() {
+    if (!html.trim()) return;
+    setGmailBusy(true);
+    setInstallMessage(null);
+    try {
+      const res = await fetch('/api/integrations/gmail/apply-signature', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ html }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setInstallMessage(typeof j.error === 'string' ? j.error : 'Could not update Gmail signature');
+        return;
+      }
+      setInstallMessage(
+        `Gmail signature updated for ${typeof j.sendAsEmail === 'string' ? j.sendAsEmail : 'your send-as address'}. Gmail may simplify HTML.`
+      );
+    } finally {
+      setGmailBusy(false);
+    }
+  }
+
+  async function handleDisconnectGmail() {
+    setGmailBusy(true);
+    setInstallMessage(null);
+    try {
+      const res = await fetch('/api/integrations/gmail/disconnect', { method: 'POST', credentials: 'include' });
+      if (!res.ok) {
+        setInstallMessage('Could not disconnect Gmail');
+        return;
+      }
+      setGmailConnected(false);
+      setGmailEmail('');
+      setInstallMessage('Gmail disconnected.');
+    } finally {
+      setGmailBusy(false);
+    }
+  }
+
   return (
-    <div className="max-w-4xl space-y-8">
+    <div className="max-w-7xl space-y-8 w-full min-w-0">
       <Link href="/dashboard/employees" className="text-sm text-muted-foreground hover:text-foreground">
         ← Employees
       </Link>
-      <div className="grid gap-8 lg:grid-cols-2">
+      <div className="grid gap-8 lg:grid-cols-2 min-w-0">
         <Card>
           <CardHeader>
             <CardTitle>Edit employee</CardTitle>
@@ -253,36 +308,74 @@ export default function EmployeeDetailPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Preview & export</CardTitle>
-            <CardDescription>Desktop and mobile frames; hosted page matches saved data.</CardDescription>
+            <CardTitle>Install to your inbox</CardTitle>
+            <CardDescription>Gmail uses the preview HTML below. Outlook is manual.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <SignatureForm value={profile} onChange={setProfile} />
-            <div className="grid gap-6 sm:grid-cols-2">
-              <div>
-                <p className="text-xs text-muted-foreground mb-2">Desktop</p>
-                <SignaturePreviewFrame html={html} variant="desktop" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground mb-2">Mobile</p>
-                <SignaturePreviewFrame html={html} variant="mobile" />
-              </div>
+            <div className="rounded-md border p-4 space-y-3">
+              <p className="text-sm font-medium">Gmail</p>
+              {installMessage && <p className="text-xs text-muted-foreground">{installMessage}</p>}
+              {gmailConnected ? (
+                <>
+                  <p className="text-xs text-muted-foreground">
+                    Connected{gmailEmail ? ` as ${gmailEmail}` : ''}.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" disabled={gmailBusy || !canCopy} onClick={() => void handleApplyGmail()}>
+                      {gmailBusy ? 'Applying…' : 'Apply signature to Gmail'}
+                    </Button>
+                    <Button type="button" variant="outline" disabled={gmailBusy} onClick={() => void handleDisconnectGmail()}>
+                      Disconnect Gmail
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs text-muted-foreground">
+                    Connect your Google account once (also available on the organization Signature page).
+                  </p>
+                  <Button type="button" variant="secondary" asChild>
+                    <a href="/api/integrations/gmail/start">Connect Gmail</a>
+                  </Button>
+                </>
+              )}
             </div>
-            <div className="flex flex-wrap gap-2">
-              <CopySignatureButton html={html} disabled={!canCopy} />
-              <CopyRichTextButton html={html} disabled={!canCopy} />
-              <Button
-                type="button"
-                variant="outline"
-                disabled={!canCopy}
-                onClick={() => downloadHtml('signature.html', html)}
-              >
-                Download HTML
-              </Button>
-            </div>
+            <OutlookInstallHelp />
           </CardContent>
         </Card>
       </div>
+
+      <Card className="max-w-full min-w-0">
+        <CardHeader>
+          <CardTitle>Preview & export</CardTitle>
+          <CardDescription>Desktop and mobile frames; hosted page matches saved data.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-8 max-w-full min-w-0">
+          <SignatureForm value={profile} onChange={setProfile} />
+          <div className="grid gap-10 xl:grid-cols-2 min-w-0">
+            <div className="min-w-0 space-y-2">
+              <p className="text-xs text-muted-foreground font-medium">Desktop</p>
+              <SignaturePreviewFrame html={html} variant="desktop" />
+            </div>
+            <div className="min-w-0 space-y-2">
+              <p className="text-xs text-muted-foreground font-medium">Mobile</p>
+              <SignaturePreviewFrame html={html} variant="mobile" />
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <CopySignatureButton html={html} disabled={!canCopy} />
+            <CopyRichTextButton html={html} disabled={!canCopy} />
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!canCopy}
+              onClick={() => downloadHtml('signature.html', html)}
+            >
+              Download HTML
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

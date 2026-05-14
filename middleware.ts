@@ -25,9 +25,14 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/api/dashboard') ||
     pathname.startsWith('/api/stripe/checkout') ||
     pathname.startsWith('/api/stripe/portal') ||
-    pathname.startsWith('/api/onboarding');
+    pathname.startsWith('/api/onboarding') ||
+    pathname.startsWith('/api/integrations/gmail');
 
-  if (needsAuth) {
+  // Gmail OAuth callback must accept unauthenticated requests: Google redirects here with ?code=&state=;
+  // the route verifies HMAC state and binds tokens to userId inside state (session cookie may be absent in edge cases).
+  const allowWithoutSession = pathname === '/api/integrations/gmail/callback';
+
+  if (needsAuth && !allowWithoutSession) {
     const token = getSessionCookie(request);
     if (!token) {
       const login = new URL('/login', request.url);
@@ -48,5 +53,6 @@ export const config = {
     '/api/stripe/checkout',
     '/api/stripe/portal',
     '/api/onboarding/:path*',
+    '/api/integrations/gmail/:path*',
   ],
 };

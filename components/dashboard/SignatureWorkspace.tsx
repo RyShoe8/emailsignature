@@ -16,6 +16,7 @@ import { SignatureForm } from '@/components/signature/SignatureForm';
 import { SignaturePreviewFrame } from '@/components/signature/SignaturePreviewFrame';
 import { CopySignatureButton } from '@/components/signature/CopySignatureButton';
 import { CopyRichTextButton } from '@/components/signature/CopyRichTextButton';
+import { OutlookInstallHelp } from '@/components/signature/OutlookInstallHelp';
 import { downloadHtml } from '@/lib/clipboard';
 import { getPublicSiteOrigin } from '@/lib/siteOrigin';
 
@@ -86,13 +87,22 @@ export function SignatureWorkspace() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [gmailConnected, setGmailConnected] = useState(false);
+  const [gmailEmail, setGmailEmail] = useState('');
+  const [gmailBusy, setGmailBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [oRes, tRes] = await Promise.all([fetch('/api/dashboard/organization'), fetch('/api/dashboard/templates')]);
+      const [oRes, tRes, gRes] = await Promise.all([
+        fetch('/api/dashboard/organization', { credentials: 'include' }),
+        fetch('/api/dashboard/templates', { credentials: 'include' }),
+        fetch('/api/integrations/gmail/status', { credentials: 'include' }),
+      ]);
       const oJson = await oRes.json();
       const tJson = await tRes.json();
+      const gJson = await gRes.json().catch(() => ({}));
       if (oJson.organization) {
         const o = oJson.organization as OrgResponse;
         setOrg(o);
@@ -101,6 +111,13 @@ export function SignatureWorkspace() {
       const list: TemplateRow[] = tJson.templates || [];
       setTemplates(list);
       if (list[0]) setSelectedTemplateId(list[0]._id);
+      if (gJson.connected) {
+        setGmailConnected(true);
+        setGmailEmail(String(gJson.googleEmail || ''));
+      } else {
+        setGmailConnected(false);
+        setGmailEmail('');
+      }
     } finally {
       setLoading(false);
     }
@@ -108,6 +125,22 @@ export function SignatureWorkspace() {
 
   useEffect(() => {
     load();
+  }, [load]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const sp = new URLSearchParams(window.location.search);
+    const gmail = sp.get('gmail');
+    const msg = sp.get('message');
+    if (gmail === 'connected') {
+      setMessage('Gmail connected. You can apply your signature below.');
+      load();
+    } else if (gmail === 'error' && msg) {
+      setMessage(`Gmail: ${decodeURIComponent(msg)}`);
+    }
+    if (gmail) {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }, [load]);
 
   const selectedTemplate = useMemo(
@@ -147,6 +180,7 @@ export function SignatureWorkspace() {
     try {
       const res = await fetch('/api/dashboard/organization', {
         method: 'PATCH',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: orgName,
@@ -175,6 +209,75 @@ export function SignatureWorkspace() {
     }
   };
 
+  const handleLogoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !org) return;
+    setUploadingLogo(true);
+    setMessage(null);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/dashboard/organization/logo', {
+        method: 'POST',
+        credentials: 'include',
+        body: fd,
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setMessage(typeof j.error === 'string' ? j.error : 'Logo upload failed');
+        return;
+      }
+      if (typeof j.url === 'string') {
+        setOrg((o) => ({ ...(o || {}), logoUrl: j.url }));
+        setMessage('Logo uploaded — click Save to persist with other brand fields, or Save now from the button below.');
+      }
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleApplyGmail = async () => {
+    if (!html.trim()) return;
+    setGmailBusy(true);
+    setMessage(null);
+    try {
+      const res = await fetch('/api/integrations/gmail/apply-signature', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ html }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setMessage(typeof j.error === 'string' ? j.error : 'Could not update Gmail signature');
+        return;
+      }
+      setMessage(
+        `Gmail signature updated for ${typeof j.sendAsEmail === 'string' ? j.sendAsEmail : 'your send-as address'}. Gmail may simplify HTML.`
+      );
+    } finally {
+      setGmailBusy(false);
+    }
+  };
+
+  const handleDisconnectGmail = async () => {
+    setGmailBusy(true);
+    setMessage(null);
+    try {
+      const res = await fetch('/api/integrations/gmail/disconnect', { method: 'POST', credentials: 'include' });
+      if (!res.ok) {
+        setMessage('Could not disconnect Gmail');
+        return;
+      }
+      setGmailConnected(false);
+      setGmailEmail('');
+      setMessage('Gmail disconnected.');
+    } finally {
+      setGmailBusy(false);
+    }
+  };
+
   if (loading) {
     return <p className="text-sm text-muted-foreground">Loading…</p>;
   }
@@ -184,73 +287,140 @@ export function SignatureWorkspace() {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-2">
-      <Card>
-        <CardHeader>
-          <CardTitle>Organization brand</CardTitle>
-          <CardDescription>These values feed the signature engine for every employee.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Organization name</Label>
-            <Input value={orgName} onChange={(e) => setOrgName(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label>Website</Label>
-            <Input
-              value={org.website ?? ''}
-              onChange={(e) => setOrg((o) => ({ ...(o || {}), website: e.target.value }))}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Logo URL</Label>
-            <Input
-              value={org.logoUrl ?? ''}
-              onChange={(e) => setOrg((o) => ({ ...(o || {}), logoUrl: e.target.value }))}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Primary color</Label>
-            <Input
-              value={org.primaryColor ?? ''}
-              onChange={(e) => setOrg((o) => ({ ...(o || {}), primaryColor: e.target.value }))}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Preview template</Label>
-            <select
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
-              value={selectedTemplateId}
-              onChange={(e) => setSelectedTemplateId(e.target.value)}
-            >
-              {templates.map((t) => (
-                <option key={t._id} value={t._id}>
-                  {t.name} ({t.presetId})
-                </option>
-              ))}
-            </select>
-          </div>
-          {message && <p className="text-sm text-muted-foreground">{message}</p>}
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving…' : 'Save'}
-          </Button>
-        </CardContent>
-      </Card>
+    <div className="space-y-8 max-w-full">
+      <div className="grid gap-8 lg:grid-cols-2 max-w-full">
+        <Card>
+          <CardHeader>
+            <CardTitle>Organization brand</CardTitle>
+            <CardDescription>These values feed the signature engine for every employee.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Organization name</Label>
+              <Input value={orgName} onChange={(e) => setOrgName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Website</Label>
+              <Input
+                value={org.website ?? ''}
+                onChange={(e) => setOrg((o) => ({ ...(o || {}), website: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Logo</Label>
+              <div className="flex flex-wrap items-center gap-3">
+                <Input type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="max-w-xs" onChange={handleLogoFile} disabled={uploadingLogo} />
+                {uploadingLogo ? <span className="text-xs text-muted-foreground">Uploading…</span> : null}
+                {org.logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={org.logoUrl} alt="" className="h-12 w-auto max-w-[120px] object-contain border rounded bg-white p-1" />
+                ) : null}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={!org.logoUrl}
+                  onClick={() => setOrg((o) => ({ ...(o || {}), logoUrl: '' }))}
+                >
+                  Clear logo
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">PNG, JPEG, WebP, or GIF up to 4 MB. Or paste a hosted image URL.</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Logo image URL (optional)</Label>
+              <Input
+                value={org.logoUrl ?? ''}
+                onChange={(e) => setOrg((o) => ({ ...(o || {}), logoUrl: e.target.value }))}
+                placeholder="https://…"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Logo link (optional)</Label>
+              <Input
+                value={org.logoLink ?? ''}
+                onChange={(e) => setOrg((o) => ({ ...(o || {}), logoLink: e.target.value }))}
+                placeholder="https://…"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Primary color</Label>
+              <Input
+                value={org.primaryColor ?? ''}
+                onChange={(e) => setOrg((o) => ({ ...(o || {}), primaryColor: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Preview template</Label>
+              <select
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+                value={selectedTemplateId}
+                onChange={(e) => setSelectedTemplateId(e.target.value)}
+              >
+                {templates.map((t) => (
+                  <option key={t._id} value={t._id}>
+                    {t.name} ({t.presetId})
+                  </option>
+                ))}
+              </select>
+            </div>
+            {message && <p className="text-sm text-muted-foreground">{message}</p>}
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? 'Saving…' : 'Save'}
+            </Button>
+          </CardContent>
+        </Card>
 
-      <Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Install to your inbox</CardTitle>
+            <CardDescription>Gmail (OAuth) and Outlook (manual).</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-md border p-4 space-y-3">
+              <p className="text-sm font-medium">Gmail</p>
+              {gmailConnected ? (
+                <>
+                  <p className="text-xs text-muted-foreground">
+                    Connected{gmailEmail ? ` as ${gmailEmail}` : ''}. Gmail may rewrite HTML when saving.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" disabled={gmailBusy || !canCopy} onClick={handleApplyGmail}>
+                      {gmailBusy ? 'Applying…' : 'Apply signature to Gmail'}
+                    </Button>
+                    <Button type="button" variant="outline" disabled={gmailBusy} onClick={handleDisconnectGmail}>
+                      Disconnect Gmail
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs text-muted-foreground">Connect once, then apply the preview HTML to your Gmail send-as signature.</p>
+                  <Button type="button" variant="secondary" asChild>
+                    <a href="/api/integrations/gmail/start">Connect Gmail</a>
+                  </Button>
+                </>
+              )}
+            </div>
+            <OutlookInstallHelp />
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="max-w-full">
         <CardHeader>
           <CardTitle>Live preview</CardTitle>
           <CardDescription>Sample person — employees use their own saved details.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-8 max-w-full min-w-0">
           <SignatureForm value={profile} onChange={setProfile} />
-          <div className="grid gap-6 sm:grid-cols-2">
-            <div>
-              <p className="text-xs text-muted-foreground mb-2">Desktop</p>
+          <div className="grid gap-10 xl:grid-cols-2 min-w-0">
+            <div className="min-w-0 space-y-2">
+              <p className="text-xs text-muted-foreground font-medium">Desktop</p>
               <SignaturePreviewFrame html={html} variant="desktop" />
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground mb-2">Mobile</p>
+            <div className="min-w-0 space-y-2">
+              <p className="text-xs text-muted-foreground font-medium">Mobile</p>
               <SignaturePreviewFrame html={html} variant="mobile" />
             </div>
           </div>
