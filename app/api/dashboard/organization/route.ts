@@ -9,6 +9,26 @@ type SessionUser = {
   role?: string;
 };
 
+const PATCHABLE_FIELDS = [
+  'name',
+  'logoUrl',
+  'primaryColor',
+  'website',
+  'companyName',
+  'fontFamily',
+  'logoLink',
+  'socialLinks',
+  'locations',
+  'warehouseAddress',
+  'animation',
+] as const;
+
+type PatchableField = (typeof PATCHABLE_FIELDS)[number];
+
+function isPatchableField(key: string): key is PatchableField {
+  return (PATCHABLE_FIELDS as readonly string[]).includes(key);
+}
+
 export async function GET() {
   const session = await getServerSession();
   if (!session?.user) {
@@ -48,27 +68,22 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const allowed = [
-    'name',
-    'logoUrl',
-    'primaryColor',
-    'website',
-    'companyName',
-    'fontFamily',
-    'logoLink',
-    'socialLinks',
-    'locations',
-    'warehouseAddress',
-    'animation',
-  ] as const;
-
-  for (const key of allowed) {
-    if (key in body && body[key] !== undefined) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (org as any)[key] = body[key];
+  const $set: Record<string, unknown> = {};
+  for (const key of Object.keys(body)) {
+    if (!isPatchableField(key)) continue;
+    const value = body[key];
+    if (value !== undefined) {
+      $set[key] = value;
     }
   }
 
-  await org.save();
-  return NextResponse.json({ organization: org.toObject() });
+  if (Object.keys($set).length === 0) {
+    return NextResponse.json({ organization: org.toObject() });
+  }
+
+  const updated = await OrganizationModel.findByIdAndUpdate(user.organizationId, { $set }, { new: true }).lean();
+  if (!updated) {
+    return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
+  }
+  return NextResponse.json({ organization: updated });
 }
