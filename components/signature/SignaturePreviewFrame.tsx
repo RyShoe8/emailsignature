@@ -16,7 +16,7 @@ export function SignaturePreviewFrame({ html, animationKey = 0, variant = 'deskt
     <div className={maxW}>
       <div
         key={animationKey}
-        className={`rounded-md border bg-white p-6 text-left overflow-x-auto overflow-y-visible ${minH}`}
+        className={`signature-email-preview rounded-md border bg-white p-6 text-left overflow-x-auto overflow-y-visible ${minH}`}
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </div>

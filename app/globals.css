@@ -62,3 +62,15 @@
     @apply bg-background text-foreground antialiased;
   }
 }
+
+/* Preview-only: undo Tailwind Preflight on injected email HTML so table layout + 16px icons size correctly. */
+@layer components {
+  .signature-email-preview img,
+  .signature-email-preview video {
+    max-width: none;
+  }
+
+  .signature-email-preview img {
+    height: revert-layer;
+  }
+}
