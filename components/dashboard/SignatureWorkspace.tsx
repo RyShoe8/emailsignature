@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import {
   renderSignature,
   type SignatureBrand,
@@ -94,6 +94,8 @@ export function SignatureWorkspace() {
   const [gmailConnected, setGmailConnected] = useState(false);
   const [gmailEmail, setGmailEmail] = useState('');
   const [gmailBusy, setGmailBusy] = useState(false);
+  /** Bumps after mount so signature HTML re-renders with real `window` origin (SSR memo used localhost). */
+  const [assetOriginNonce, setAssetOriginNonce] = useState(0);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -144,6 +146,10 @@ export function SignatureWorkspace() {
     load();
   }, [load]);
 
+  useLayoutEffect(() => {
+    setAssetOriginNonce(1);
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const sp = new URLSearchParams(window.location.search);
@@ -185,7 +191,8 @@ export function SignatureWorkspace() {
       template: engineTemplate,
       publicSiteOrigin: getSignatureAssetOrigin(),
     });
-  }, [profile, brand, engineTemplate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- assetOriginNonce forces post-mount recompute so preview URLs use window origin, not SSR fallback
+  }, [profile, brand, engineTemplate, assetOriginNonce]);
 
   const canCopy =
     Boolean(profile.firstName.trim() && profile.lastName.trim() && profile.email.trim() && engineTemplate);

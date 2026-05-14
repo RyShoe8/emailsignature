@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { renderSignature } from 'emailsignature-engine';
@@ -52,6 +52,8 @@ export default function EmployeeDetailPage() {
   const [gmailEmail, setGmailEmail] = useState('');
   const [gmailBusy, setGmailBusy] = useState(false);
   const [installMessage, setInstallMessage] = useState<string | null>(null);
+  /** Bumps after mount so signature HTML re-renders with real `window` origin (SSR memo used localhost). */
+  const [assetOriginNonce, setAssetOriginNonce] = useState(0);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -106,6 +108,10 @@ export default function EmployeeDetailPage() {
     load();
   }, [load]);
 
+  useLayoutEffect(() => {
+    setAssetOriginNonce(1);
+  }, []);
+
   useEffect(() => {
     setProfile((p) => ({
       ...p,
@@ -146,7 +152,8 @@ export default function EmployeeDetailPage() {
         publicSiteOrigin: getSignatureAssetOrigin(),
       })
     );
-  }, [org, selectedTemplate, profile]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- assetOriginNonce forces post-mount recompute so preview URLs use window origin, not SSR fallback
+  }, [org, selectedTemplate, profile, assetOriginNonce]);
 
   const previewUrl = useMemo(() => {
     if (!previewToken) return '';
