@@ -21,47 +21,9 @@ function hasElement(elements: SignatureElement[], type: ElementType): boolean {
 
 /** Fallback when publicSiteOrigin is not passed (local dev). Set NEXT_PUBLIC_SITE_URL in production. */
 const DEFAULT_PUBLIC_SITE_ORIGIN = 'http://localhost:3000';
-const SIGNATURE_ASSET_ORIGIN = 'https://seniorbydesign.com';
-
-/**
- * Measured from seniorbydesign public/email-assets/sbd-logo.png (true PNG; same pixel dims as legacy asset).
- * Update if the asset is replaced.
- */
-const LOGO_SBD_NO_TAGLINE_NATURAL_WIDTH = 371;
-const LOGO_SBD_NO_TAGLINE_NATURAL_HEIGHT = 451;
-const LOGO_DISPLAY_WIDTH_PX = 110;
-const LOGO_SBD_NO_TAGLINE_HEIGHT_AT_110 = Math.round(
-  LOGO_DISPLAY_WIDTH_PX * (LOGO_SBD_NO_TAGLINE_NATURAL_HEIGHT / LOGO_SBD_NO_TAGLINE_NATURAL_WIDTH)
-);
-
-/** True when the logo URL is the canonical Senior By Design static asset (known natural dimensions). */
-function isCanonicalSbdStaticLogoUrl(absoluteLogoUrl: string): boolean {
-  return /(?:email-assets\/sbd-logo|sbd-logo-no-tagline)/i.test(absoluteLogoUrl);
-}
 
 function stripTrailingSlash(u: string): string {
   return u.replace(/\/+$/, '');
-}
-
-function canonicalizeSignatureAssetUrl(raw: string): string {
-  const absolute = ensureAbsolutePublicUrl(raw, SIGNATURE_ASSET_ORIGIN);
-  if (!absolute) return absolute;
-  try {
-    const u = new URL(absolute);
-    const canonical = new URL(SIGNATURE_ASSET_ORIGIN);
-    const sameBrandHost =
-      u.hostname === canonical.hostname ||
-      u.hostname === `www.${canonical.hostname}` ||
-      canonical.hostname === `www.${u.hostname}`;
-    if (sameBrandHost) {
-      u.protocol = canonical.protocol;
-      u.host = canonical.host;
-      u.hash = '';
-    }
-    return u.toString();
-  } catch {
-    return absolute;
-  }
 }
 
 /**
@@ -235,10 +197,7 @@ export function mergeRenderContext(
     Boolean(brand.animation?.gifUrl?.trim());
 
   const rawLogoUrl = useAnimation ? brand.animation!.gifUrl!.trim() : brand.logoUrl.trim();
-  const logoUrlRaw = normalizeImageUrl(ensureAbsolutePublicUrl(rawLogoUrl, origin));
-  const logoUrl = /(?:email-assets\/sbd-logo|sbd-logo-no-tagline)/i.test(logoUrlRaw)
-    ? normalizeImageUrl(canonicalizeSignatureAssetUrl(logoUrlRaw))
-    : logoUrlRaw;
+  const logoUrl = normalizeImageUrl(ensureAbsolutePublicUrl(rawLogoUrl, origin));
 
   const website = normalizeWebsite(brand.website);
   const logoLinkForHref =
@@ -258,10 +217,6 @@ export function mergeRenderContext(
   if (hasLogo) {
     if (explicitLogoH) {
       logoDisplayHeightStr = String(logoHeightPxRounded);
-    } else if (useAnimation) {
-      logoDisplayHeightStr = '';
-    } else if (isCanonicalSbdStaticLogoUrl(logoUrl)) {
-      logoDisplayHeightStr = String(LOGO_SBD_NO_TAGLINE_HEIGHT_AT_110);
     } else {
       logoDisplayHeightStr = '';
     }
@@ -370,9 +325,9 @@ export function mergeRenderContext(
     dallas: escapeHtml(dallas),
     boulder: escapeHtml(boulder),
     warehouseAddress: escapeHtml(warehouseAddress),
-    iconLinkedin: normalizeImageUrl(canonicalizeSignatureAssetUrl(SOCIAL_ICON_LINKEDIN)),
-    iconFacebook: normalizeImageUrl(canonicalizeSignatureAssetUrl(SOCIAL_ICON_FACEBOOK)),
-    iconInstagram: normalizeImageUrl(canonicalizeSignatureAssetUrl(SOCIAL_ICON_INSTAGRAM)),
+    iconLinkedin: normalizeImageUrl(ensureAbsolutePublicUrl(SOCIAL_ICON_LINKEDIN, origin)),
+    iconFacebook: normalizeImageUrl(ensureAbsolutePublicUrl(SOCIAL_ICON_FACEBOOK, origin)),
+    iconInstagram: normalizeImageUrl(ensureAbsolutePublicUrl(SOCIAL_ICON_INSTAGRAM, origin)),
     socialTdLiStyle,
     socialTdFbStyle,
     socialTdIgStyle,

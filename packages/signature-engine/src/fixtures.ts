@@ -1,6 +1,6 @@
 import type { SignatureBrand, SignatureTemplate, SignatureElement } from './core/types';
 
-/** Full default element set for Senior By Design mock / reset. */
+/** Full default element set for engine tests and previews. */
 export const defaultSignatureElements: SignatureElement[] = [
   { type: 'logo' },
   { type: 'name' },
@@ -13,11 +13,11 @@ export const defaultSignatureElements: SignatureElement[] = [
 ];
 
 export const mockSignatureBrand: SignatureBrand = {
-  companyName: 'Senior By Design',
+  companyName: 'Acme Corp',
   website: 'www.example.com',
   logoUrl: 'https://example.com/images/logo.png',
   logoLink: 'https://example.com',
-  primaryColor: '#CDAA7D',
+  primaryColor: '#2563eb',
   fontFamily: 'Arial',
   socialLinks: {
     linkedin: 'https://www.linkedin.com/company/example',

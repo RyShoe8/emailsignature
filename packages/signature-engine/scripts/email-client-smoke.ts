@@ -11,10 +11,10 @@ const profile = {
   lastName: 'User',
   title: 'COO',
   email: 'test@example.com',
-  officePhone: '833-779-3744',
+  officePhone: '555-0100',
 };
 
-const origin = 'http://localhost:3000';
+const origin = 'https://app.example.com';
 
 const htmlStandard = renderSignature({
   profile,
@@ -31,42 +31,21 @@ assert.match(
 assert.doesNotMatch(
   htmlStandard,
   /height="134"/,
-  'standard: generic logo must not use SBD-only measured height'
+  'standard: generic logo must not use legacy fixed aspect height'
 );
 
-const htmlStandardSbd = renderSignature({
-  profile,
-  brand: {
-    ...mockSignatureBrand,
-    logoUrl: 'https://seniorbydesign.com/email-assets/sbd-logo.png',
-  },
-  template: mockSignatureTemplate('standard'),
-  publicSiteOrigin: origin,
-});
-assert.match(
-  htmlStandardSbd,
-  /height="134"/,
-  'standard: canonical SBD static asset keeps explicit height for email clients'
+const iconBase = `${origin}/email-assets/`;
+assert.ok(
+  htmlStandard.includes(`${iconBase}icon-linkedin.png`),
+  'standard: LinkedIn icon resolves to publicSiteOrigin /email-assets/'
 );
-assert.doesNotMatch(
-  htmlStandardSbd,
-  /height:auto/,
-  'standard: SBD static logo avoids height:auto so Gmail keeps proportion'
+assert.ok(
+  htmlStandard.includes(`${iconBase}icon-facebook.png`),
+  'standard: Facebook icon resolves to publicSiteOrigin /email-assets/'
 );
-assert.match(
-  htmlStandard,
-  /src="https:\/\/seniorbydesign\.com\/email-assets\/icon-linkedin\.png"/,
-  'standard: LinkedIn icon uses canonical /email-assets/ URL'
-);
-assert.match(
-  htmlStandard,
-  /src="https:\/\/seniorbydesign\.com\/email-assets\/icon-facebook\.png"/,
-  'standard: Facebook icon uses canonical /email-assets/ URL'
-);
-assert.match(
-  htmlStandard,
-  /src="https:\/\/seniorbydesign\.com\/email-assets\/icon-instagram\.png"/,
-  'standard: Instagram icon uses canonical /email-assets/ URL'
+assert.ok(
+  htmlStandard.includes(`${iconBase}icon-instagram.png`),
+  'standard: Instagram icon resolves to publicSiteOrigin /email-assets/'
 );
 assert.doesNotMatch(
   htmlStandard,
@@ -99,18 +78,6 @@ const htmlStacked = renderSignature({
   publicSiteOrigin: origin,
 });
 assert.match(htmlStacked, /height:auto/, 'stacked: generic static logo uses height:auto');
-
-const htmlStackedSbd = renderSignature({
-  profile,
-  brand: {
-    ...mockSignatureBrand,
-    logoUrl: 'https://seniorbydesign.com/email-assets/sbd-logo.png',
-  },
-  template: mockSignatureTemplate('stacked'),
-  publicSiteOrigin: origin,
-});
-assert.match(htmlStackedSbd, /height="134"/, 'stacked: canonical SBD asset keeps explicit height');
-assert.doesNotMatch(htmlStackedSbd, /height:auto/, 'stacked: SBD static logo avoids height:auto');
 
 const htmlAnimatedLogo = renderSignature({
   profile,

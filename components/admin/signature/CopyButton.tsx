@@ -31,7 +31,7 @@ export function CopyButton({ html, disabled }: Props) {
         padding: '0.65rem 1.25rem',
         fontSize: '15px',
         fontWeight: 600,
-        background: disabled ? '#ccc' : 'var(--sbd-brown, #5c4033)',
+        background: disabled ? '#ccc' : 'var(--signature-accent, #5c4033)',
         color: '#fff',
         border: 'none',
         borderRadius: '6px',
