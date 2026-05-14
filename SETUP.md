@@ -36,6 +36,16 @@ Add each variable for **Production** (and **Preview** if you want previews fully
 
 `BETTER_AUTH_URL` and `NEXT_PUBLIC_APP_URL` must match the URL users open in the browser (**Vercel** default domain or your **Domains** entry), or sessions and redirects will break.
 
+### Platform admin (`/admin`)
+
+After first deploy, run once (with `MONGODB_URI` / `MONGODB_DB_NAME` in the environment) to grant the initial operator:
+
+`npm run grant-platform-admin`
+
+Optional: `npm run grant-platform-admin -- other@example.com`
+
+Then sign in as that user and open `/admin` to manage organizations, users, org roles, and plans.
+
 ### Gmail integration
 
 1. In **Google Cloud Console**, create an OAuth **Web application** client. Add redirect URI: `https://<your-app>/api/integrations/gmail/callback` (or the value of `GOOGLE_REDIRECT_URI` if you set it).

@@ -1,0 +1,51 @@
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { requirePlatformAdminApi } from '@/lib/admin/platformAdminApi';
+import { AUTH_USER_COLLECTION } from '@/lib/auth/platformAdmin';
+import { connectMongoose, getMongoDb } from '@/lib/mongoose';
+
+export const dynamic = 'force-dynamic';
+
+const PatchSchema = z.object({
+  role: z.enum(['owner', 'admin', 'member']).optional(),
+  platformAdmin: z.boolean().optional(),
+});
+
+type RouteParams = { params: Promise<{ id: string }> };
+
+export async function PATCH(request: Request, { params }: RouteParams) {
+  const denied = await requirePlatformAdminApi();
+  if (denied) return denied;
+  const { id: targetUserId } = await params;
+  if (!targetUserId?.trim()) {
+    return NextResponse.json({ error: 'Invalid user id' }, { status: 400 });
+  }
+
+  let json: unknown;
+  try {
+    json = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
+  const parsed = PatchSchema.safeParse(json);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues.map((i) => i.message).join(' ') }, { status: 400 });
+  }
+  if (Object.keys(parsed.data).length === 0) {
+    return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
+  }
+
+  await connectMongoose();
+  const db = getMongoDb();
+  const $set: Record<string, unknown> = {};
+  if (parsed.data.role !== undefined) $set.role = parsed.data.role;
+  if (parsed.data.platformAdmin !== undefined) $set.platformAdmin = parsed.data.platformAdmin;
+
+  const result = await db.collection(AUTH_USER_COLLECTION).updateOne({ id: targetUserId }, { $set });
+  if (result.matchedCount === 0) {
+    return NextResponse.json({ error: 'User not found' }, { status: 404 });
+  }
+
+  const user = await db.collection(AUTH_USER_COLLECTION).findOne({ id: targetUserId });
+  return NextResponse.json({ user });
+}

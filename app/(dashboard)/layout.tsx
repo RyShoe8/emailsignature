@@ -19,7 +19,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!session?.user) {
     redirect('/login');
   }
-  const user = session.user as { email?: string; organizationId?: string };
+  const user = session.user as { email?: string; organizationId?: string; id?: string };
+  const { isPlatformAdmin } = await import('@/lib/auth/platformAdmin');
+  const showPlatformAdmin = user.id ? await isPlatformAdmin(user.id) : false;
+  const navLinks = showPlatformAdmin ? [...links, { href: '/admin', label: 'Platform admin' }] : links;
 
   return (
     <div className="min-h-screen flex">
@@ -31,7 +34,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           {user.email && <p className="text-xs text-muted-foreground mt-1 truncate">{user.email}</p>}
         </div>
         <nav className="flex flex-col gap-1 text-sm">
-          {links.map((l) => (
+          {navLinks.map((l) => (
             <Link
               key={l.href}
               href={l.href}

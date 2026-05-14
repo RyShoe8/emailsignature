@@ -12,17 +12,11 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  if (pathname.startsWith('/admin')) {
-    if (pathname.startsWith('/admin/login')) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-    const suffix = pathname === '/admin' ? '' : pathname.replace(/^\/admin/, '');
-    return NextResponse.redirect(new URL(`/dashboard${suffix || ''}`, request.url));
-  }
-
   const needsAuth =
+    pathname.startsWith('/admin') ||
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/api/dashboard') ||
+    pathname.startsWith('/api/admin') ||
     pathname.startsWith('/api/stripe/checkout') ||
     pathname.startsWith('/api/stripe/portal') ||
     pathname.startsWith('/api/onboarding') ||
@@ -47,9 +41,11 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/onboarding',
+    '/admin',
     '/admin/:path*',
     '/dashboard/:path*',
     '/api/dashboard/:path*',
+    '/api/admin/:path*',
     '/api/stripe/checkout',
     '/api/stripe/portal',
     '/api/onboarding/:path*',

@@ -34,6 +34,8 @@ export async function getAuth() {
         name: { type: 'string', required: false },
         organizationId: { type: 'string', required: false },
         role: { type: 'string', required: false },
+        /** Tailnote platform operator; can open /admin and platform APIs */
+        platformAdmin: { type: 'boolean', required: false },
       },
     },
     plugins: [nextCookies()],

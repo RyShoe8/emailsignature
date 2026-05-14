@@ -1,5 +1,57 @@
-import { redirect } from 'next/navigation';
+import Link from 'next/link';
+import { listOrganizationsWithUserCounts } from '@/lib/admin/data';
 
-export default function AdminRootRedirect() {
-  redirect('/dashboard');
+export const dynamic = 'force-dynamic';
+
+export default async function AdminOrganizationsPage() {
+  const organizations = await listOrganizationsWithUserCounts();
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold tracking-tight">Organizations</h2>
+        <p className="text-sm text-muted-foreground mt-1">Open an organization to view users, roles, and plans.</p>
+      </div>
+      <div className="rounded-md border overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b bg-muted/40 text-left">
+              <th className="p-3 font-medium">Name</th>
+              <th className="p-3 font-medium">Plan</th>
+              <th className="p-3 font-medium">Subscription</th>
+              <th className="p-3 font-medium">Users</th>
+              <th className="p-3 font-medium">Created</th>
+              <th className="p-3 font-medium w-24" />
+            </tr>
+          </thead>
+          <tbody>
+            {organizations.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="p-6 text-muted-foreground text-center">
+                  No organizations yet.
+                </td>
+              </tr>
+            ) : (
+              organizations.map((o) => (
+                <tr key={o._id} className="border-b last:border-0">
+                  <td className="p-3 font-medium">{o.name}</td>
+                  <td className="p-3">{o.plan}</td>
+                  <td className="p-3">{o.subscriptionStatus}</td>
+                  <td className="p-3">{o.userCount}</td>
+                  <td className="p-3 text-muted-foreground whitespace-nowrap">
+                    {o.createdAt ? new Date(o.createdAt).toLocaleDateString() : '—'}
+                  </td>
+                  <td className="p-3">
+                    <Link href={`/admin/organizations/${o._id}`} className="text-primary underline underline-offset-4">
+                      Manage
+                    </Link>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
