@@ -74,10 +74,14 @@ export function buildRenderInput(args: {
   orgBrand: OrgBrandInput;
   employee: EmployeeProfileInput;
   template: SignatureTemplate;
+  /** Passed to signature engine for absolute /images/... URLs in email HTML */
+  publicSiteOrigin?: string;
 }): RenderSignatureInput {
+  const origin = args.publicSiteOrigin?.trim();
   return {
     profile: toSignatureProfile(args.employee),
     brand: toSignatureBrand(args.orgBrand),
     template: args.template,
+    ...(origin ? { publicSiteOrigin: origin } : {}),
   };
 }

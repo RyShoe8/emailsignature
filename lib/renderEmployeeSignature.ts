@@ -4,6 +4,7 @@ import { engineTemplateFromStoredConfig, type TemplatePresetId } from '@/lib/ema
 import type { OrganizationDoc } from '@/models/Organization';
 import type { EmployeeDoc } from '@/models/Employee';
 import type { SignatureTemplateDoc } from '@/models/SignatureTemplate';
+import { getPublicSiteOrigin } from '@/lib/siteOrigin';
 
 export function orgToBrandInput(org: OrganizationDoc): OrgBrandInput {
   const sl = org.socialLinks as { linkedin?: string; facebook?: string; instagram?: string } | undefined;
@@ -54,6 +55,7 @@ export function renderSignatureForEmployee(
       orgBrand: orgToBrandInput(org),
       employee: employeeToProfile(emp),
       template,
+      publicSiteOrigin: getPublicSiteOrigin(),
     })
   );
 }

@@ -17,6 +17,7 @@ import { SignaturePreviewFrame } from '@/components/signature/SignaturePreviewFr
 import { CopySignatureButton } from '@/components/signature/CopySignatureButton';
 import { CopyRichTextButton } from '@/components/signature/CopyRichTextButton';
 import { downloadHtml } from '@/lib/clipboard';
+import { getPublicSiteOrigin } from '@/lib/siteOrigin';
 
 type OrgResponse = {
   companyName?: string;
@@ -128,7 +129,12 @@ export function SignatureWorkspace() {
 
   const html = useMemo(() => {
     if (!engineTemplate) return '';
-    return renderSignature({ profile, brand, template: engineTemplate });
+    return renderSignature({
+      profile,
+      brand,
+      template: engineTemplate,
+      publicSiteOrigin: getPublicSiteOrigin(),
+    });
   }, [profile, brand, engineTemplate]);
 
   const canCopy =

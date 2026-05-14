@@ -7,6 +7,7 @@ import { renderSignature } from 'emailsignature-engine';
 import { buildRenderInput } from '@/lib/email/toRenderInput';
 import { engineTemplateFromStoredConfig, type TemplatePresetId } from '@/lib/email/templatePresets';
 import { orgToBrandInput } from '@/lib/renderEmployeeSignature';
+import { getPublicSiteOrigin } from '@/lib/siteOrigin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -128,6 +129,7 @@ export default function EmployeeDetailPage() {
           mobilePhone: profile.mobilePhone,
         },
         template: engineTemplate,
+        publicSiteOrigin: getPublicSiteOrigin(),
       })
     );
   }, [org, selectedTemplate, profile]);
