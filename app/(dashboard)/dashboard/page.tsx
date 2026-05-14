@@ -6,7 +6,9 @@ import { connectMongoose } from '@/lib/mongoose';
 import { EmployeeModel } from '@/models/Employee';
 import { SignatureTemplateModel } from '@/models/SignatureTemplate';
 import { SignatureClickEventModel } from '@/models/SignatureClickEvent';
+import { OrganizationModel } from '@/models/Organization';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { OverviewOrganizationCard } from '@/components/dashboard/OverviewOrganizationCard';
 
 function sumKinds(byKind: Record<string, number>, keys: string[]) {
   return keys.reduce((acc, k) => acc + (byKind[k] ?? 0), 0);
@@ -15,7 +17,7 @@ function sumKinds(byKind: Record<string, number>, keys: string[]) {
 export default async function DashboardHomePage() {
   const session = await getServerSession();
   if (!session?.user) redirect('/login');
-  const user = session.user as { organizationId?: string };
+  const user = session.user as { organizationId?: string; role?: string };
   if (!user.organizationId) {
     redirect('/onboarding');
   }
@@ -23,14 +25,22 @@ export default async function DashboardHomePage() {
   const oid = new mongoose.Types.ObjectId(user.organizationId);
   const since30 = new Date(Date.now() - 30 * 86400000);
 
-  const [employees, templates, clickAgg] = await Promise.all([
+  const [employees, templates, clickAgg, orgDoc] = await Promise.all([
     EmployeeModel.countDocuments({ organizationId: user.organizationId }),
     SignatureTemplateModel.countDocuments({ organizationId: user.organizationId }),
     SignatureClickEventModel.aggregate<{ _id: string; count: number }>([
       { $match: { organizationId: oid, createdAt: { $gte: since30 } } },
       { $group: { _id: '$kind', count: { $sum: 1 } } },
     ]),
+    OrganizationModel.findById(user.organizationId),
   ]);
+
+  if (!orgDoc) {
+    redirect('/onboarding');
+  }
+
+  const canEdit = user.role === 'owner' || user.role === 'admin';
+  const trackingOn = orgDoc.signatureClickTrackingEnabled !== false;
 
   const byKind: Record<string, number> = {};
   for (const row of clickAgg) {
@@ -54,6 +64,14 @@ export default async function DashboardHomePage() {
         <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
         <p className="text-muted-foreground mt-1">Manage signatures and billing from the sidebar.</p>
       </div>
+
+      <OverviewOrganizationCard
+        organizationId={orgDoc._id.toString()}
+        initialName={String(orgDoc.name ?? '')}
+        initialSignatureClickTrackingEnabled={trackingOn}
+        canEdit={canEdit}
+      />
+
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
           <CardHeader>
@@ -84,7 +102,8 @@ export default async function DashboardHomePage() {
       <div>
         <h2 className="text-lg font-semibold tracking-tight mb-1">Signature clicks (last 30 days)</h2>
         <p className="text-sm text-muted-foreground mb-4">
-          Counts when recipients follow links in sent signatures. Enable tracking under Settings.
+          Counts when recipients follow links in sent signatures. Tracking is on by default; turn it off in the
+          Organization section above if you do not want click logging.
         </p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Card>

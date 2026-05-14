@@ -1,13 +1,9 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { TailnoteLogo } from '@/components/brand/TailnoteLogo';
 
 export default function HomePage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-24 text-center">
-      <div className="flex justify-center mb-8">
-        <TailnoteLogo heightClass="h-16 sm:h-20 md:h-24" priority />
-      </div>
       <p className="text-sm font-medium text-muted-foreground mb-4">Tailnote</p>
       <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight text-foreground mb-6">
         Professional email signatures for modern teams.

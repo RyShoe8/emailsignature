@@ -1,9 +1,4 @@
-/** Secret for HMAC signing of signature click tracking tokens. */
+/** HMAC key for signature click tokens — same as Better Auth (no separate env var). */
 export function getSignatureTrackingSecret(): string {
-  return (
-    process.env.SIGNATURE_TRACKING_SECRET ||
-    process.env.BETTER_AUTH_SECRET ||
-    process.env.AUTH_SECRET ||
-    ''
-  ).trim();
+  return (process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET || '').trim();
 }

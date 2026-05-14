@@ -12,7 +12,6 @@ const links = [
   { href: '/dashboard/templates', label: 'Templates' },
   { href: '/dashboard/signature', label: 'Signature' },
   { href: '/dashboard/billing', label: 'Billing' },
-  { href: '/dashboard/settings', label: 'Settings' },
 ];
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
