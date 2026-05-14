@@ -16,6 +16,14 @@ const config: Config = {
         ring: 'hsl(var(--ring))',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
+        primary: {
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
+        },
+        secondary: {
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
+        },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
           foreground: 'hsl(var(--muted-foreground))',
@@ -31,6 +39,15 @@ const config: Config = {
         brand: {
           DEFAULT: 'hsl(var(--brand))',
           foreground: 'hsl(var(--brand-foreground))',
+        },
+        tailnote: {
+          primary: 'var(--tailnote-primary)',
+          secondary: 'var(--tailnote-secondary)',
+          third: 'var(--tailnote-third)',
+          ink: 'var(--tailnote-ink)',
+          muted: 'var(--tailnote-muted)',
+          surface: 'var(--tailnote-surface)',
+          border: 'var(--tailnote-border)',
         },
       },
       borderRadius: {
