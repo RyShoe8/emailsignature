@@ -18,7 +18,7 @@ import { CopySignatureButton } from '@/components/signature/CopySignatureButton'
 import { CopyRichTextButton } from '@/components/signature/CopyRichTextButton';
 import { OutlookInstallHelp } from '@/components/signature/OutlookInstallHelp';
 import { downloadHtml } from '@/lib/clipboard';
-import { getPublicSiteOrigin } from '@/lib/siteOrigin';
+import { getSignatureAssetOrigin } from '@/lib/siteOrigin';
 
 type OrgResponse = {
   companyName?: string;
@@ -183,7 +183,7 @@ export function SignatureWorkspace() {
       profile,
       brand,
       template: engineTemplate,
-      publicSiteOrigin: getPublicSiteOrigin(),
+      publicSiteOrigin: getSignatureAssetOrigin(),
     });
   }, [profile, brand, engineTemplate]);
 

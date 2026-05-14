@@ -1,9 +1,11 @@
+import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { connectMongoose } from '@/lib/mongoose';
 import { EmployeeModel, type EmployeeDoc } from '@/models/Employee';
 import { OrganizationModel } from '@/models/Organization';
 import { SignatureTemplateModel } from '@/models/SignatureTemplate';
 import { renderSignatureForEmployee } from '@/lib/renderEmployeeSignature';
+import { getRequestSiteOrigin, getSignatureAssetOrigin } from '@/lib/siteOrigin';
 
 export const metadata = {
   robots: { index: false, follow: false },
@@ -21,7 +23,11 @@ export default async function PublicSignaturePage({ params }: { params: Promise<
   }).lean();
   if (!org || !tmpl) notFound();
 
-  const html = renderSignatureForEmployee(org as never, employee as never, tmpl as never);
+  const h = await headers();
+  const origin = getRequestSiteOrigin(h) ?? getSignatureAssetOrigin();
+  const html = renderSignatureForEmployee(org as never, employee as never, tmpl as never, {
+    publicSiteOrigin: origin,
+  });
 
   return (
     <div className="min-h-screen bg-muted/30 p-6">

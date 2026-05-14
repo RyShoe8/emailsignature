@@ -12,7 +12,7 @@ export const TEMPLATE_PRESET_META: TemplatePresetMeta[] = [
   {
     id: 'minimal',
     name: 'Minimal',
-    description: 'Logo, name, title, and contact only—clean and compact.',
+    description: 'Logo, name, title, contact, and optional social icons when links are set—compact.',
   },
   {
     id: 'modern',
@@ -27,7 +27,7 @@ export const TEMPLATE_PRESET_META: TemplatePresetMeta[] = [
 ];
 
 function elementsMinimal(): SignatureElement[] {
-  return [{ type: 'logo' }, { type: 'name' }, { type: 'title' }, { type: 'contact' }];
+  return [{ type: 'logo' }, { type: 'name' }, { type: 'title' }, { type: 'contact' }, { type: 'social' }];
 }
 
 function elementsModern(): SignatureElement[] {

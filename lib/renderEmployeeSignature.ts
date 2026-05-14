@@ -4,7 +4,7 @@ import { engineTemplateFromStoredConfig, type TemplatePresetId } from '@/lib/ema
 import type { OrganizationDoc } from '@/models/Organization';
 import type { EmployeeDoc } from '@/models/Employee';
 import type { SignatureTemplateDoc } from '@/models/SignatureTemplate';
-import { getPublicSiteOrigin } from '@/lib/siteOrigin';
+import { getSignatureAssetOrigin } from '@/lib/siteOrigin';
 
 export function orgToBrandInput(org: OrganizationDoc): OrgBrandInput {
   const sl = org.socialLinks as { linkedin?: string; facebook?: string; instagram?: string; reddit?: string } | undefined;
@@ -41,7 +41,8 @@ export function employeeToProfile(emp: EmployeeDoc): EmployeeProfileInput {
 export function renderSignatureForEmployee(
   org: OrganizationDoc,
   emp: EmployeeDoc,
-  tmpl: SignatureTemplateDoc
+  tmpl: SignatureTemplateDoc,
+  options?: { publicSiteOrigin?: string }
 ): string {
   const presetId = tmpl.presetId as TemplatePresetId;
   const includeAnimation = org.plan === 'pro' && Boolean(tmpl.includeAnimationSlot);
@@ -51,12 +52,13 @@ export function renderSignatureForEmployee(
     presetId,
     includeAnimationSlot: includeAnimation,
   });
+  const publicSiteOrigin = options?.publicSiteOrigin?.trim() || getSignatureAssetOrigin();
   return renderSignature(
     buildRenderInput({
       orgBrand: orgToBrandInput(org),
       employee: employeeToProfile(emp),
       template,
-      publicSiteOrigin: getPublicSiteOrigin(),
+      publicSiteOrigin,
     })
   );
 }
