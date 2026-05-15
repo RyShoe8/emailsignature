@@ -9,16 +9,21 @@
  */
 export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
 @media only screen and (max-width:600px),
+  only screen and (max-width:768px),
   only screen and (max-device-width:600px),
   only screen and (max-device-width:812px) {
   table.sig-root-layout-table,
   table.sig-corp-header-layout-table {
     table-layout: auto !important;
+    width: 100% !important;
   }
   td.sig-corp-logo-stack {
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
+    min-width: 0 !important;
+    float: none !important;
+    clear: both !important;
     padding-left: 14px !important;
     padding-right: 14px !important;
     padding-bottom: 12px !important;
@@ -28,6 +33,9 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
+    min-width: 0 !important;
+    float: none !important;
+    clear: both !important;
     box-sizing: border-box !important;
     border-left: none !important;
     padding-left: 14px !important;
@@ -37,6 +45,9 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
+    min-width: 0 !important;
+    float: none !important;
+    clear: both !important;
     box-sizing: border-box !important;
     padding-left: 14px !important;
     padding-right: 14px !important;
@@ -47,6 +58,9 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
+    min-width: 0 !important;
+    float: none !important;
+    clear: both !important;
     box-sizing: border-box !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
@@ -54,7 +68,7 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
   }
 }
 </style>
-<table class="sig-root-layout-table" cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family: {{fontFamily}}, Arial, Helvetica, sans-serif; font-size:14px; color:#1a1a1a; line-height:1.4; max-width:600px;width:100%;table-layout:fixed;">
+<table class="sig-root-layout-table" cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family: {{fontFamily}}, Arial, Helvetica, sans-serif; font-size:14px; color:#1a1a1a; line-height:1.4; max-width:600px;width:100%;">
   <!-- Accent bar -->
   <tr>
     <td colspan="3" style="padding:0;">
@@ -67,10 +81,10 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
   </tr>
   <tr>
     <td style="padding-top:16px;" colspan="3">
-      <table class="sig-corp-header-layout-table" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;table-layout:fixed;">
+      <table class="sig-corp-header-layout-table" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;">
         <tr>
           <!-- Logo column -->
-          <td class="sig-corp-logo-stack" width="{{logoWidth}}" style="vertical-align:top;line-height:0;font-size:0;padding-right:21px;width:{{logoWidth}}px;">
+          <td class="sig-corp-logo-stack" width="{{logoWidth}}" style="vertical-align:top;line-height:0;font-size:0;padding-right:28px;width:{{logoWidth}}px;">
             {{#if hasLogo}}
             <a href="{{logoLink}}" style="text-decoration:none; border:0; outline:none; display:inline-block;">
 {{#if hasLogoSizedHeight}}
@@ -201,7 +215,7 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
           </td>
 
           {{#if sideColumnContentBlocks}}
-          <td class="sig-corp-blocks-stack" valign="top" style="vertical-align:top;padding-left:26px;border-left:1px solid #e5e5e5;width:34%;min-width:130px;">
+          <td class="sig-corp-blocks-stack" valign="top" style="vertical-align:top;padding-left:18px;border-left:1px solid #e5e5e5;width:42%;min-width:170px;">
             {{contentBlocksHtml}}
           </td>
           {{/if}}

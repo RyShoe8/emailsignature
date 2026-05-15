@@ -212,8 +212,39 @@ assert.ok(
   'corporate: responsive CSS includes max-device-width for mobile stacking'
 );
 assert.ok(
-  htmlListImage.includes('sig-corp-blocks-stack') && htmlListImage.includes('padding-left:26px'),
-  'corporate: blocks column has extra padding beside vertical divider'
+  htmlListImage.includes('sig-corp-blocks-stack') &&
+    /class="sig-corp-blocks-stack"[^>]*style="[^"]*padding-left:18px/.test(htmlListImage),
+  'corporate: blocks column has comfortable padding beside vertical divider'
+);
+assert.match(
+  htmlListImage,
+  /class="sig-corp-blocks-stack"[^>]*style="[^"]*width:42%[^"]*min-width:170px/,
+  'corporate: side column widened to ~42% / min-width 170px on desktop'
+);
+assert.match(
+  htmlListImage,
+  /class="sig-corp-logo-stack"[^>]*style="[^"]*padding-right:28px/,
+  'corporate: logo cell has wider padding-right before vertical accent'
+);
+assert.doesNotMatch(
+  htmlListImage,
+  /class="sig-root-layout-table"[^>]*style="[^"]*table-layout:fixed/,
+  'corporate: outer root table no longer pins table-layout:fixed inline'
+);
+assert.doesNotMatch(
+  htmlListImage,
+  /class="sig-corp-header-layout-table"[^>]*style="[^"]*table-layout:fixed/,
+  'corporate: inner header table no longer pins table-layout:fixed inline'
+);
+assert.match(
+  htmlListImage,
+  /td\.sig-corp-blocks-stack\s*\{[\s\S]*?float:\s*none\s*!important[\s\S]*?clear:\s*both\s*!important/,
+  'corporate: mobile stack adds float:none + clear:both safety on blocks column'
+);
+assert.match(
+  htmlListImage,
+  /only screen and \(max-width:768px\)/,
+  'corporate: mobile @media includes the 768px breakpoint for tablets'
 );
 assert.match(
   htmlListImage,
@@ -343,8 +374,34 @@ assert.ok(
   'minimal: standard layout includes max-device-width stack rules'
 );
 assert.ok(
-  htmlMinimalBlocks.includes('padding-left:28px') && htmlMinimalBlocks.includes('sig-blocks-stack'),
-  'minimal: blocks column has extra padding beside vertical divider'
+  htmlMinimalBlocks.includes('sig-blocks-stack') &&
+    /class="sig-blocks-stack"[^>]*style="[^"]*padding-left:20px/.test(htmlMinimalBlocks),
+  'minimal: blocks column has comfortable padding beside vertical divider'
+);
+assert.match(
+  htmlMinimalBlocks,
+  /class="sig-blocks-stack"[^>]*style="[^"]*width:44%[^"]*min-width:180px/,
+  'minimal: side column widened to ~44% / min-width 180px on desktop'
+);
+assert.match(
+  htmlMinimalBlocks,
+  /class="sig-logo-stack"[^>]*style="[^"]*padding-right:24px/,
+  'minimal: logo cell has wider padding-right before vertical accent'
+);
+assert.doesNotMatch(
+  htmlMinimalBlocks,
+  /class="sig-root-layout-table"[^>]*style="[^"]*table-layout:fixed/,
+  'minimal: outer root table no longer pins table-layout:fixed inline'
+);
+assert.match(
+  htmlMinimalBlocks,
+  /td\.sig-blocks-stack\s*\{[\s\S]*?float:\s*none\s*!important[\s\S]*?clear:\s*both\s*!important/,
+  'minimal: mobile stack adds float:none + clear:both safety on blocks column'
+);
+assert.match(
+  htmlMinimalBlocks,
+  /only screen and \(max-width:768px\)/,
+  'minimal: mobile @media includes the 768px breakpoint for tablets'
 );
 assert.ok(
   htmlMinimalBlocks.includes('class="sig-root-layout-table"'),

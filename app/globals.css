@@ -96,15 +96,19 @@
     container-name: sig-mobile-preview;
   }
 
-  @container sig-mobile-preview (max-width: 600px) {
+  @container sig-mobile-preview (max-width: 768px) {
     table.sig-root-layout-table,
     table.sig-corp-header-layout-table {
       table-layout: auto !important;
+      width: 100% !important;
     }
     td.sig-logo-stack {
       display: block !important;
       width: 100% !important;
       max-width: 100% !important;
+      min-width: 0 !important;
+      float: none !important;
+      clear: both !important;
       padding-left: 14px !important;
       padding-right: 14px !important;
       padding-bottom: 8px !important;
@@ -114,6 +118,9 @@
       display: block !important;
       width: 100% !important;
       max-width: 100% !important;
+      min-width: 0 !important;
+      float: none !important;
+      clear: both !important;
       box-sizing: border-box !important;
       border-left: none !important;
       padding-left: 14px !important;
@@ -123,6 +130,9 @@
       display: block !important;
       width: 100% !important;
       max-width: 100% !important;
+      min-width: 0 !important;
+      float: none !important;
+      clear: both !important;
       box-sizing: border-box !important;
       padding-left: 14px !important;
       padding-right: 14px !important;
@@ -133,6 +143,9 @@
       display: block !important;
       width: 100% !important;
       max-width: 100% !important;
+      min-width: 0 !important;
+      float: none !important;
+      clear: both !important;
       padding-left: 14px !important;
       padding-right: 14px !important;
       padding-bottom: 12px !important;
@@ -142,6 +155,9 @@
       display: block !important;
       width: 100% !important;
       max-width: 100% !important;
+      min-width: 0 !important;
+      float: none !important;
+      clear: both !important;
       box-sizing: border-box !important;
       border-left: none !important;
       padding-left: 14px !important;
@@ -151,6 +167,9 @@
       display: block !important;
       width: 100% !important;
       max-width: 100% !important;
+      min-width: 0 !important;
+      float: none !important;
+      clear: both !important;
       box-sizing: border-box !important;
       padding-left: 14px !important;
       padding-right: 14px !important;
@@ -161,6 +180,9 @@
       display: block !important;
       width: 100% !important;
       max-width: 100% !important;
+      min-width: 0 !important;
+      float: none !important;
+      clear: both !important;
       box-sizing: border-box !important;
       padding-left: 0 !important;
       padding-right: 0 !important;
