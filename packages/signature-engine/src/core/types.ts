@@ -8,7 +8,8 @@ export type SignatureProfile = {
 };
 
 export type ContentBlockListItem = {
-  title: string;
+  /** Optional when `url` or `description` alone should render (hostname used as link text when URL-only). */
+  title?: string;
   description?: string;
   url?: string;
 };
