@@ -216,7 +216,7 @@ function renderContentBlocksHtml(
       const url = escapeHtml((block.callUrl || '#').trim());
       const btnText = escapeHtml((block.callButtonText || 'Schedule Now').trim());
       parts.push(`<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:12px;" width="100%">
-  <tr><td style="font-size:12px;font-weight:700;color:#333;padding-bottom:6px;text-transform:uppercase;letter-spacing:0.4px;">${title}</td></tr>
+  <tr><td style="font-size:12px;font-weight:700;color:#333;padding-bottom:6px;text-transform:uppercase;letter-spacing:0.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">${title}</td></tr>
   <tr><td style="padding:0;">
     <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;">
       <tr>
@@ -239,7 +239,7 @@ function renderContentBlocksHtml(
 </td></tr>`;
       }
       parts.push(`<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:12px;" width="100%">
-  <tr><td style="font-size:12px;font-weight:700;color:#333;padding-bottom:6px;text-transform:uppercase;letter-spacing:0.4px;">Latest Posts</td></tr>
+  <tr><td style="font-size:12px;font-weight:700;color:#333;padding-bottom:6px;text-transform:uppercase;letter-spacing:0.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">Latest Posts</td></tr>
   ${itemsHtml}
 </table>`);
     } else if (block.type === 'list') {
@@ -248,7 +248,7 @@ function renderContentBlocksHtml(
       if (!title && items.length === 0) continue;
       let inner = '';
       if (title) {
-        inner += `<tr><td style="font-size:12px;font-weight:700;color:#333;padding-bottom:6px;text-transform:uppercase;letter-spacing:0.4px;">${title}</td></tr>`;
+        inner += `<tr><td style="font-size:12px;font-weight:700;color:#333;padding-bottom:6px;text-transform:uppercase;letter-spacing:0.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">${title}</td></tr>`;
       }
       for (const item of items) {
         const titleTrim = (item.title || '').trim();
@@ -297,7 +297,7 @@ function renderContentBlocksHtml(
           url && !imageUrl
             ? `<a href="${escapeHtml(url)}" style="color:#333;text-decoration:none;">${title}</a>`
             : title;
-        html += `<tr><td style="font-size:12px;font-weight:700;color:#333;padding-bottom:4px;text-transform:uppercase;letter-spacing:0.4px;">${titleInner}</td></tr>`;
+        html += `<tr><td style="font-size:12px;font-weight:700;color:#333;padding-bottom:4px;text-transform:uppercase;letter-spacing:0.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">${titleInner}</td></tr>`;
       }
       if (imageUrl) {
         const absImg = escapeHtml(ensureAbsolutePublicUrl(normalizeImageUrl(imageUrl), origin));

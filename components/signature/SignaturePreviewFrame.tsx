@@ -42,7 +42,7 @@ export function SignaturePreviewFrame({
       <div className="signature-email-preview rounded-md border bg-white p-6 text-left overflow-x-auto overflow-y-visible min-h-[280px]">
         <div
           key={animationKey}
-          style={{ minWidth: 640 }}
+          style={{ minWidth: 660 }}
           dangerouslySetInnerHTML={{ __html: html }}
         />
       </div>

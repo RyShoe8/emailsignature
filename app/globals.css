@@ -105,30 +105,6 @@
         table-layout: auto !important;
         width: 100% !important;
       }
-      & td.sig-logo-stack {
-        display: block !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        min-width: 0 !important;
-        float: none !important;
-        clear: both !important;
-        padding-left: 14px !important;
-        padding-right: 14px !important;
-        padding-bottom: 8px !important;
-        box-sizing: border-box !important;
-      }
-      & td.sig-main-stack {
-        display: block !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        min-width: 0 !important;
-        float: none !important;
-        clear: both !important;
-        box-sizing: border-box !important;
-        border-left: none !important;
-        padding-left: 14px !important;
-        padding-right: 14px !important;
-      }
       & td.sig-blocks-desktop {
         display: none !important;
         max-height: 0 !important;
@@ -150,30 +126,6 @@
         padding-right: 14px !important;
         padding-top: 14px !important;
         box-sizing: border-box !important;
-      }
-      & td.sig-corp-logo-stack {
-        display: block !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        min-width: 0 !important;
-        float: none !important;
-        clear: both !important;
-        padding-left: 14px !important;
-        padding-right: 14px !important;
-        padding-bottom: 12px !important;
-        box-sizing: border-box !important;
-      }
-      & td.sig-corp-main-stack {
-        display: block !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        min-width: 0 !important;
-        float: none !important;
-        clear: both !important;
-        box-sizing: border-box !important;
-        border-left: none !important;
-        padding-left: 14px !important;
-        padding-right: 14px !important;
       }
       & td.sig-content-block-cell {
         display: block !important;

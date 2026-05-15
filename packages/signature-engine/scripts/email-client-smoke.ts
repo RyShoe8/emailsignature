@@ -111,7 +111,7 @@ assert.match(htmlStacked, /height:auto/, 'stacked: generic static logo uses heig
 assert.match(
   htmlStacked,
   /max-width:665px/,
-  'stacked: root table uses a slightly wider cap than the 640px minimal/corporate layouts'
+  'stacked: root table cap stays slightly above minimal/corporate layouts'
 );
 
 const htmlAnimatedLogo = renderSignature({
@@ -214,17 +214,25 @@ assert.match(
 
 assert.ok(
   htmlListImage.includes('max-device-width'),
-  'corporate: responsive CSS includes max-device-width for mobile stacking'
+  'corporate: responsive CSS includes max-device-width for narrow viewports'
 );
 assert.ok(
   htmlListImage.includes('sig-corp-blocks-stack') &&
-    /class="sig-corp-blocks-stack[^"]*"[^>]*style="[^"]*padding-left:12px/.test(htmlListImage),
+    /class="sig-corp-blocks-stack[^"]*"[^>]*style="[^"]*padding-left:11px/.test(htmlListImage),
   'corporate: blocks column has comfortable padding beside vertical divider'
 );
 assert.match(
   htmlListImage,
-  /class="sig-corp-blocks-stack[^"]*"[^>]*style="[^"]*width:52%[^"]*min-width:200px/,
-  'corporate: side column widened to ~52% / min-width 200px on desktop'
+  /class="sig-corp-blocks-stack[^"]*"[^>]*style="[^"]*width:54%[^"]*min-width:212px/,
+  'corporate: side column widened on desktop for promotional blocks'
+);
+assert.ok(
+  htmlListImage.includes('max-width:660px'),
+  'corporate: root and mobile blocks table share 660px max width'
+);
+assert.ok(
+  htmlListImage.includes('white-space:nowrap') && htmlListImage.includes('text-overflow:ellipsis'),
+  'corporate: promotional block title rows prefer a single line with ellipsis overflow'
 );
 assert.ok(
   htmlListImage.includes('sig-blocks-mobile-sibling') &&
@@ -276,10 +284,15 @@ assert.ok(
     htmlListImage.includes('class="sig-corp-header-layout-table"'),
   'corporate: root and header tables carry layout class names'
 );
-assert.match(
+assert.doesNotMatch(
   htmlListImage,
-  /td\.sig-corp-main-stack\s*\{[\s\S]*?padding-left:\s*14px\s*!important[\s\S]*?padding-right:\s*14px\s*!important/,
-  'corporate: mobile stack restores symmetric horizontal inset on main column'
+  /td\.sig-corp-logo-stack\s*\{[\s\S]*?display:\s*block\s*!important/,
+  'corporate: narrow viewport keeps header row table layout (logo not forced to block)'
+);
+assert.doesNotMatch(
+  htmlListImage,
+  /td\.sig-corp-main-stack\s*\{[\s\S]*?border-left:\s*none\s*!important/,
+  'corporate: narrow viewport keeps accent border on main column'
 );
 assert.ok(
   htmlListImage.includes('class="sig-content-blocks-grid"') &&
@@ -395,13 +408,21 @@ assert.ok(
 );
 assert.ok(
   htmlMinimalBlocks.includes('sig-blocks-stack') &&
-    /class="sig-blocks-stack[^"]*"[^>]*style="[^"]*padding-left:12px/.test(htmlMinimalBlocks),
+    /class="sig-blocks-stack[^"]*"[^>]*style="[^"]*padding-left:11px/.test(htmlMinimalBlocks),
   'minimal: blocks column has comfortable padding beside vertical divider'
 );
 assert.match(
   htmlMinimalBlocks,
-  /class="sig-blocks-stack[^"]*"[^>]*style="[^"]*width:54%[^"]*min-width:205px/,
-  'minimal: side column widened to ~54% / min-width 205px on desktop'
+  /class="sig-blocks-stack[^"]*"[^>]*style="[^"]*width:56%[^"]*min-width:218px/,
+  'minimal: side column widened on desktop for promotional blocks'
+);
+assert.ok(
+  htmlMinimalBlocks.includes('white-space:nowrap') && htmlMinimalBlocks.includes('text-overflow:ellipsis'),
+  'minimal: promotional block title rows prefer a single line with ellipsis overflow'
+);
+assert.ok(
+  htmlMinimalBlocks.includes('max-width:660px'),
+  'minimal: root and mobile blocks table share 660px max width'
 );
 assert.ok(
   htmlMinimalBlocks.includes('sig-blocks-mobile-sibling') &&
@@ -447,10 +468,15 @@ assert.match(
   /table\.sig-root-layout-table\s*\{[\s\S]*?table-layout:\s*auto\s*!important/,
   'minimal: mobile CSS switches root table to table-layout auto'
 );
-assert.match(
+assert.doesNotMatch(
   htmlMinimalBlocks,
-  /td\.sig-main-stack\s*\{[\s\S]*?padding-left:\s*14px\s*!important[\s\S]*?padding-right:\s*14px\s*!important/,
-  'minimal: mobile stack restores symmetric horizontal inset on main column'
+  /td\.sig-logo-stack\s*\{[\s\S]*?display:\s*block\s*!important/,
+  'minimal: narrow viewport keeps header row table layout (logo not forced to block)'
+);
+assert.doesNotMatch(
+  htmlMinimalBlocks,
+  /td\.sig-main-stack\s*\{[\s\S]*?border-left:\s*none\s*!important/,
+  'minimal: narrow viewport keeps accent border on main column'
 );
 assert.match(
   htmlMinimalBlocks,
