@@ -1,17 +1,14 @@
 import Link from 'next/link';
 import { connectMongoose } from '@/lib/mongoose';
 import { SubscriptionPlanModel, type SubscriptionPlanDoc } from '@/models/SubscriptionPlan';
-import { ensureDefaultSubscriptionPlans } from '@/lib/billing/ensureDefaultPlans';
 import { getPlanSubscriptionCapUsage } from '@/lib/billing/planSubscriptionCap';
 import { AdminPlansTable, type PlanRow } from '@/components/admin/AdminPlansTable';
-import { Button } from '@/components/ui/button';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminPlansPage() {
+export default async function AdminArchivedPlansPage() {
   await connectMongoose();
-  await ensureDefaultSubscriptionPlans();
-  const raw = await SubscriptionPlanModel.find({ archived: false })
+  const raw = await SubscriptionPlanModel.find({ archived: true })
     .sort({ slug: 1, version: -1 })
     .lean<SubscriptionPlanDoc[]>();
 
@@ -28,7 +25,7 @@ export default async function AdminPlansPage() {
         includedUsers: Number(p.includedUsers ?? 1),
         active: Boolean(p.active),
         paused: Boolean(p.paused),
-        archived: Boolean(p.archived),
+        archived: true,
         version: Number(p.version ?? 1),
         stripeBasePriceId: p.stripeBasePriceId ? String(p.stripeBasePriceId) : '',
         maxSubscriptionSlots: Number(p.maxSubscriptionSlots ?? 0),
@@ -40,18 +37,19 @@ export default async function AdminPlansPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-xl font-semibold tracking-tight">Active plans</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Source of truth for pricing. Sync creates Stripe products and immutable prices.
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/admin/plans/new">Create plan</Link>
-        </Button>
+      <div>
+        <Link
+          href="/admin/plans"
+          className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
+        >
+          ← Active plans
+        </Link>
+        <h2 className="mt-4 text-xl font-semibold tracking-tight">Archived plans</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Retired from public pricing and checkout. Existing organization subscriptions stay on their pinned plan.
+        </p>
       </div>
-      <AdminPlansTable initialPlans={initialPlans} mode="active" />
+      <AdminPlansTable initialPlans={initialPlans} mode="archived" />
     </div>
   );
 }

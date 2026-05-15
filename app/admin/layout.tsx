@@ -26,6 +26,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link href="/admin/plans" className="hover:text-foreground hover:underline underline-offset-4">
               Plans
             </Link>
+            <Link href="/admin/plans/archived" className="hover:text-foreground hover:underline underline-offset-4">
+              Archived plans
+            </Link>
             <Link href="/admin/addons" className="hover:text-foreground hover:underline underline-offset-4">
               Add-ons
             </Link>

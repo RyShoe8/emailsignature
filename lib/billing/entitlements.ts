@@ -2,30 +2,36 @@ import type { OrganizationDoc } from '@/models/Organization';
 import { MAX_TEMPLATES_BASIC } from '@/lib/stripe/config';
 
 export type BillingEntitlements = {
-  /** Pro-tier product capabilities (templates, animation slots). Driven by `Organization.plan` (kept in sync via Stripe webhooks). */
   isPro: boolean;
   maxTemplates: number;
-  /** Org is allowed to use per-template animation when the template requests it. */
   canUseTemplateAnimationSlot: boolean;
 };
 
-const PRO_MAX_TEMPLATES = 10;
+const FULL_MAX_TEMPLATES = 10;
+
+function hasPaidSubscription(
+  org: Pick<OrganizationDoc, 'subscriptionStatus'> | null | undefined
+): boolean {
+  if (!org) return false;
+  if (!process.env.STRIPE_SECRET_KEY) return true;
+  return org.subscriptionStatus === 'active' || org.subscriptionStatus === 'trialing';
+}
 
 export function getBillingEntitlements(
   org: Pick<OrganizationDoc, 'plan' | 'subscriptionStatus'> | null | undefined
 ): BillingEntitlements {
-  if (!org) {
+  const paid = hasPaidSubscription(org);
+  if (!paid) {
     return {
       isPro: false,
       maxTemplates: MAX_TEMPLATES_BASIC,
       canUseTemplateAnimationSlot: false,
     };
   }
-  const isPro = org.plan === 'pro';
   return {
-    isPro,
-    maxTemplates: isPro ? PRO_MAX_TEMPLATES : MAX_TEMPLATES_BASIC,
-    canUseTemplateAnimationSlot: isPro,
+    isPro: true,
+    maxTemplates: FULL_MAX_TEMPLATES,
+    canUseTemplateAnimationSlot: true,
   };
 }
 

@@ -19,7 +19,8 @@ const PatchSchema = z.object({
   badge: z.string().optional(),
   active: z.boolean().optional(),
   paused: z.boolean().optional(),
-  legacyPlanKey: z.enum(['', 'basic', 'pro']).optional(),
+  maxSubscriptionSlots: z.number().int().nonnegative().optional(),
+  archived: z.boolean().optional(),
 });
 
 type Params = { params: Promise<{ id: string }> };
@@ -58,7 +59,11 @@ export async function PATCH(request: Request, { params }: Params) {
     return NextResponse.json({ error: 'No fields' }, { status: 400 });
   }
   await connectMongoose();
-  const plan = await SubscriptionPlanModel.findByIdAndUpdate(id, { $set: parsed.data }, { new: true });
+  const $set = { ...parsed.data } as Record<string, unknown>;
+  if ($set.archived === true) {
+    $set.paused = true;
+  }
+  const plan = await SubscriptionPlanModel.findByIdAndUpdate(id, { $set }, { new: true });
   if (!plan) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   return NextResponse.json({ plan });
 }

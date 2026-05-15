@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { getPublicPricingPlans, type PublicPricingPlan } from '@/lib/billing/getPublicPricingPlans';
-import { getBillingEntitlements } from '@/lib/billing/entitlements';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,16 +44,6 @@ function seatLine(plan: PublicPricingPlan): string | null {
   return null;
 }
 
-function featureSummary(plan: PublicPricingPlan): string | null {
-  if (plan.legacyPlanKey !== 'basic' && plan.legacyPlanKey !== 'pro') return null;
-  const e = getBillingEntitlements({ plan: plan.legacyPlanKey, subscriptionStatus: 'none' });
-  const parts = [`Up to ${e.maxTemplates} signature templates`];
-  if (e.canUseTemplateAnimationSlot) {
-    parts.push('optional animation slot on templates');
-  }
-  return parts.join(' · ');
-}
-
 export default async function PricingPage() {
   const plans = await getPublicPricingPlans();
 
@@ -62,8 +51,8 @@ export default async function PricingPage() {
     <div className="mx-auto min-w-0 max-w-5xl px-4 py-12 sm:py-16">
       <h1 className="mb-2 text-2xl font-semibold tracking-tight sm:text-3xl">Pricing</h1>
       <p className="text-muted-foreground mb-10 max-w-xl">
-        Plans are billed per organization. Amounts and intervals reflect what we offer today; subscribe from the
-        dashboard after you sign up.
+        Plans are billed per organization. Every plan includes all Tailnote signature features. Subscribe from
+        the dashboard after you sign up.
       </p>
       {plans.length === 0 ? (
         <p className="text-sm text-muted-foreground">
@@ -72,15 +61,8 @@ export default async function PricingPage() {
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(16rem,1fr))]">
           {plans.map((plan) => {
-            const summary = featureSummary(plan);
             const seats = seatLine(plan);
-            const description =
-              plan.description.trim() ||
-              (plan.legacyPlanKey === 'pro'
-                ? 'Advanced layouts and promotional blocks'
-                : plan.legacyPlanKey === 'basic'
-                  ? 'Core email signature features'
-                  : '');
+            const description = plan.description.trim();
 
             return (
               <Card key={plan.slug} className="flex flex-col">
@@ -92,9 +74,16 @@ export default async function PricingPage() {
                         {plan.badge.trim()}
                       </span>
                     ) : null}
+                    {plan.soldOut ? (
+                      <span className="rounded-md border border-destructive/30 bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
+                        Sold out
+                      </span>
+                    ) : null}
                   </div>
                   {description ? <CardDescription>{description}</CardDescription> : null}
-                  {summary ? <p className="text-muted-foreground mt-2 text-sm">{summary}</p> : null}
+                  <p className="text-muted-foreground mt-2 text-sm">
+                    All signature templates, animation slots, and team features included.
+                  </p>
                 </CardHeader>
                 <CardContent className="flex flex-1 flex-col gap-2">
                   <p className="text-3xl font-semibold">{primaryPriceLine(plan)}</p>
@@ -102,13 +91,15 @@ export default async function PricingPage() {
                   <p className="text-sm text-muted-foreground mt-auto pt-2">Per organization</p>
                 </CardContent>
                 <CardFooter>
-                  <Button
-                    asChild
-                    className="w-full"
-                    variant={plan.legacyPlanKey === 'pro' ? 'accent' : 'default'}
-                  >
-                    <Link href="/signup">Get started — {plan.name}</Link>
-                  </Button>
+                  {plan.soldOut ? (
+                    <Button className="w-full" disabled>
+                      Sold out
+                    </Button>
+                  ) : (
+                    <Button asChild className="w-full">
+                      <Link href="/signup">Get started — {plan.name}</Link>
+                    </Button>
+                  )}
                 </CardFooter>
               </Card>
             );

@@ -16,9 +16,6 @@ export default async function EditAdminPlanPage({ params }: Props) {
   const p = await SubscriptionPlanModel.findById(id).lean<SubscriptionPlanDoc>();
   if (!p) notFound();
 
-  const legacyPlanKey: '' | 'basic' | 'pro' =
-    p.legacyPlanKey === 'basic' || p.legacyPlanKey === 'pro' ? p.legacyPlanKey : '';
-
   const initial = {
     name: String(p.name ?? ''),
     slug: String(p.slug ?? ''),
@@ -28,13 +25,15 @@ export default async function EditAdminPlanPage({ params }: Props) {
     includedUsers: Number(p.includedUsers ?? 1),
     description: String(p.description ?? ''),
     badge: String(p.badge ?? ''),
-    legacyPlanKey,
+    maxSubscriptionSlots: Number(p.maxSubscriptionSlots ?? 0),
   };
+
+  const backHref = p.archived ? '/admin/plans/archived' : '/admin/plans';
 
   return (
     <div className="space-y-6">
-      <Link href="/admin/plans" className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground">
-        ← Plans
+      <Link href={backHref} className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground">
+        ← {p.archived ? 'Archived plans' : 'Plans'}
       </Link>
       <AdminPlanForm mode="edit" planId={id} initial={initial} />
     </div>

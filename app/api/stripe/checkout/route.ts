@@ -8,6 +8,11 @@ import { SubscriptionPlanModel, type SubscriptionPlanDoc } from '@/models/Subscr
 import { getStripe } from '@/lib/stripe/client';
 import { stripePriceIds } from '@/lib/stripe/config';
 import { isValidObjectIdString } from '@/lib/admin/data';
+import {
+  assertPlanHasSubscriptionSlot,
+  isPlanOfferable,
+  PlanSubscriptionCapError,
+} from '@/lib/billing/planSubscriptionCap';
 
 const BodySchema = z
   .object({
@@ -17,6 +22,27 @@ const BodySchema = z
   .refine((b) => b.plan !== undefined || Boolean(b.subscriptionPlanId?.trim()), {
     message: 'Provide plan (basic|pro) or subscriptionPlanId',
   });
+
+async function validatePlanForCheckout(
+  dbPlan: SubscriptionPlanDoc,
+  organizationId: string
+): Promise<NextResponse | null> {
+  if (!isPlanOfferable(dbPlan)) {
+    return NextResponse.json({ error: 'Plan not available' }, { status: 400 });
+  }
+  if (!dbPlan.stripeBasePriceId) {
+    return NextResponse.json({ error: 'Plan not synced to Stripe yet' }, { status: 400 });
+  }
+  try {
+    await assertPlanHasSubscriptionSlot(dbPlan, organizationId);
+  } catch (e) {
+    if (e instanceof PlanSubscriptionCapError) {
+      return NextResponse.json({ error: e.message }, { status: 409 });
+    }
+    throw e;
+  }
+  return null;
+}
 
 export async function POST(request: Request) {
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -54,7 +80,6 @@ export async function POST(request: Request) {
 
   let priceId = '';
   let checkoutMode: 'subscription' | 'payment' = 'subscription';
-  let metadataPlan: 'basic' | 'pro' = 'basic';
   let subscriptionPlanIdMeta = '';
   let dbPlanForSeats: SubscriptionPlanDoc | null = null;
 
@@ -63,36 +88,35 @@ export async function POST(request: Request) {
     if (!isValidObjectIdString(pid)) {
       return NextResponse.json({ error: 'Invalid subscriptionPlanId' }, { status: 400 });
     }
-    const dbPlan = await SubscriptionPlanModel.findById(pid).lean();
-    if (!dbPlan || !dbPlan.active || dbPlan.paused) {
-      return NextResponse.json({ error: 'Plan not available' }, { status: 400 });
+    const dbPlan = await SubscriptionPlanModel.findById(pid).lean<SubscriptionPlanDoc>();
+    if (!dbPlan) {
+      return NextResponse.json({ error: 'Plan not found' }, { status: 404 });
     }
-    if (!dbPlan.stripeBasePriceId) {
-      return NextResponse.json({ error: 'Plan not synced to Stripe yet' }, { status: 400 });
-    }
+    const capErr = await validatePlanForCheckout(dbPlan, org._id.toString());
+    if (capErr) return capErr;
+
     priceId = dbPlan.stripeBasePriceId;
     subscriptionPlanIdMeta = String(dbPlan._id);
     checkoutMode = dbPlan.interval === 'lifetime' ? 'payment' : 'subscription';
-    if (dbPlan.legacyPlanKey === 'pro') metadataPlan = 'pro';
-    else if (dbPlan.legacyPlanKey === 'basic') metadataPlan = 'basic';
-    else metadataPlan = 'basic';
     dbPlanForSeats = dbPlan;
   } else if (parsed.data.plan) {
-    metadataPlan = parsed.data.plan;
     const slugPlan = await SubscriptionPlanModel.findOne({
       slug: parsed.data.plan,
       active: true,
       paused: false,
+      archived: false,
       stripeBasePriceId: { $exists: true, $nin: ['', null] },
     })
       .sort({ version: -1 })
-      .lean();
+      .lean<SubscriptionPlanDoc>();
+
     if (slugPlan?.stripeBasePriceId) {
+      const capErr = await validatePlanForCheckout(slugPlan, org._id.toString());
+      if (capErr) return capErr;
+
       priceId = slugPlan.stripeBasePriceId;
       subscriptionPlanIdMeta = String(slugPlan._id);
       checkoutMode = slugPlan.interval === 'lifetime' ? 'payment' : 'subscription';
-      if (slugPlan.legacyPlanKey === 'pro') metadataPlan = 'pro';
-      else if (slugPlan.legacyPlanKey === 'basic') metadataPlan = 'basic';
       dbPlanForSeats = slugPlan;
     } else {
       priceId = parsed.data.plan === 'pro' ? stripePriceIds.pro : stripePriceIds.basic;
@@ -105,7 +129,6 @@ export async function POST(request: Request) {
   const stripe = getStripe();
   const meta: Record<string, string> = {
     organizationId: org._id.toString(),
-    plan: metadataPlan,
   };
   if (subscriptionPlanIdMeta) meta.subscriptionPlanId = subscriptionPlanIdMeta;
 

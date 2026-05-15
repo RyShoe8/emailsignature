@@ -11,17 +11,9 @@ import { OrganizationSubscriptionModel } from '@/models/OrganizationSubscription
 import { SubscriptionPlanModel, type SubscriptionPlanDoc } from '@/models/SubscriptionPlan';
 import { StripeWebhookEventModel } from '@/models/StripeWebhookEvent';
 import { EmployeeModel } from '@/models/Employee';
-import { stripePriceIds } from '@/lib/stripe/config';
 import { isValidObjectIdString } from '@/lib/admin/data';
 import { persistOrganizationSubscriptionStripeItems } from '@/lib/stripe/subscriptionItemSync';
 import { syncStripeSubscriptionSeatsForOrganization } from '@/lib/stripe/syncSubscriptionSeats';
-
-function planFromPriceId(priceId: string | undefined): 'basic' | 'pro' | 'none' {
-  if (!priceId) return 'none';
-  if (priceId === stripePriceIds.basic) return 'basic';
-  if (priceId === stripePriceIds.pro) return 'pro';
-  return 'none';
-}
 
 function mapSubscriptionStatus(
   status: Stripe.Subscription.Status
@@ -90,41 +82,10 @@ async function resolveSubscriptionPlanMongoId(
   return null;
 }
 
-/** Prefer Stripe subscription metadata and env price ids, then pinned Mongo plan (grandfather), then price metadata. */
-async function resolveLegacyPlanKey(args: {
-  stripe: Stripe;
-  sub: Stripe.Subscription;
-  priceId?: string;
-  orgId?: string;
-}): Promise<'basic' | 'pro' | 'none'> {
-  const { stripe, sub, priceId, orgId } = args;
-  if (sub.metadata?.plan === 'pro' || sub.metadata?.plan === 'basic') {
-    return sub.metadata.plan;
-  }
-  const fromEnv = planFromPriceId(priceId);
-  if (fromEnv !== 'none') return fromEnv;
-
-  if (orgId && isValidObjectIdString(orgId)) {
-    const orgSub = await OrganizationSubscriptionModel.findOne({
-      organizationId: new mongoose.Types.ObjectId(orgId),
-    })
-      .populate<{ subscriptionPlanId: { legacyPlanKey?: string } | null }>('subscriptionPlanId')
-      .lean();
-    const pinnedKey = orgSub?.subscriptionPlanId?.legacyPlanKey;
-    if (pinnedKey === 'pro' || pinnedKey === 'basic') return pinnedKey;
-  }
-
-  if (!priceId) return 'none';
-  try {
-    const price = await stripe.prices.retrieve(priceId);
-    const planMongoId = price.metadata?.tailnoteSubscriptionPlanId;
-    if (planMongoId && isValidObjectIdString(planMongoId)) {
-      const p = await SubscriptionPlanModel.findById(planMongoId).select('legacyPlanKey').lean();
-      if (p?.legacyPlanKey === 'pro' || p?.legacyPlanKey === 'basic') return p.legacyPlanKey;
-    }
-  } catch {
-    // ignore
-  }
+function organizationPlanForStripeStatus(
+  status: Stripe.Subscription.Status
+): 'pro' | 'none' {
+  if (status === 'active' || status === 'trialing' || status === 'past_due') return 'pro';
   return 'none';
 }
 
@@ -159,7 +120,6 @@ export async function POST(request: Request) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         const orgId = session.metadata?.organizationId;
-        const planKey = session.metadata?.plan === 'pro' ? 'pro' : 'basic';
         if (!orgId || !session.customer || !isValidObjectIdString(orgId)) break;
 
         const customerId = String(session.customer);
@@ -171,7 +131,7 @@ export async function POST(request: Request) {
             stripeCustomerId: customerId,
             stripeSubscriptionId: subId,
             subscriptionStatus: 'active',
-            plan: planKey,
+            plan: 'pro',
           });
 
           if (planDocId) {
@@ -210,7 +170,7 @@ export async function POST(request: Request) {
             stripeCustomerId: customerId,
             stripeSubscriptionId: '',
             subscriptionStatus: 'active',
-            plan: planKey,
+            plan: 'pro',
           });
           if (planDocId) {
             const orgObjId = new mongoose.Types.ObjectId(orgId);
@@ -240,8 +200,6 @@ export async function POST(request: Request) {
       case 'customer.subscription.deleted': {
         const sub = event.data.object as Stripe.Subscription;
         const orgId = sub.metadata?.organizationId;
-        const priceId = sub.items.data[0]?.price?.id;
-        const resolvedPlan = await resolveLegacyPlanKey({ stripe, sub, priceId, orgId });
         const status =
           event.type === 'customer.subscription.deleted'
             ? 'canceled'
@@ -251,10 +209,8 @@ export async function POST(request: Request) {
           stripeSubscriptionId: sub.id,
           stripeCustomerId: String(sub.customer),
           subscriptionStatus: status,
+          plan: organizationPlanForStripeStatus(sub.status),
         };
-        if (resolvedPlan !== 'none') {
-          patch.plan = resolvedPlan;
-        }
 
         if (orgId) {
           await OrganizationModel.findByIdAndUpdate(orgId, patch);

@@ -75,6 +75,12 @@ Pricing lives in MongoDB (`subscription_plans`), not only in Stripe env vars.
 3. For each plan, click **Sync** to create Stripe Product + Price rows (prices are immutable; edit amounts by cloning a new version).
 4. Dashboard checkout uses synced plans when available; `STRIPE_BASIC_PRICE_ID` / `STRIPE_PRO_PRICE_ID` remain a fallback until migration is complete.
 
+**Plan caps (promo offers):** Set **Max subscriptions** on a plan in admin (`0` = unlimited). Each organization that signs up for that plan document consumes one slot permanently — **canceled and incomplete subscriptions still count**, so churn does not free slots for new customers. Checkout returns **409** when the cap is full.
+
+**Archive:** Use **Archive** on **`/admin/plans`** to retire a plan from public **`/pricing`** and new checkout. Archived plans appear under **`/admin/plans/archived`** and can be unarchived. Existing org subscriptions stay on their pinned plan.
+
+All paid plans include the same product features (templates, animation slots, etc.).
+
 Optional add-ons: **`/admin/addons`** with the same sync pattern.
 
 ## Build on Vercel

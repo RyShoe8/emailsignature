@@ -17,8 +17,10 @@ const SubscriptionPlanSchema = new Schema(
     stripeBasePriceId: { type: String, default: '' },
     stripeSeatPriceId: { type: String, default: '' },
     version: { type: Number, default: 1, min: 1 },
-    /** Maps to Organization.plan for entitlements until full capabilities migration */
-    legacyPlanKey: { type: String, enum: ['', 'basic', 'pro'], default: '' },
+    /** Max org subscriptions for this plan document; 0 = unlimited */
+    maxSubscriptionSlots: { type: Number, default: 0, min: 0 },
+    /** Retired from public catalog; existing subs stay pinned */
+    archived: { type: Boolean, default: false, index: true },
   },
   { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } }
 );

@@ -25,7 +25,6 @@ export async function syncPlanToStripe(plan: PlanForSync) {
     tailnoteSubscriptionPlanId: plan._id.toString(),
     tailnotePlanSlug: plan.slug,
     tailnotePlanVersion: String(plan.version),
-    tailnoteLegacyPlanKey: plan.legacyPlanKey || '',
   };
 
   let productId = plan.stripeProductId;

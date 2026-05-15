@@ -17,7 +17,8 @@ export async function ensureDefaultSubscriptionPlans(): Promise<void> {
       includedUsers: 1,
       description: 'Core email signature features',
       version: 1,
-      legacyPlanKey: 'basic',
+      maxSubscriptionSlots: 0,
+      archived: false,
     });
   }
   const pro = await SubscriptionPlanModel.findOne({ slug: 'pro', version: 1 });
@@ -33,7 +34,8 @@ export async function ensureDefaultSubscriptionPlans(): Promise<void> {
       includedUsers: 1,
       description: 'Advanced layouts and promotional blocks',
       version: 1,
-      legacyPlanKey: 'pro',
+      maxSubscriptionSlots: 0,
+      archived: false,
     });
   }
 }

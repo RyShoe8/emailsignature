@@ -19,7 +19,7 @@ const empty = {
   includedUsers: 1,
   description: '',
   badge: '',
-  legacyPlanKey: '' as '' | 'basic' | 'pro',
+  maxSubscriptionSlots: 0,
 };
 
 export function AdminPlanForm({
@@ -50,7 +50,7 @@ export function AdminPlanForm({
         includedUsers: Number(form.includedUsers),
         description: form.description,
         badge: form.badge,
-        legacyPlanKey: form.legacyPlanKey || undefined,
+        maxSubscriptionSlots: Number(form.maxSubscriptionSlots),
       };
       const url = mode === 'create' ? '/api/admin/plans' : `/api/admin/plans/${planId}`;
       const res = await fetch(url, {
@@ -139,21 +139,25 @@ export function AdminPlanForm({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="desc">Description</Label>
-            <Input id="desc" value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
+            <Label htmlFor="maxSlots">Max subscriptions (0 = unlimited)</Label>
+            <Input
+              id="maxSlots"
+              type="number"
+              min={0}
+              value={form.maxSubscriptionSlots}
+              onChange={(e) => setForm((f) => ({ ...f, maxSubscriptionSlots: Number(e.target.value) }))}
+            />
+            <p className="text-xs text-muted-foreground">
+              Promo cap: every org signup uses a slot permanently (cancel does not free a slot).
+            </p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="legacy">Legacy plan key (entitlements)</Label>
-            <select
-              id="legacy"
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
-              value={form.legacyPlanKey}
-              onChange={(e) => setForm((f) => ({ ...f, legacyPlanKey: e.target.value as '' | 'basic' | 'pro' }))}
-            >
-              <option value="">(none)</option>
-              <option value="basic">basic</option>
-              <option value="pro">pro</option>
-            </select>
+            <Label htmlFor="badge">Badge (optional)</Label>
+            <Input id="badge" value={form.badge} onChange={(e) => setForm((f) => ({ ...f, badge: e.target.value }))} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="desc">Description</Label>
+            <Input id="desc" value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
           </div>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
           <div className="flex flex-wrap gap-2">

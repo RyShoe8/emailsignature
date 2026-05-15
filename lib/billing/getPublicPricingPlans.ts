@@ -1,9 +1,11 @@
 import { connectMongoose } from '@/lib/mongoose';
 import { SubscriptionPlanModel, type SubscriptionPlanDoc } from '@/models/SubscriptionPlan';
 import { ensureDefaultSubscriptionPlans } from '@/lib/billing/ensureDefaultPlans';
+import { getPlanSubscriptionCapUsage } from '@/lib/billing/planSubscriptionCap';
 
 /** Serializable plan row for marketing / pricing UI (latest version per slug). */
 export type PublicPricingPlan = {
+  id: string;
   slug: string;
   name: string;
   description: string;
@@ -12,18 +14,20 @@ export type PublicPricingPlan = {
   basePriceCents: number;
   additionalUserPriceCents: number;
   includedUsers: number;
-  legacyPlanKey: '' | 'basic' | 'pro';
   version: number;
+  maxSubscriptionSlots: number;
+  subscriptionCount: number;
+  soldOut: boolean;
 };
 
 /**
- * Active, non-paused plans for public pricing — one card per slug (highest version).
+ * Active, non-paused, non-archived plans for public pricing — one card per slug (highest version).
  */
 export async function getPublicPricingPlans(): Promise<PublicPricingPlan[]> {
   await connectMongoose();
   await ensureDefaultSubscriptionPlans();
 
-  const rows = await SubscriptionPlanModel.find({ active: true, paused: false })
+  const rows = await SubscriptionPlanModel.find({ active: true, paused: false, archived: false })
     .sort({ slug: 1, version: -1 })
     .lean<SubscriptionPlanDoc[]>();
 
@@ -35,11 +39,10 @@ export async function getPublicPricingPlans(): Promise<PublicPricingPlan[]> {
     if (!slug || seen.has(slug)) continue;
     seen.add(slug);
 
-    const legacy = r.legacyPlanKey;
-    const legacyPlanKey: '' | 'basic' | 'pro' =
-      legacy === 'basic' || legacy === 'pro' ? legacy : '';
+    const usage = await getPlanSubscriptionCapUsage(r);
 
     out.push({
+      id: String(r._id),
       slug,
       name: String(r.name ?? ''),
       description: String(r.description ?? ''),
@@ -48,8 +51,10 @@ export async function getPublicPricingPlans(): Promise<PublicPricingPlan[]> {
       basePriceCents: Number(r.basePriceCents ?? 0),
       additionalUserPriceCents: Number(r.additionalUserPriceCents ?? 0),
       includedUsers: Math.max(1, Number(r.includedUsers ?? 1)),
-      legacyPlanKey,
       version: Number(r.version ?? 1),
+      maxSubscriptionSlots: Number(r.maxSubscriptionSlots ?? 0),
+      subscriptionCount: usage.used,
+      soldOut: usage.soldOut,
     });
   }
 
