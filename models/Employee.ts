@@ -18,7 +18,10 @@ const EmployeeSchema = new Schema(
     /** Up to 2 promotional content blocks displayed in the corporate template. */
     contentBlocks: [
       {
-        type: { type: String, enum: ['book_a_call', 'latest_blogs', 'custom'] },
+        type: {
+          type: String,
+          enum: ['book_a_call', 'latest_blogs', 'custom', 'list', 'image'],
+        },
         enabled: { type: Boolean, default: true },
         // Book a Call
         callTitle: { type: String },
@@ -37,7 +40,18 @@ const EmployeeSchema = new Schema(
         rssLastFetched: { type: Date },
         /** Optional auto-refresh cadence: 'none' (manual only), 'daily', 'weekly' */
         rssRefreshInterval: { type: String, enum: ['none', 'daily', 'weekly'], default: 'none' },
-        // Custom
+        // List (and legacy custom)
+        listTitle: { type: String },
+        listItems: [
+          {
+            title: { type: String },
+            description: { type: String },
+            url: { type: String },
+          },
+        ],
+        imageUrl: { type: String },
+        imageLinkUrl: { type: String },
+        // Custom (legacy)
         customTitle: { type: String },
         customText: { type: String },
         customUrl: { type: String },

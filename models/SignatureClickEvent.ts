@@ -10,6 +10,7 @@ const KINDS = [
   'social_facebook',
   'social_instagram',
   'social_reddit',
+  'social_discord',
   'content_block_1',
   'content_block_2',
 ] as const;

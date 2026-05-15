@@ -47,8 +47,14 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
   return NextResponse.json({ employee });
 }
 
+const ContentBlockListItemSchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
+  url: z.string().optional(),
+});
+
 const ContentBlockSchema = z.object({
-  type: z.enum(['book_a_call', 'latest_blogs', 'custom']),
+  type: z.enum(['book_a_call', 'latest_blogs', 'custom', 'list', 'image']),
   enabled: z.boolean().optional(),
   callTitle: z.string().optional(),
   callUrl: z.string().optional(),
@@ -62,6 +68,10 @@ const ContentBlockSchema = z.object({
   })).optional(),
   rssLastFetched: z.string().optional(),
   rssRefreshInterval: z.enum(['none', 'daily', 'weekly']).optional(),
+  listTitle: z.string().optional(),
+  listItems: z.array(ContentBlockListItemSchema).max(4).optional(),
+  imageUrl: z.string().optional(),
+  imageLinkUrl: z.string().optional(),
   customTitle: z.string().optional(),
   customText: z.string().optional(),
   customUrl: z.string().optional(),

@@ -155,6 +155,7 @@ const htmlListImage = renderSignature({
           { title: 'Quarterly Report', description: 'Q4 published', url: 'https://example.com/q4' },
           { title: 'New Feature', url: 'https://example.com/feature' },
           { title: 'Plain Item' },
+          { url: 'https://news.example.com/no-title' },
         ],
       },
       {
@@ -181,6 +182,15 @@ assert.match(
   htmlListImage,
   /href="https:\/\/example\.com\/q4[^"]*"/,
   'corporate/list: item URL renders as link'
+);
+assert.ok(
+  htmlListImage.includes('news.example.com'),
+  'corporate/list: URL-only row uses hostname as link label'
+);
+assert.match(
+  htmlListImage,
+  /href="https:\/\/news\.example\.com\/no-title[^"]*"/,
+  'corporate/list: URL-only row still links to full URL'
 );
 assert.ok(
   htmlListImage.includes('Plain Item'),
@@ -233,8 +243,8 @@ assert.doesNotMatch(
 );
 assert.match(
   htmlListImage,
-  /<tr>\s*<td colspan="3"[^>]*>\s*<table[^>]*>[\s\S]*?Recent Wins/,
-  'corporate: blocks render in a full-width bottom row, not the old right column'
+  /sig-corp-blocks-stack[\s\S]*Recent Wins/,
+  'corporate: content blocks render in header side column on desktop'
 );
 assert.doesNotMatch(
   htmlListImage,
@@ -242,7 +252,7 @@ assert.doesNotMatch(
   'corporate: blocks must not render in the old 220px right column'
 );
 
-// Minimal template should now also render content blocks beneath the signature.
+// Minimal (standard layout) should render content blocks in the desktop side column.
 const minimalTemplate: import('../src/core/types').SignatureTemplate = {
   id: 'minimal-smoke',
   name: 'Minimal',
@@ -253,6 +263,8 @@ const minimalTemplate: import('../src/core/types').SignatureTemplate = {
     { type: 'title' },
     { type: 'contact' },
     { type: 'social' },
+    { type: 'divider' },
+    { type: 'address' },
     { type: 'contentBlocks' },
   ],
 };
@@ -275,12 +287,22 @@ const htmlMinimalBlocks = renderSignature({
 });
 assert.ok(
   htmlMinimalBlocks.includes('Resources') && htmlMinimalBlocks.includes('Docs'),
-  'minimal: list block renders below the signature'
+  'minimal: list block renders beside the signature body'
 );
 assert.match(
   htmlMinimalBlocks,
+  /sig-blocks-stack[\s\S]*Resources/,
+  'minimal: blocks live in the side column cell'
+);
+assert.match(
+  htmlMinimalBlocks,
+  /colspan="3"/,
+  'minimal: divider/address span all columns when blocks column is present'
+);
+assert.doesNotMatch(
+  htmlMinimalBlocks,
   /<tr>\s*<td colspan="2"[^>]*>\s*<table[^>]*>[\s\S]*?Resources/,
-  'minimal: blocks render in the new bottom colspan="2" row'
+  'minimal: blocks must not sit in a dedicated bottom colspan="2" row'
 );
 
 // Stacked template should also support blocks.

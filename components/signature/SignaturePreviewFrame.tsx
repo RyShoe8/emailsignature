@@ -13,12 +13,10 @@ const MOBILE_FRAME_WIDTH = 360;
 /**
  * Renders signature HTML in either a flexible desktop card or a phone-sized
  * mobile frame. The mobile variant:
- *   - constrains width to ~360px (no horizontal scroll)
- *   - relaxes root-table `max-width` so signatures with `max-width:600px`
- *     can flex down to the frame width
- *   - measures the natural content width and applies a CSS transform: scale
- *     when the content still exceeds the frame, so the entire signature
- *     remains visible without scrolling
+ *   - constrains width to ~360px
+ *   - measures intrinsic content width/height, scales down if needed
+ *   - clips using an outer box sized to the scaled footprint so transforms do not
+ *     spill past overflow:hidden (avoids right-edge clipping)
  */
 export function SignaturePreviewFrame({ html, animationKey = 0, variant = 'desktop' }: Props) {
   if (variant === 'mobile') {
@@ -39,8 +37,9 @@ export function SignaturePreviewFrame({ html, animationKey = 0, variant = 'deskt
 function MobileSignaturePreviewFrame({ html, animationKey }: { html: string; animationKey: string | number }) {
   const frameRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
+  const [naturalW, setNaturalW] = useState(1);
+  const [naturalH, setNaturalH] = useState(1);
   const [scale, setScale] = useState(1);
-  const [scaledHeight, setScaledHeight] = useState<number | null>(null);
 
   useLayoutEffect(() => {
     const frame = frameRef.current;
@@ -50,12 +49,12 @@ function MobileSignaturePreviewFrame({ html, animationKey }: { html: string; ani
     const measure = () => {
       if (!frameRef.current || !contentRef.current) return;
       const frameW = frameRef.current.clientWidth || MOBILE_FRAME_WIDTH;
-      // scrollWidth reports intrinsic size and is unaffected by CSS transforms.
-      const naturalW = contentRef.current.scrollWidth;
-      const naturalH = contentRef.current.scrollHeight;
-      const nextScale = naturalW > 0 ? Math.min(1, frameW / naturalW) : 1;
+      const nw = Math.max(1, contentRef.current.scrollWidth);
+      const nh = Math.max(1, contentRef.current.scrollHeight);
+      const nextScale = nw > 0 ? Math.min(1, frameW / nw) : 1;
+      setNaturalW(nw);
+      setNaturalH(nh);
       setScale(nextScale);
-      setScaledHeight(naturalH > 0 ? Math.ceil(naturalH * nextScale) : null);
     };
 
     measure();
@@ -75,22 +74,35 @@ function MobileSignaturePreviewFrame({ html, animationKey }: { html: string; ani
     };
   }, [html, animationKey]);
 
+  const scaledW = Math.ceil(naturalW * scale);
+  const scaledH = Math.ceil(naturalH * scale);
+
   return (
     <div
       ref={frameRef}
-      className="signature-email-preview signature-email-preview--mobile rounded-md border bg-white p-4 text-left overflow-hidden"
+      className="signature-email-preview signature-email-preview--mobile rounded-md border bg-white p-4 text-left"
       style={{ width: MOBILE_FRAME_WIDTH, maxWidth: '100%', minHeight: 200 }}
     >
       <div
-        key={animationKey}
         style={{
-          transformOrigin: 'top left',
-          transform: `scale(${scale})`,
-          width: scale < 1 ? `${100 / scale}%` : '100%',
-          height: scaledHeight !== null ? scaledHeight / scale : 'auto',
+          width: scaledW,
+          maxWidth: '100%',
+          height: scaledH,
+          overflow: 'hidden',
+          marginLeft: 'auto',
+          marginRight: 'auto',
         }}
       >
-        <div ref={contentRef} dangerouslySetInnerHTML={{ __html: html }} />
+        <div
+          key={animationKey}
+          style={{
+            width: naturalW,
+            transformOrigin: 'top left',
+            transform: `scale(${scale})`,
+          }}
+        >
+          <div ref={contentRef} className="mobile-signature-scale-root" dangerouslySetInnerHTML={{ __html: html }} />
+        </div>
       </div>
     </div>
   );

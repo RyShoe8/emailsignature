@@ -1,10 +1,40 @@
 /**
  * Table-based standard layout (logo left, contact right).
+ * Content blocks sit in a third column on desktop; stack below on narrow viewports (media query).
  * Uses {{variables}} and {{#if key}}...{{/if}} (non-nested).
  */
-export const STANDARD_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing="0" border="0" style="font-family: {{fontFamily}}, Arial, Helvetica, sans-serif; font-size:14px; color:#1a1a1a; line-height:1.4;">
+export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
+@media only screen and (max-width:520px) {
+  td.sig-logo-stack {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-right: 0 !important;
+    padding-bottom: 8px !important;
+    box-sizing: border-box !important;
+  }
+  td.sig-main-stack {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    border-left: none !important;
+    padding-left: 0 !important;
+  }
+  td.sig-blocks-stack {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding-left: 0 !important;
+    padding-top: 14px !important;
+    border-left: none !important;
+  }
+}
+</style>
+<table cellpadding="0" cellspacing="0" border="0" style="font-family: {{fontFamily}}, Arial, Helvetica, sans-serif; font-size:14px; color:#1a1a1a; line-height:1.4;">
   <tr>
-    <td width="{{logoWidth}}" style="vertical-align:top;line-height:0;font-size:0;padding-right:8px;width:{{logoWidth}}px;">
+    <td class="sig-logo-stack" width="{{logoWidth}}" style="vertical-align:top;line-height:0;font-size:0;padding-right:8px;width:{{logoWidth}}px;">
       {{#if hasLogo}}
       <a href="{{logoLink}}" style="text-decoration:none; border:0; outline:none; display:inline-block;">
 {{#if hasLogoSizedHeight}}
@@ -16,7 +46,7 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing="
       </a>
       {{/if}}
     </td>
-    <td style="vertical-align:top; border-left:2px solid {{primaryColor}}; padding-left:16px;">
+    <td class="sig-main-stack" style="vertical-align:top; border-left:2px solid {{primaryColor}}; padding-left:16px;">
       
       {{#if hasName}}
       <div style="font-size:16px; font-weight:600; color:#000;">
@@ -91,11 +121,16 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing="
       </tr></table>
       {{/if}}
     </td>
+    {{#if sideColumnContentBlocks}}
+    <td class="sig-blocks-stack" valign="top" style="vertical-align:top;padding-left:18px;border-left:1px solid #e5e5e5;width:38%;min-width:140px;">
+      {{contentBlocksHtml}}
+    </td>
+    {{/if}}
   </tr>
 
   {{#if hasDivider}}
   <tr>
-    <td colspan="2" style="padding-top:14px;">
+    <td colspan="{{signatureRootColspan}}" style="padding-top:14px;">
       <table cellpadding="0" cellspacing="0" border="0" width="100%" role="presentation" style="border-collapse:collapse;width:100%;">
         <tr>
           <td bgcolor="#e5e5e5" height="1" style="font-size:0;line-height:0;mso-line-height-rule:exactly;padding:0;height:1px;background-color:#e5e5e5;border:0;">&nbsp;</td>
@@ -107,16 +142,8 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing="
 
   {{#if showAddressBlock}}
   <tr>
-    <td colspan="2" style="padding-top:10px; font-size:12px; color:#555;">
+    <td colspan="{{signatureRootColspan}}" style="padding-top:10px; font-size:12px; color:#555;">
       {{addressBlockHtml}}
-    </td>
-  </tr>
-  {{/if}}
-
-  {{#if hasContentBlocks}}
-  <tr>
-    <td colspan="2" style="padding-top:12px;">
-      {{contentBlocksHtml}}
     </td>
   </tr>
   {{/if}}

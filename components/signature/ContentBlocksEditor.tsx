@@ -238,7 +238,13 @@ function ListEditor({
         ]
       : undefined;
 
-  const items = block.listItems ?? legacyMigrated ?? [];
+  const items = (block.listItems ?? legacyMigrated ?? [])
+    .filter(Boolean)
+    .map((it) => ({
+      title: typeof it?.title === 'string' ? it.title : '',
+      description: typeof it?.description === 'string' ? it.description : undefined,
+      url: typeof it?.url === 'string' ? it.url : undefined,
+    }));
   const title = block.listTitle ?? (block.type === 'custom' ? block.customTitle ?? '' : '');
 
   const updateItem = (index: number, next: Partial<ContentBlockListItem>) => {

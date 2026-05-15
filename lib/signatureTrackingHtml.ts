@@ -76,6 +76,7 @@ function buildClassificationContext(input: RenderSignatureInput) {
     [stringCtx.facebook, 'social_facebook'],
     [stringCtx.instagram, 'social_instagram'],
     [stringCtx.reddit, 'social_reddit'],
+    [stringCtx.discord, 'social_discord'],
   ] as const) {
     const v = dec(val);
     if (v) socialByHref.set(normalizeHref(v), kind);
@@ -102,6 +103,16 @@ function buildClassificationContext(input: RenderSignatureInput) {
         });
       } else if (block.type === 'custom' && block.customUrl) {
         const h = normalizeHref(block.customUrl);
+        if (h) contentBlockUrlMap.set(h, kind);
+      } else if (block.type === 'list' && block.listItems) {
+        for (const it of block.listItems) {
+          const raw = it.url?.trim();
+          if (!raw) continue;
+          const h = normalizeHref(raw);
+          if (h) contentBlockUrlMap.set(h, kind);
+        }
+      } else if (block.type === 'image' && block.imageLinkUrl) {
+        const h = normalizeHref(block.imageLinkUrl);
         if (h) contentBlockUrlMap.set(h, kind);
       }
     });

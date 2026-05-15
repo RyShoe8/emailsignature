@@ -55,6 +55,7 @@ export default async function DashboardHomePage() {
     'social_facebook',
     'social_instagram',
     'social_reddit',
+    'social_discord',
   ]);
   const emailClicks = byKind.email ?? 0;
 

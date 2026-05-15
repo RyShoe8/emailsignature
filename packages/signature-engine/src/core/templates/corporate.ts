@@ -2,23 +2,41 @@
  * Premium corporate layout — table-based, inline styles, email-client-safe.
  *
  * Structure:
- *   ┌─────────────────────────────────────────────────────────────────────┐
- *   │  Accent bar (primaryColor, 3px)                                     │
- *   ├─────────┬───────────────────────────────────────────────────────────┤
- *   │  Logo   │  Name / Title / Contact / Social icons                    │
- *   ├─────────┴───────────────────────────────────────────────────────────┤
- *   │  Divider (subtle, primary-tinted)                                   │
- *   ├────────────────────────────────────────────────────────────────────┤
- *   │  Address line (muted)                                               │
- *   ├────────────────────────────────────────────────────────────────────┤
- *   │  Content blocks (full-width row, mobile-safe)                       │
- *   ├────────────────────────────────────────────────────────────────────┤
- *   │  Footer bar (primaryColor, company name in white)                   │
- *   └────────────────────────────────────────────────────────────────────┘
- *
+ *   Accent bar → header row (logo | info | content blocks side column on desktop) →
+ *   divider → address → footer bar.
+ * Blocks stack below contact on narrow viewports (media query).
  * Uses {{variables}} and {{#if key}}...{{/if}} (nested supported by renderer).
  */
-export const CORPORATE_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing="0" border="0" style="font-family: {{fontFamily}}, Arial, Helvetica, sans-serif; font-size:14px; color:#1a1a1a; line-height:1.4; max-width:600px;">
+export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
+@media only screen and (max-width:520px) {
+  td.sig-corp-logo-stack {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-right: 0 !important;
+    padding-bottom: 12px !important;
+    box-sizing: border-box !important;
+  }
+  td.sig-corp-main-stack {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    border-left: none !important;
+    padding-left: 0 !important;
+  }
+  td.sig-corp-blocks-stack {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding-left: 0 !important;
+    padding-top: 14px !important;
+    border-left: none !important;
+  }
+}
+</style>
+<table cellpadding="0" cellspacing="0" border="0" style="font-family: {{fontFamily}}, Arial, Helvetica, sans-serif; font-size:14px; color:#1a1a1a; line-height:1.4; max-width:600px;">
   <!-- Accent bar -->
   <tr>
     <td colspan="3" style="padding:0;">
@@ -34,7 +52,7 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing=
       <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
         <tr>
           <!-- Logo column -->
-          <td width="{{logoWidth}}" style="vertical-align:top;line-height:0;font-size:0;padding-right:16px;width:{{logoWidth}}px;">
+          <td class="sig-corp-logo-stack" width="{{logoWidth}}" style="vertical-align:top;line-height:0;font-size:0;padding-right:16px;width:{{logoWidth}}px;">
             {{#if hasLogo}}
             <a href="{{logoLink}}" style="text-decoration:none; border:0; outline:none; display:inline-block;">
 {{#if hasLogoSizedHeight}}
@@ -48,7 +66,7 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing=
           </td>
 
           <!-- Info column -->
-          <td style="vertical-align:top; border-left:3px solid {{primaryColor}}; padding-left:16px;">
+          <td class="sig-corp-main-stack" style="vertical-align:top; border-left:3px solid {{primaryColor}}; padding-left:16px;">
             {{#if hasName}}
             <div style="font-size:18px; font-weight:700; color:{{primaryColor}}; letter-spacing:-0.2px;">
               {{firstName}} {{lastName}}
@@ -164,6 +182,12 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing=
             {{/if}}
           </td>
 
+          {{#if sideColumnContentBlocks}}
+          <td class="sig-corp-blocks-stack" valign="top" style="vertical-align:top;padding-left:16px;border-left:1px solid #e5e5e5;width:34%;min-width:130px;">
+            {{contentBlocksHtml}}
+          </td>
+          {{/if}}
+
         </tr>
       </table>
     </td>
@@ -185,14 +209,6 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing=
   <tr>
     <td colspan="3" style="padding-top:10px; font-size:11px; color:#888; letter-spacing:0.2px;">
       {{addressBlockHtml}}
-    </td>
-  </tr>
-  {{/if}}
-
-  {{#if hasContentBlocks}}
-  <tr>
-    <td colspan="3" style="padding-top:14px;">
-      {{contentBlocksHtml}}
     </td>
   </tr>
   {{/if}}

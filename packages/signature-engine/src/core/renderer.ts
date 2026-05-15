@@ -116,6 +116,28 @@ function escapeHtml(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
+/** Link label when a list row has a URL but no title (hostname, else "Link"). */
+function listItemLinkFallbackLabel(rawUrl: string): string {
+  const t = rawUrl.trim();
+  if (!t) return 'Link';
+  try {
+    const u = new URL(/^https?:\/\//i.test(t) ? t : `https://${t}`);
+    return u.hostname.replace(/^www\./i, '');
+  } catch {
+    return 'Link';
+  }
+}
+
+function listItemHasBody(it: {
+  title?: string;
+  description?: string;
+  url?: string;
+}): boolean {
+  return Boolean(
+    (it.title || '').trim() || (it.description || '').trim() || (it.url || '').trim()
+  );
+}
+
 function isTruthy(ctx: Record<string, string | boolean | undefined>, key: string): boolean {
   const v = ctx[key];
   if (v === undefined || v === null || v === false) return false;
@@ -222,24 +244,29 @@ function renderContentBlocksHtml(
 </table>`);
     } else if (block.type === 'list') {
       const title = escapeHtml((block.listTitle || '').trim());
-      const items = (block.listItems || [])
-        .filter((it) => (it.title || '').trim())
-        .slice(0, 4);
+      const items = (block.listItems || []).filter(listItemHasBody).slice(0, 4);
       if (!title && items.length === 0) continue;
       let inner = '';
       if (title) {
         inner += `<tr><td style="font-size:12px;font-weight:700;color:#333;padding-bottom:6px;text-transform:uppercase;letter-spacing:0.4px;">${title}</td></tr>`;
       }
       for (const item of items) {
-        const itemTitle = escapeHtml(item.title.trim());
+        const titleTrim = (item.title || '').trim();
         const itemDesc = item.description ? escapeHtml(item.description.trim()) : '';
         const itemUrl = item.url ? item.url.trim() : '';
-        const titleHtml = itemUrl
-          ? `<a href="${escapeHtml(itemUrl)}" style="color:#333;text-decoration:none;font-weight:600;">${itemTitle}</a>`
-          : `<span style="color:#333;font-weight:600;">${itemTitle}</span>`;
+        const boldLabelRaw =
+          titleTrim || (itemUrl ? listItemLinkFallbackLabel(itemUrl) : '');
+        const boldEscaped = escapeHtml(boldLabelRaw);
+        let titleHtml = '';
+        if (itemUrl && boldLabelRaw) {
+          titleHtml = `<a href="${escapeHtml(itemUrl)}" style="color:#333;text-decoration:none;font-weight:600;">${boldEscaped}</a>`;
+        } else if (boldLabelRaw) {
+          titleHtml = `<span style="color:#333;font-weight:600;">${boldEscaped}</span>`;
+        }
         const descHtml = itemDesc
           ? `<div style="color:#666;font-size:11px;line-height:1.4;margin-top:2px;">${itemDesc}</div>`
           : '';
+        if (!titleHtml && !descHtml) continue;
         inner += `<tr><td style="padding:0 0 6px 0;font-size:12px;line-height:1.4;">${titleHtml}${descHtml}</td></tr>`;
       }
       parts.push(`<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:12px;" width="100%">${inner}</table>`);
@@ -451,6 +478,12 @@ export function mergeRenderContext(
     ? renderContentBlocksHtml(contentBlocks, origin)
     : '';
 
+  /** Standard layout: optional third column for blocks (stacked keeps blocks below). */
+  const sideColumnContentBlocks =
+    template.layout !== 'stacked' && hasContentBlocks;
+  const signatureRootColspan =
+    template.layout === 'standard' && hasContentBlocks ? '3' : '2';
+
   const evalCtx: Record<string, string | boolean | undefined> = {
     hasLogo,
     hasName,
@@ -469,6 +502,7 @@ export function mergeRenderContext(
     hasLogoSizedHeight,
     hasLogoAutoHeight,
     hasContentBlocks,
+    sideColumnContentBlocks,
     hasWebsite: Boolean(website),
   };
 
@@ -507,6 +541,7 @@ export function mergeRenderContext(
     socialTdRedditStyle,
     socialTdDiscordStyle,
     contentBlocksHtml,
+    signatureRootColspan,
   };
 
   return { evalCtx, stringCtx };
