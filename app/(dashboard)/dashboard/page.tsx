@@ -83,7 +83,7 @@ export default async function DashboardHomePage() {
         <Card>
           <CardHeader>
             <CardTitle>Templates</CardTitle>
-            <CardDescription>Minimal, Modern, and Corporate presets.</CardDescription>
+            <CardDescription>Minimal, Stacked, and Corporate presets.</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold">{templates}</p>

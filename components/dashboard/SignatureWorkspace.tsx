@@ -29,8 +29,9 @@ type OrgResponse = {
   primaryColor?: string;
   fontFamily?: string;
   socialLinks?: { linkedin?: string; facebook?: string; instagram?: string; reddit?: string };
-  locations?: { dallas?: string; boulder?: string };
-  warehouseAddress?: string;
+  address?: string;
+  state?: string;
+  zip?: string;
   animation?: { enabled?: boolean; gifUrl?: string };
   name?: string;
   plan?: string;
@@ -47,7 +48,6 @@ type TemplateRow = {
 
 function orgToBrand(org: OrgResponse, displayName: string): SignatureBrand {
   const sl = org.socialLinks ?? {};
-  const loc = org.locations ?? {};
   return {
     companyName: (org.companyName || displayName || '').trim(),
     website: (org.website || '').trim(),
@@ -61,11 +61,9 @@ function orgToBrand(org: OrgResponse, displayName: string): SignatureBrand {
       instagram: sl.instagram?.trim(),
       reddit: sl.reddit?.trim(),
     },
-    locations: {
-      dallas: loc.dallas?.trim(),
-      boulder: loc.boulder?.trim(),
-    },
-    warehouseAddress: org.warehouseAddress?.trim(),
+    address: org.address?.trim(),
+    state: org.state?.trim(),
+    zip: org.zip?.trim(),
     animation: {
       enabled: Boolean(org.animation?.enabled),
       gifUrl: org.animation?.gifUrl?.trim() ?? '',
@@ -271,9 +269,9 @@ export function SignatureWorkspace() {
     brand.socialLinks?.facebook,
     brand.socialLinks?.instagram,
     brand.socialLinks?.reddit,
-    brand.locations?.dallas,
-    brand.locations?.boulder,
-    brand.warehouseAddress,
+    brand.address,
+    brand.state,
+    brand.zip,
     brand.animation?.enabled,
     brand.animation?.gifUrl,
     org?.plan,
@@ -348,8 +346,9 @@ export function SignatureWorkspace() {
           primaryColor: org.primaryColor,
           fontFamily: org.fontFamily,
           socialLinks: org.socialLinks,
-          locations: org.locations,
-          warehouseAddress: org.warehouseAddress,
+          address: org.address,
+          state: org.state,
+          zip: org.zip,
           animation: org.animation,
         }),
       });
@@ -462,6 +461,41 @@ export function SignatureWorkspace() {
                 value={org.website ?? ''}
                 onChange={(e) => setOrg((o) => ({ ...(o || {}), website: e.target.value }))}
               />
+            </div>
+            <div className="space-y-3">
+              <p className="text-sm font-medium">Address</p>
+              <p className="text-xs text-muted-foreground">
+                Optional. Shown on the Corporate template when filled in.
+              </p>
+              <div className="space-y-2">
+                <Label htmlFor="org-address">Street address</Label>
+                <Input
+                  id="org-address"
+                  value={org.address ?? ''}
+                  onChange={(e) => setOrg((o) => ({ ...(o || {}), address: e.target.value }))}
+                  placeholder="123 Main St"
+                />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="org-state">State</Label>
+                  <Input
+                    id="org-state"
+                    value={org.state ?? ''}
+                    onChange={(e) => setOrg((o) => ({ ...(o || {}), state: e.target.value }))}
+                    placeholder="TX"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="org-zip">ZIP</Label>
+                  <Input
+                    id="org-zip"
+                    value={org.zip ?? ''}
+                    onChange={(e) => setOrg((o) => ({ ...(o || {}), zip: e.target.value }))}
+                    placeholder="75201"
+                  />
+                </div>
+              </div>
             </div>
             <div className="space-y-2">
               <p className="text-sm font-medium">Social links</p>

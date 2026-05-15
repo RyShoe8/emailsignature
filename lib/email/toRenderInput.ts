@@ -19,9 +19,9 @@ export type OrgBrandInput = {
     instagram?: string;
     reddit?: string;
   };
-  /** Pro-only extras in UI; engine uses dallas/boulder/warehouse strings. */
-  locations?: { dallas?: string; boulder?: string };
-  warehouseAddress?: string;
+  address?: string;
+  state?: string;
+  zip?: string;
   animation?: { enabled: boolean; gifUrl?: string };
 };
 
@@ -35,7 +35,6 @@ export type EmployeeProfileInput = {
 };
 
 export function toSignatureBrand(input: OrgBrandInput): SignatureBrand {
-  const loc = input.locations ?? {};
   return {
     companyName: input.companyName.trim(),
     website: input.website.trim(),
@@ -49,11 +48,9 @@ export function toSignatureBrand(input: OrgBrandInput): SignatureBrand {
       instagram: input.socialLinks.instagram?.trim() || undefined,
       reddit: input.socialLinks.reddit?.trim() || undefined,
     },
-    locations: {
-      dallas: loc.dallas?.trim() || undefined,
-      boulder: loc.boulder?.trim() || undefined,
-    },
-    warehouseAddress: input.warehouseAddress?.trim() || undefined,
+    address: input.address?.trim() || undefined,
+    state: input.state?.trim() || undefined,
+    zip: input.zip?.trim() || undefined,
     animation: {
       enabled: Boolean(input.animation?.enabled),
       gifUrl: input.animation?.gifUrl?.trim() || undefined,

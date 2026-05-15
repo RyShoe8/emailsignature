@@ -33,8 +33,9 @@ async function main() {
       primaryColor: String(b.primaryColor || '#0a0a0a'),
       fontFamily: String(b.fontFamily || 'Arial'),
       socialLinks: b.socialLinks as object,
-      locations: b.locations as object,
-      warehouseAddress: b.warehouseAddress as string | undefined,
+      address: typeof b.address === 'string' ? b.address : undefined,
+      state: typeof b.state === 'string' ? b.state : undefined,
+      zip: typeof b.zip === 'string' ? b.zip : undefined,
       animation: b.animation as object | undefined,
     });
     await seedDefaultTemplates(org._id);

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { connectMongoose } from '@/lib/mongoose';
 import { getServerSession } from '@/lib/auth/session';
 import { OrganizationModel } from '@/models/Organization';
+import { unsetLegacyOrgAddressFields } from '@/lib/org/unsetLegacyOrgAddressFields';
 
 type SessionUser = {
   id?: string;
@@ -18,8 +19,9 @@ const PATCHABLE_FIELDS = [
   'fontFamily',
   'logoLink',
   'socialLinks',
-  'locations',
-  'warehouseAddress',
+  'address',
+  'state',
+  'zip',
   'animation',
   'signatureClickTrackingEnabled',
 ] as const;
@@ -40,6 +42,7 @@ export async function GET() {
     return NextResponse.json({ organization: null });
   }
   await connectMongoose();
+  await unsetLegacyOrgAddressFields(user.organizationId);
   const organization = await OrganizationModel.findById(user.organizationId).lean();
   return NextResponse.json({ organization });
 }
@@ -78,8 +81,11 @@ export async function PATCH(request: Request) {
     }
   }
 
+  await unsetLegacyOrgAddressFields(user.organizationId);
+
   if (Object.keys($set).length === 0) {
-    return NextResponse.json({ organization: org.toObject() });
+    const current = await OrganizationModel.findById(user.organizationId).lean();
+    return NextResponse.json({ organization: current });
   }
 
   const updated = await OrganizationModel.findByIdAndUpdate(user.organizationId, { $set }, { new: true }).lean();

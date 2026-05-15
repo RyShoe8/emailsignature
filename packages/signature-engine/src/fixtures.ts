@@ -8,8 +8,7 @@ export const defaultSignatureElements: SignatureElement[] = [
   { type: 'contact' },
   { type: 'social' },
   { type: 'divider' },
-  { type: 'locations' },
-  { type: 'warehouse' },
+  { type: 'address' },
 ];
 
 export const mockSignatureBrand: SignatureBrand = {
@@ -25,11 +24,9 @@ export const mockSignatureBrand: SignatureBrand = {
     instagram: 'https://www.instagram.com/example',
     reddit: 'https://www.reddit.com/user/example',
   },
-  locations: {
-    dallas: '123 Design Way, Dallas, TX',
-    boulder: '456 Mountain Rd, Boulder, CO',
-  },
-  warehouseAddress: '789 Logistics Blvd, Dallas, TX 75201',
+  address: '123 Main St',
+  state: 'TX',
+  zip: '75201',
   animation: {
     enabled: false,
     gifUrl: '',

@@ -3,9 +3,15 @@ import { SignatureTemplateModel } from '@/models/SignatureTemplate';
 
 const PRESETS = ['minimal', 'modern', 'corporate'] as const;
 
+const PRESET_DISPLAY_NAMES: Record<(typeof PRESETS)[number], string> = {
+  minimal: 'Minimal',
+  modern: 'Stacked',
+  corporate: 'Corporate',
+};
+
 export async function seedDefaultTemplates(organizationId: Types.ObjectId) {
   for (const presetId of PRESETS) {
-    const name = presetId[0].toUpperCase() + presetId.slice(1);
+    const name = PRESET_DISPLAY_NAMES[presetId];
     await SignatureTemplateModel.create({
       organizationId,
       name,

@@ -100,21 +100,11 @@ export const STACKED_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing="0
   </tr>
   {{/if}}
 
-  {{#if showLocationsRow}}
+  {{#if showAddressBlock}}
   <tr>
     <td colspan="2" style="padding-top:10px; font-size:12px; color:#555;">
-      {{#if showLocationsLines}}
-      <strong style="color:#000;">Locations</strong><br/>
-      {{#if hasDallas}}Dallas: {{dallas}}<br/>{{/if}}
-      {{#if hasBoulder}}Boulder: {{boulder}}<br/>{{/if}}
-      {{/if}}
-
-      {{#if showWarehouseBlock}}
-      <div style="margin-top:6px;">
-        <strong style="color:#000;">Warehouse</strong><br/>
-        {{warehouseAddress}}
-      </div>
-      {{/if}}
+      {{#if hasAddress}}{{address}}<br/>{{/if}}
+      {{#if hasState}}{{state}}{{/if}}{{#if hasZip}} {{zip}}{{/if}}
     </td>
   </tr>
   {{/if}}

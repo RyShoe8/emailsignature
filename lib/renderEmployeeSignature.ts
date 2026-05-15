@@ -10,7 +10,6 @@ import { appendSignatureClickTrackingIfEnabled } from '@/lib/signatureTrackingHt
 
 export function orgToBrandInput(org: OrganizationDoc): OrgBrandInput {
   const sl = org.socialLinks as { linkedin?: string; facebook?: string; instagram?: string; reddit?: string } | undefined;
-  const loc = org.locations as { dallas?: string; boulder?: string } | undefined;
   return {
     companyName: (org.companyName || org.name || '').trim(),
     website: (org.website || '').trim(),
@@ -24,8 +23,9 @@ export function orgToBrandInput(org: OrganizationDoc): OrgBrandInput {
       instagram: sl?.instagram,
       reddit: sl?.reddit,
     },
-    locations: { dallas: loc?.dallas, boulder: loc?.boulder },
-    warehouseAddress: org.warehouseAddress ?? undefined,
+    address: org.address ?? undefined,
+    state: org.state ?? undefined,
+    zip: org.zip ?? undefined,
     animation: org.animation as OrgBrandInput['animation'],
   };
 }

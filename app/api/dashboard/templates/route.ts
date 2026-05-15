@@ -6,6 +6,7 @@ import { OrganizationModel, type OrganizationDoc } from '@/models/Organization';
 import { SignatureTemplateModel } from '@/models/SignatureTemplate';
 import { canUsePaidFeatures } from '@/lib/orgAccess';
 import { getBillingEntitlements } from '@/lib/billing/entitlements';
+import { renameModernTemplatesToStacked } from '@/lib/email/renameModernTemplates';
 
 type SessionUser = { organizationId?: string };
 
@@ -39,6 +40,7 @@ export async function GET() {
     return NextResponse.json({ templates: [] });
   }
   await connectMongoose();
+  await renameModernTemplatesToStacked(user.organizationId);
   const templates = await SignatureTemplateModel.find({ organizationId: user.organizationId })
     .sort({ createdAt: 1 })
     .lean();

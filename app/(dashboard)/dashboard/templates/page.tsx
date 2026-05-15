@@ -73,7 +73,7 @@ export default function TemplatesDashboardPage() {
                 onChange={(e) => setPresetId(e.target.value as typeof presetId)}
               >
                 <option value="minimal">Minimal</option>
-                <option value="modern">Modern</option>
+                <option value="modern">Stacked</option>
                 <option value="corporate">Corporate</option>
               </select>
             </div>

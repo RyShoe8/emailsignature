@@ -22,11 +22,9 @@ export type SignatureBrand = {
     instagram?: string;
     reddit?: string;
   };
-  locations: {
-    dallas?: string;
-    boulder?: string;
-  };
-  warehouseAddress?: string;
+  address?: string;
+  state?: string;
+  zip?: string;
   animation?: {
     enabled: boolean;
     gifUrl?: string;
@@ -39,8 +37,7 @@ export type SignatureElement =
   | { type: 'title' }
   | { type: 'contact' }
   | { type: 'social' }
-  | { type: 'locations' }
-  | { type: 'warehouse' }
+  | { type: 'address' }
   | { type: 'divider' }
   | { type: 'animation' };
 

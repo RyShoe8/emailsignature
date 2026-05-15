@@ -188,8 +188,7 @@ export function mergeRenderContext(
   const hasContact = hasElement(elements, 'contact');
   const hasSocial = hasElement(elements, 'social');
   const hasDivider = hasElement(elements, 'divider');
-  const hasLocations = hasElement(elements, 'locations');
-  const hasWarehouseEl = hasElement(elements, 'warehouse');
+  const hasAddressEl = hasElement(elements, 'address');
   const hasAnimationEl = hasElement(elements, 'animation');
 
   const useAnimation =
@@ -242,19 +241,10 @@ export function mergeRenderContext(
       ? brand.socialLinks.reddit.trim()
       : '';
 
-  const dallas =
-    hasLocations && brand.locations.dallas?.trim()
-      ? brand.locations.dallas.trim()
-      : '';
-  const boulder =
-    hasLocations && brand.locations.boulder?.trim()
-      ? brand.locations.boulder.trim()
-      : '';
-
-  const warehouseAddress =
-    hasWarehouseEl && brand.warehouseAddress?.trim()
-      ? brand.warehouseAddress.trim()
-      : '';
+  const addressLine =
+    hasAddressEl && brand.address?.trim() ? brand.address.trim() : '';
+  const stateLine = hasAddressEl && brand.state?.trim() ? brand.state.trim() : '';
+  const zipLine = hasAddressEl && brand.zip?.trim() ? brand.zip.trim() : '';
 
   const showSocialBlock = hasSocial && Boolean(linkedin || facebook || instagram || reddit);
 
@@ -282,9 +272,7 @@ export function mergeRenderContext(
     socialTdRedditStyle = 'padding:0;vertical-align:middle;';
   }
 
-  const showLocationsLines = hasLocations && Boolean(dallas || boulder);
-  const showWarehouseBlock = hasWarehouseEl && Boolean(warehouseAddress);
-  const showLocationsRow = showLocationsLines || showWarehouseBlock;
+  const showAddressBlock = hasAddressEl && Boolean(addressLine || stateLine || zipLine);
 
   const officePhoneRaw = profile.officePhone?.trim() ?? '';
   const mobilePhoneRaw = profile.mobilePhone?.trim() ?? '';
@@ -302,15 +290,14 @@ export function mergeRenderContext(
     hasOfficePhone: Boolean(officePhone),
     hasMobilePhone: Boolean(mobilePhone),
     showSocialBlock,
-    showLocationsRow,
-    showLocationsLines,
-    showWarehouseBlock,
+    showAddressBlock,
+    hasAddress: Boolean(addressLine),
+    hasState: Boolean(stateLine),
+    hasZip: Boolean(zipLine),
     hasLinkedin: Boolean(linkedin),
     hasFacebook: Boolean(facebook),
     hasInstagram: Boolean(instagram),
     hasReddit: Boolean(reddit),
-    hasDallas: Boolean(dallas),
-    hasBoulder: Boolean(boulder),
     hasLogoSizedHeight,
     hasLogoAutoHeight,
   };
@@ -335,9 +322,9 @@ export function mergeRenderContext(
     facebook: escapeHtml(facebook),
     instagram: escapeHtml(instagram),
     reddit: escapeHtml(reddit),
-    dallas: escapeHtml(dallas),
-    boulder: escapeHtml(boulder),
-    warehouseAddress: escapeHtml(warehouseAddress),
+    address: escapeHtml(addressLine),
+    state: escapeHtml(stateLine),
+    zip: escapeHtml(zipLine),
     iconLinkedin: normalizeImageUrl(ensureAbsolutePublicUrl(SOCIAL_ICON_LINKEDIN, origin)),
     iconFacebook: normalizeImageUrl(ensureAbsolutePublicUrl(SOCIAL_ICON_FACEBOOK, origin)),
     iconInstagram: normalizeImageUrl(ensureAbsolutePublicUrl(SOCIAL_ICON_INSTAGRAM, origin)),

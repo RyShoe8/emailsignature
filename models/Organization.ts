@@ -24,11 +24,9 @@ const OrganizationSchema = new Schema(
       instagram: { type: String },
       reddit: { type: String },
     },
-    locations: {
-      dallas: { type: String },
-      boulder: { type: String },
-    },
-    warehouseAddress: { type: String },
+    address: { type: String },
+    state: { type: String },
+    zip: { type: String },
     animation: {
       enabled: { type: Boolean, default: false },
       gifUrl: { type: String },

@@ -16,13 +16,13 @@ export const TEMPLATE_PRESET_META: TemplatePresetMeta[] = [
   },
   {
     id: 'modern',
-    name: 'Modern',
+    name: 'Stacked',
     description: 'Stacked layout with optional social and divider.',
   },
   {
     id: 'corporate',
     name: 'Corporate',
-    description: 'Standard layout with locations and full brand blocks.',
+    description: 'Standard layout with optional address and full brand blocks.',
   },
 ];
 
@@ -49,8 +49,7 @@ function elementsCorporate(): SignatureElement[] {
     { type: 'contact' },
     { type: 'social' },
     { type: 'divider' },
-    { type: 'locations' },
-    { type: 'warehouse' },
+    { type: 'address' },
   ];
 }
 
@@ -74,7 +73,7 @@ export function presetToEngineTemplate(
     case 'modern':
       return {
         id: templateDocId,
-        name: displayName ?? 'Modern',
+        name: displayName ?? 'Stacked',
         layout: 'stacked',
         elements: elementsModern(),
       };
