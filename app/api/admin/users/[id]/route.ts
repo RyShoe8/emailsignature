@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requirePlatformAdminApi } from '@/lib/admin/platformAdminApi';
-import { AUTH_USER_COLLECTION } from '@/lib/auth/platformAdmin';
+import { AUTH_USER_COLLECTION, authUserDbFilterBySessionId } from '@/lib/auth/platformAdmin';
 import { connectMongoose, getMongoDb } from '@/lib/mongoose';
 
 export const dynamic = 'force-dynamic';
@@ -35,17 +35,22 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
   }
 
+  const filter = authUserDbFilterBySessionId(targetUserId);
+  if (!filter) {
+    return NextResponse.json({ error: 'Invalid user id' }, { status: 400 });
+  }
+
   await connectMongoose();
   const db = getMongoDb();
   const $set: Record<string, unknown> = {};
   if (parsed.data.role !== undefined) $set.role = parsed.data.role;
   if (parsed.data.platformAdmin !== undefined) $set.platformAdmin = parsed.data.platformAdmin;
 
-  const result = await db.collection(AUTH_USER_COLLECTION).updateOne({ id: targetUserId }, { $set });
+  const result = await db.collection(AUTH_USER_COLLECTION).updateOne(filter, { $set });
   if (result.matchedCount === 0) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
   }
 
-  const user = await db.collection(AUTH_USER_COLLECTION).findOne({ id: targetUserId });
+  const user = await db.collection(AUTH_USER_COLLECTION).findOne(filter);
   return NextResponse.json({ user });
 }

@@ -47,12 +47,12 @@ export async function listUsersInOrganization(organizationId: string): Promise<A
   const rows = await db
     .collection(AUTH_USER_COLLECTION)
     .find({ organizationId })
-    .project({ _id: 0, id: 1, email: 1, name: 1, role: 1, platformAdmin: 1, createdAt: 1 })
+    .project({ _id: 1, email: 1, name: 1, role: 1, platformAdmin: 1, createdAt: 1 })
     .sort({ email: 1 })
     .toArray();
 
   return rows.map((r) => ({
-    id: String((r as { id?: string }).id ?? ''),
+    id: String((r as { _id?: unknown })._id ?? ''),
     email: String((r as { email?: string }).email ?? ''),
     name: String((r as { name?: string }).name ?? ''),
     role: String((r as { role?: string }).role ?? ''),
