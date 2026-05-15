@@ -1,9 +1,22 @@
 /**
  * Table-based standard layout (logo left, contact right).
- * Content blocks sit in a third column on desktop; stack below on narrow viewports / phones.
+ * Content blocks sit in a third column on desktop; on narrow viewports a duplicate
+ * copy renders in a full-width row below (same HTML twice — only one visible via @media).
  * Uses {{variables}} and {{#if key}}...{{/if}} (non-nested).
  */
 export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
+@media only screen and (min-width:601px),
+  only screen and (min-device-width:601px) {
+  tr.sig-blocks-mobile-row {
+    display: none !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    mso-hide: all;
+  }
+  td.sig-blocks-desktop {
+    display: table-cell !important;
+  }
+}
 @media only screen and (max-width:600px),
   only screen and (max-width:768px),
   only screen and (max-device-width:600px),
@@ -36,18 +49,20 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
     padding-left: 14px !important;
     padding-right: 14px !important;
   }
-  td.sig-blocks-stack {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    float: none !important;
-    clear: both !important;
-    box-sizing: border-box !important;
+  td.sig-blocks-desktop {
+    display: none !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    mso-hide: all;
+  }
+  tr.sig-blocks-mobile-row {
+    display: table-row !important;
+  }
+  td.sig-blocks-mobile {
     padding-left: 14px !important;
     padding-right: 14px !important;
     padding-top: 14px !important;
-    border-left: none !important;
+    box-sizing: border-box !important;
   }
   td.sig-content-block-cell {
     display: block !important;
@@ -153,11 +168,18 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
       {{/if}}
     </td>
     {{#if sideColumnContentBlocks}}
-    <td class="sig-blocks-stack" valign="top" style="vertical-align:top;padding-left:20px;border-left:1px solid #e5e5e5;width:44%;min-width:180px;">
+    <td class="sig-blocks-stack sig-blocks-desktop" valign="top" style="vertical-align:top;padding-left:18px;border-left:1px solid #e5e5e5;width:48%;min-width:190px;">
       {{contentBlocksHtml}}
     </td>
     {{/if}}
   </tr>
+  {{#if sideColumnContentBlocks}}
+  <tr class="sig-blocks-mobile-row">
+    <td colspan="{{signatureRootColspan}}" class="sig-blocks-mobile">
+      {{contentBlocksHtml}}
+    </td>
+  </tr>
+  {{/if}}
 
   {{#if hasDivider}}
   <tr>

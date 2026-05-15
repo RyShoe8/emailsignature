@@ -3,11 +3,23 @@
  *
  * Structure:
  *   Accent bar → header row (logo | info | content blocks side column on desktop) →
+ *   optional full-width mobile row (duplicate {{contentBlocksHtml}}; one copy visible via @media) →
  *   divider → address → footer bar.
- * Blocks stack below contact on narrow viewports / phones (media queries).
  * Uses {{variables}} and {{#if key}}...{{/if}} (nested supported by renderer).
  */
 export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
+@media only screen and (min-width:601px),
+  only screen and (min-device-width:601px) {
+  tr.sig-corp-blocks-mobile-row {
+    display: none !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    mso-hide: all;
+  }
+  td.sig-blocks-desktop {
+    display: table-cell !important;
+  }
+}
 @media only screen and (max-width:600px),
   only screen and (max-width:768px),
   only screen and (max-device-width:600px),
@@ -41,18 +53,20 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
     padding-left: 14px !important;
     padding-right: 14px !important;
   }
-  td.sig-corp-blocks-stack {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    float: none !important;
-    clear: both !important;
-    box-sizing: border-box !important;
+  td.sig-blocks-desktop {
+    display: none !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    mso-hide: all;
+  }
+  tr.sig-corp-blocks-mobile-row {
+    display: table-row !important;
+  }
+  td.sig-corp-blocks-mobile {
     padding-left: 14px !important;
     padding-right: 14px !important;
     padding-top: 14px !important;
-    border-left: none !important;
+    box-sizing: border-box !important;
   }
   td.sig-content-block-cell {
     display: block !important;
@@ -215,7 +229,7 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
           </td>
 
           {{#if sideColumnContentBlocks}}
-          <td class="sig-corp-blocks-stack" valign="top" style="vertical-align:top;padding-left:18px;border-left:1px solid #e5e5e5;width:42%;min-width:170px;">
+          <td class="sig-corp-blocks-stack sig-blocks-desktop" valign="top" style="vertical-align:top;padding-left:17px;border-left:1px solid #e5e5e5;width:46%;min-width:185px;">
             {{contentBlocksHtml}}
           </td>
           {{/if}}
@@ -224,6 +238,13 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
       </table>
     </td>
   </tr>
+  {{#if sideColumnContentBlocks}}
+  <tr class="sig-corp-blocks-mobile-row">
+    <td colspan="3" class="sig-corp-blocks-mobile">
+      {{contentBlocksHtml}}
+    </td>
+  </tr>
+  {{/if}}
 
   {{#if hasDivider}}
   <tr>

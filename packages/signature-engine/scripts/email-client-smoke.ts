@@ -213,13 +213,27 @@ assert.ok(
 );
 assert.ok(
   htmlListImage.includes('sig-corp-blocks-stack') &&
-    /class="sig-corp-blocks-stack"[^>]*style="[^"]*padding-left:18px/.test(htmlListImage),
+    /class="sig-corp-blocks-stack[^"]*"[^>]*style="[^"]*padding-left:17px/.test(htmlListImage),
   'corporate: blocks column has comfortable padding beside vertical divider'
 );
 assert.match(
   htmlListImage,
-  /class="sig-corp-blocks-stack"[^>]*style="[^"]*width:42%[^"]*min-width:170px/,
-  'corporate: side column widened to ~42% / min-width 170px on desktop'
+  /class="sig-corp-blocks-stack[^"]*"[^>]*style="[^"]*width:46%[^"]*min-width:185px/,
+  'corporate: side column widened to ~46% / min-width 185px on desktop'
+);
+assert.ok(
+  htmlListImage.includes('sig-corp-blocks-mobile') && htmlListImage.includes('sig-corp-blocks-mobile-row'),
+  'corporate: duplicate blocks row for narrow viewports is present'
+);
+assert.match(
+  htmlListImage,
+  /@media only screen and \(min-width:601px\)[\s\S]*?tr\.sig-corp-blocks-mobile-row[\s\S]*?display:\s*none\s*!important/,
+  'corporate: wide viewport @media hides the mobile-only blocks row'
+);
+assert.match(
+  htmlListImage,
+  /@media only screen and \(max-width:600px\)[\s\S]*?td\.sig-blocks-desktop[\s\S]*?display:\s*none\s*!important/,
+  'corporate: narrow viewport @media hides the desktop side-column blocks copy'
 );
 assert.match(
   htmlListImage,
@@ -238,8 +252,8 @@ assert.doesNotMatch(
 );
 assert.match(
   htmlListImage,
-  /td\.sig-corp-blocks-stack\s*\{[\s\S]*?float:\s*none\s*!important[\s\S]*?clear:\s*both\s*!important/,
-  'corporate: mobile stack adds float:none + clear:both safety on blocks column'
+  /td\.sig-content-block-cell\s*\{[\s\S]*?float:\s*none\s*!important[\s\S]*?clear:\s*both\s*!important/,
+  'corporate: narrow viewport still stacks dual content-block cells inside the blocks column'
 );
 assert.match(
   htmlListImage,
@@ -375,13 +389,27 @@ assert.ok(
 );
 assert.ok(
   htmlMinimalBlocks.includes('sig-blocks-stack') &&
-    /class="sig-blocks-stack"[^>]*style="[^"]*padding-left:20px/.test(htmlMinimalBlocks),
+    /class="sig-blocks-stack[^"]*"[^>]*style="[^"]*padding-left:18px/.test(htmlMinimalBlocks),
   'minimal: blocks column has comfortable padding beside vertical divider'
 );
 assert.match(
   htmlMinimalBlocks,
-  /class="sig-blocks-stack"[^>]*style="[^"]*width:44%[^"]*min-width:180px/,
-  'minimal: side column widened to ~44% / min-width 180px on desktop'
+  /class="sig-blocks-stack[^"]*"[^>]*style="[^"]*width:48%[^"]*min-width:190px/,
+  'minimal: side column widened to ~48% / min-width 190px on desktop'
+);
+assert.ok(
+  htmlMinimalBlocks.includes('sig-blocks-mobile') && htmlMinimalBlocks.includes('sig-blocks-mobile-row'),
+  'minimal: duplicate blocks row for narrow viewports is present'
+);
+assert.match(
+  htmlMinimalBlocks,
+  /@media only screen and \(min-width:601px\)[\s\S]*?tr\.sig-blocks-mobile-row[\s\S]*?display:\s*none\s*!important/,
+  'minimal: wide viewport @media hides the mobile-only blocks row'
+);
+assert.match(
+  htmlMinimalBlocks,
+  /@media only screen and \(max-width:600px\)[\s\S]*?td\.sig-blocks-desktop[\s\S]*?display:\s*none\s*!important/,
+  'minimal: narrow viewport @media hides the desktop side-column blocks copy'
 );
 assert.match(
   htmlMinimalBlocks,
@@ -395,8 +423,8 @@ assert.doesNotMatch(
 );
 assert.match(
   htmlMinimalBlocks,
-  /td\.sig-blocks-stack\s*\{[\s\S]*?float:\s*none\s*!important[\s\S]*?clear:\s*both\s*!important/,
-  'minimal: mobile stack adds float:none + clear:both safety on blocks column'
+  /td\.sig-content-block-cell\s*\{[\s\S]*?float:\s*none\s*!important[\s\S]*?clear:\s*both\s*!important/,
+  'minimal: narrow viewport still stacks dual content-block cells inside the blocks column'
 );
 assert.match(
   htmlMinimalBlocks,
