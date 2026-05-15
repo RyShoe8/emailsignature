@@ -11,11 +11,16 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
 @media only screen and (max-width:600px),
   only screen and (max-device-width:600px),
   only screen and (max-device-width:812px) {
+  table.sig-root-layout-table,
+  table.sig-corp-header-layout-table {
+    table-layout: auto !important;
+  }
   td.sig-corp-logo-stack {
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
-    padding-right: 0 !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
     padding-bottom: 12px !important;
     box-sizing: border-box !important;
   }
@@ -25,21 +30,22 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
     max-width: 100% !important;
     box-sizing: border-box !important;
     border-left: none !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
   }
   td.sig-corp-blocks-stack {
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
-    padding-left: 0 !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
     padding-top: 14px !important;
     border-left: none !important;
   }
 }
 </style>
-<table cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family: {{fontFamily}}, Arial, Helvetica, sans-serif; font-size:14px; color:#1a1a1a; line-height:1.4; max-width:600px;width:100%;table-layout:fixed;">
+<table class="sig-root-layout-table" cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family: {{fontFamily}}, Arial, Helvetica, sans-serif; font-size:14px; color:#1a1a1a; line-height:1.4; max-width:600px;width:100%;table-layout:fixed;">
   <!-- Accent bar -->
   <tr>
     <td colspan="3" style="padding:0;">
@@ -52,7 +58,7 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
   </tr>
   <tr>
     <td style="padding-top:16px;" colspan="3">
-      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;table-layout:fixed;">
+      <table class="sig-corp-header-layout-table" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;table-layout:fixed;">
         <tr>
           <!-- Logo column -->
           <td class="sig-corp-logo-stack" width="{{logoWidth}}" style="vertical-align:top;line-height:0;font-size:0;padding-right:16px;width:{{logoWidth}}px;">

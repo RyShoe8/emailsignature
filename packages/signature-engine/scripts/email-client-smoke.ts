@@ -215,6 +215,21 @@ assert.ok(
   htmlListImage.includes('sig-corp-blocks-stack') && htmlListImage.includes('padding-left:26px'),
   'corporate: blocks column has extra padding beside vertical divider'
 );
+assert.match(
+  htmlListImage,
+  /table\.sig-(?:root-layout-table|corp-header-layout-table)[\s\S]*?table-layout:\s*auto\s*!important/,
+  'corporate: mobile CSS switches layout tables to table-layout auto'
+);
+assert.ok(
+  htmlListImage.includes('class="sig-root-layout-table"') &&
+    htmlListImage.includes('class="sig-corp-header-layout-table"'),
+  'corporate: root and header tables carry layout class names'
+);
+assert.match(
+  htmlListImage,
+  /td\.sig-corp-main-stack\s*\{[\s\S]*?padding-left:\s*14px\s*!important[\s\S]*?padding-right:\s*14px\s*!important/,
+  'corporate: mobile stack restores symmetric horizontal inset on main column'
+);
 
 // Corporate template should not show redundant Phone/Email/Web labels — the values
 // already look like phone numbers / emails / URLs. Mobile keeps its label so it can
@@ -320,6 +335,20 @@ assert.ok(
 assert.ok(
   htmlMinimalBlocks.includes('padding-left:28px') && htmlMinimalBlocks.includes('sig-blocks-stack'),
   'minimal: blocks column has extra padding beside vertical divider'
+);
+assert.ok(
+  htmlMinimalBlocks.includes('class="sig-root-layout-table"'),
+  'minimal: root layout table has class for fluid mobile layout'
+);
+assert.match(
+  htmlMinimalBlocks,
+  /table\.sig-root-layout-table\s*\{[\s\S]*?table-layout:\s*auto\s*!important/,
+  'minimal: mobile CSS switches root table to table-layout auto'
+);
+assert.match(
+  htmlMinimalBlocks,
+  /td\.sig-main-stack\s*\{[\s\S]*?padding-left:\s*14px\s*!important[\s\S]*?padding-right:\s*14px\s*!important/,
+  'minimal: mobile stack restores symmetric horizontal inset on main column'
 );
 
 // Stacked template should also support blocks.
