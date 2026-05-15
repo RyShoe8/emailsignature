@@ -7,16 +7,32 @@ export type SignatureProfile = {
   mobilePhone?: string;
 };
 
+export type ContentBlockListItem = {
+  title: string;
+  description?: string;
+  url?: string;
+};
+
 export type ContentBlockData = {
-  type: 'book_a_call' | 'latest_blogs' | 'custom';
+  /** `custom` is kept for legacy reads; new blocks should use `list` or `image`. */
+  type: 'book_a_call' | 'latest_blogs' | 'list' | 'image' | 'custom';
   enabled: boolean;
+  // Book a call
   callTitle?: string;
   callUrl?: string;
   callButtonText?: string;
+  // Latest blogs (RSS)
   rssUrl?: string;
   rssItems?: { title: string; url: string; imageUrl?: string; pubDate?: string }[];
   rssLastFetched?: string;
   rssRefreshInterval?: 'none' | 'daily' | 'weekly';
+  // List (formerly custom)
+  listTitle?: string;
+  listItems?: ContentBlockListItem[];
+  // Image
+  imageUrl?: string;
+  imageLinkUrl?: string;
+  // Legacy custom fields (read-only fallback for older saved docs)
   customTitle?: string;
   customText?: string;
   customUrl?: string;

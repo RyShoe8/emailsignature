@@ -98,4 +98,98 @@ assert.match(
   'standard: animated GIF logo without logoHeightPx still uses height:auto'
 );
 
+// Corporate template with List + Image content blocks
+const corporateTemplate: import('../src/core/types').SignatureTemplate = {
+  id: 'corporate-smoke',
+  name: 'Corporate',
+  layout: 'corporate',
+  elements: [
+    { type: 'logo' },
+    { type: 'name' },
+    { type: 'title' },
+    { type: 'contact' },
+    { type: 'social' },
+    { type: 'divider' },
+    { type: 'address' },
+    { type: 'contentBlocks' },
+  ],
+};
+
+const htmlListImage = renderSignature({
+  profile,
+  brand: {
+    ...mockSignatureBrand,
+    contentBlocks: [
+      {
+        type: 'list',
+        enabled: true,
+        listTitle: 'Recent Wins',
+        listItems: [
+          { title: 'Quarterly Report', description: 'Q4 published', url: 'https://example.com/q4' },
+          { title: 'New Feature', url: 'https://example.com/feature' },
+          { title: 'Plain Item' },
+        ],
+      },
+      {
+        type: 'image',
+        enabled: true,
+        imageUrl: 'https://example.com/images/promo.png',
+        imageLinkUrl: 'https://example.com/promo',
+      },
+    ],
+  },
+  template: corporateTemplate,
+  publicSiteOrigin: origin,
+});
+
+assert.ok(
+  htmlListImage.includes('Recent Wins') && htmlListImage.includes('Quarterly Report'),
+  'corporate/list: title and item title render'
+);
+assert.ok(
+  htmlListImage.includes('Q4 published'),
+  'corporate/list: item description renders'
+);
+assert.match(
+  htmlListImage,
+  /href="https:\/\/example\.com\/q4[^"]*"/,
+  'corporate/list: item URL renders as link'
+);
+assert.ok(
+  htmlListImage.includes('Plain Item'),
+  'corporate/list: item without URL renders as plain span'
+);
+assert.match(
+  htmlListImage,
+  /src="https:\/\/example\.com\/images\/promo\.png[^"]*"[^>]*width="200"/,
+  'corporate/image: image renders with 200px width'
+);
+assert.match(
+  htmlListImage,
+  /href="https:\/\/example\.com\/promo[^"]*"[\s\S]*?<img[^>]*promo\.png/,
+  'corporate/image: image is wrapped in anchor when link is set'
+);
+
+// Legacy custom block still renders for back-compat reads
+const htmlLegacyCustom = renderSignature({
+  profile,
+  brand: {
+    ...mockSignatureBrand,
+    contentBlocks: [
+      {
+        type: 'custom',
+        enabled: true,
+        customTitle: 'Legacy',
+        customText: 'Old data still works',
+      },
+    ],
+  },
+  template: corporateTemplate,
+  publicSiteOrigin: origin,
+});
+assert.ok(
+  htmlLegacyCustom.includes('Legacy') && htmlLegacyCustom.includes('Old data still works'),
+  'corporate/custom: legacy custom block still renders'
+);
+
 process.stdout.write('email-client-smoke: all checks passed.\n');

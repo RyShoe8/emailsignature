@@ -219,7 +219,43 @@ function renderContentBlocksHtml(
   <tr><td style="font-size:12px;font-weight:700;color:#333;padding-bottom:6px;text-transform:uppercase;letter-spacing:0.4px;">Latest Posts</td></tr>
   ${itemsHtml}
 </table>`);
+    } else if (block.type === 'list') {
+      const title = escapeHtml((block.listTitle || '').trim());
+      const items = (block.listItems || [])
+        .filter((it) => (it.title || '').trim())
+        .slice(0, 4);
+      if (!title && items.length === 0) continue;
+      let inner = '';
+      if (title) {
+        inner += `<tr><td style="font-size:12px;font-weight:700;color:#333;padding-bottom:6px;text-transform:uppercase;letter-spacing:0.4px;">${title}</td></tr>`;
+      }
+      for (const item of items) {
+        const itemTitle = escapeHtml(item.title.trim());
+        const itemDesc = item.description ? escapeHtml(item.description.trim()) : '';
+        const itemUrl = item.url ? item.url.trim() : '';
+        const titleHtml = itemUrl
+          ? `<a href="${escapeHtml(itemUrl)}" style="color:#333;text-decoration:none;font-weight:600;">${itemTitle}</a>`
+          : `<span style="color:#333;font-weight:600;">${itemTitle}</span>`;
+        const descHtml = itemDesc
+          ? `<div style="color:#666;font-size:11px;line-height:1.4;margin-top:2px;">${itemDesc}</div>`
+          : '';
+        inner += `<tr><td style="padding:0 0 6px 0;font-size:12px;line-height:1.4;">${titleHtml}${descHtml}</td></tr>`;
+      }
+      parts.push(`<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:12px;" width="100%">${inner}</table>`);
+    } else if (block.type === 'image') {
+      const imageUrl = (block.imageUrl || '').trim();
+      if (!imageUrl) continue;
+      const absImg = escapeHtml(ensureAbsolutePublicUrl(normalizeImageUrl(imageUrl), origin));
+      const linkUrl = (block.imageLinkUrl || '').trim();
+      const imgTag = `<img src="${absImg}" width="200" border="0" alt="" style="display:block;max-width:200px;width:200px;height:auto;border:0;outline:none;text-decoration:none;border-radius:4px;" />`;
+      const wrapped = linkUrl
+        ? `<a href="${escapeHtml(linkUrl)}" style="text-decoration:none;border:0;outline:none;display:inline-block;">${imgTag}</a>`
+        : imgTag;
+      parts.push(`<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:12px;" width="100%">
+  <tr><td style="padding:0;line-height:0;font-size:0;">${wrapped}</td></tr>
+</table>`);
     } else if (block.type === 'custom') {
+      // Legacy fallback: render saved `custom` blocks so existing data keeps working.
       const title = escapeHtml((block.customTitle || '').trim());
       const text = escapeHtml((block.customText || '').trim());
       const url = block.customUrl?.trim() || '';

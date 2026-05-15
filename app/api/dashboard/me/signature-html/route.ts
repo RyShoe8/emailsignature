@@ -15,6 +15,34 @@ import { appendSignatureClickTrackingIfEnabled } from '@/lib/signatureTrackingHt
 
 export const dynamic = 'force-dynamic';
 
+const BrandOverrideSchema = z
+  .object({
+    fontFamily: z.string().max(200).optional(),
+    primaryColor: z.string().max(40).optional(),
+    logoUrl: z.string().max(2000).optional(),
+    logoLink: z.string().max(2000).optional(),
+    website: z.string().max(2000).optional(),
+    companyName: z.string().max(200).optional(),
+    socialLinks: z
+      .object({
+        linkedin: z.string().max(2000).optional(),
+        facebook: z.string().max(2000).optional(),
+        instagram: z.string().max(2000).optional(),
+        reddit: z.string().max(2000).optional(),
+      })
+      .optional(),
+    address: z.string().max(300).optional(),
+    state: z.string().max(120).optional(),
+    zip: z.string().max(40).optional(),
+    animation: z
+      .object({
+        enabled: z.boolean().optional(),
+        gifUrl: z.string().max(2000).optional(),
+      })
+      .optional(),
+  })
+  .partial();
+
 const BodySchema = z.object({
   templateId: z.string().min(1),
   /** When set, tracking tokens include this employee; LinkedIn merge uses `linkedin` body or saved employee. */
@@ -31,6 +59,8 @@ const BodySchema = z.object({
       contentBlocks: z.array(z.any()).optional(),
     })
     .optional(),
+  /** Unsaved brand edits from the dashboard editor; merged over the org doc for the preview render only. */
+  brandOverride: BrandOverrideSchema.optional(),
 });
 
 type SessionUser = { id?: string; organizationId?: string };
@@ -106,6 +136,7 @@ export async function POST(request: Request) {
       lastName: p.lastName,
       title: p.title,
       email: p.email,
+      officePhone: p.officePhone ?? '',
       mobilePhone: p.mobilePhone ?? '',
     };
     if (p.contentBlocks) {
@@ -127,6 +158,31 @@ export async function POST(request: Request) {
     if ((row as any).contentBlocks) {
       orgBrand.contentBlocks = (row as any).contentBlocks;
     }
+  }
+
+  const override = parsed.data.brandOverride;
+  if (override) {
+    orgBrand = {
+      ...orgBrand,
+      ...(override.fontFamily !== undefined ? { fontFamily: override.fontFamily } : {}),
+      ...(override.primaryColor !== undefined ? { primaryColor: override.primaryColor } : {}),
+      ...(override.logoUrl !== undefined ? { logoUrl: override.logoUrl } : {}),
+      ...(override.logoLink !== undefined ? { logoLink: override.logoLink } : {}),
+      ...(override.website !== undefined ? { website: override.website } : {}),
+      ...(override.companyName !== undefined ? { companyName: override.companyName } : {}),
+      ...(override.address !== undefined ? { address: override.address } : {}),
+      ...(override.state !== undefined ? { state: override.state } : {}),
+      ...(override.zip !== undefined ? { zip: override.zip } : {}),
+      socialLinks: { ...orgBrand.socialLinks, ...(override.socialLinks ?? {}) },
+      ...(override.animation !== undefined
+        ? {
+            animation: {
+              enabled: Boolean(override.animation.enabled ?? orgBrand.animation?.enabled ?? false),
+              gifUrl: override.animation.gifUrl ?? orgBrand.animation?.gifUrl,
+            },
+          }
+        : {}),
+    };
   }
 
   const presetId = tmpl.presetId as TemplatePresetId;

@@ -5,6 +5,7 @@ export type {
   SignatureElement,
   SignatureLayout,
   ContentBlockData,
+  ContentBlockListItem,
   RenderSignatureInput,
 } from './core/types';
 

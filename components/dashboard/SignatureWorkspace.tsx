@@ -213,6 +213,8 @@ export function SignatureWorkspace() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- assetOriginNonce forces post-mount recompute so preview URLs use window origin, not SSR fallback
   }, [profile, brand, engineTemplate, assetOriginNonce]);
 
+  const contentBlocksHash = useMemo(() => JSON.stringify(contentBlocks), [contentBlocks]);
+
   useEffect(() => {
     if (!org?.signatureClickTrackingEnabled || !selectedTemplateId || !engineTemplate) {
       setTrackedHtml(null);
@@ -240,6 +242,20 @@ export function SignatureWorkspace() {
                 email: profile.email,
                 officePhone: profile.officePhone ?? '',
                 mobilePhone: profile.mobilePhone ?? '',
+                contentBlocks,
+              },
+              brandOverride: {
+                fontFamily: brand.fontFamily,
+                primaryColor: brand.primaryColor,
+                logoUrl: brand.logoUrl,
+                logoLink: brand.logoLink,
+                website: brand.website,
+                companyName: brand.companyName,
+                socialLinks: brand.socialLinks,
+                address: brand.address,
+                state: brand.state,
+                zip: brand.zip,
+                animation: brand.animation,
               },
             }),
           });
@@ -259,6 +275,7 @@ export function SignatureWorkspace() {
       ac.abort();
       window.clearTimeout(timer);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- we use granular sub-field deps and a JSON hash for contentBlocks to drive precise refetches
   }, [
     org?.signatureClickTrackingEnabled,
     selectedTemplateId,
@@ -268,6 +285,7 @@ export function SignatureWorkspace() {
     profile.email,
     profile.officePhone,
     profile.mobilePhone,
+    brand.companyName,
     brand.website,
     brand.logoUrl,
     brand.logoLink,
@@ -285,6 +303,7 @@ export function SignatureWorkspace() {
     org?.plan,
     engineTemplate,
     assetOriginNonce,
+    contentBlocksHash,
   ]);
 
   const previewHtml = trackedHtml ?? html;
@@ -670,7 +689,9 @@ export function SignatureWorkspace() {
             <div className="space-y-4">
               <div className="mb-2">
                 <h3 className="text-lg font-medium">Promotional Blocks</h3>
-                <p className="text-sm text-muted-foreground">Test your blocks here. When applied, these will show below your signature.</p>
+                <p className="text-sm text-muted-foreground">
+                  Test your blocks here. Blocks appear on the Corporate template; pick it as the Preview template under Brand to see them.
+                </p>
               </div>
               <ContentBlocksEditor value={contentBlocks} onChange={setContentBlocks} />
               <div className="flex flex-wrap items-center gap-3 pt-4">
@@ -689,18 +710,11 @@ export function SignatureWorkspace() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <SignatureForm value={profile} onChange={setProfile} />
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="button" variant="secondary" disabled={savingProfile} onClick={() => void handleSaveProfile()}>
-              {savingProfile ? 'Saving…' : 'Save my details'}
-            </Button>
-            {profileMessage ? <p className="text-sm text-muted-foreground">{profileMessage}</p> : null}
-          </div>
-          
-                <div className="flex flex-wrap items-center gap-3 pt-4">
-                  <Button type="button" variant="secondary" onClick={() => void handleSaveProfile()} disabled={savingProfile}>
-                    {savingProfile ? 'Saving...' : 'Save details'}
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button type="button" variant="secondary" disabled={savingProfile} onClick={() => void handleSaveProfile()}>
+                    {savingProfile ? 'Saving…' : 'Save my details'}
                   </Button>
-                  {profileMessage && <p className="text-sm text-muted-foreground">{profileMessage}</p>}
+                  {profileMessage ? <p className="text-sm text-muted-foreground">{profileMessage}</p> : null}
                 </div>
               </CardContent>
             </Card>
