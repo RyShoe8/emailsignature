@@ -5,12 +5,12 @@ import { connectMongoose } from '@/lib/mongoose';
 import { SubscriptionPlanModel, type SubscriptionPlanDoc } from '@/models/SubscriptionPlan';
 import { ensureDefaultSubscriptionPlans } from '@/lib/billing/ensureDefaultPlans';
 import { getPlanSubscriptionCapUsage } from '@/lib/billing/planSubscriptionCap';
+import { uniquePlanSlugForName } from '@/lib/billing/planSlug';
 
 export const dynamic = 'force-dynamic';
 
 const CreateSchema = z.object({
   name: z.string().min(1),
-  slug: z.string().min(1).regex(/^[a-z0-9-]+$/),
   interval: z.enum(['month', 'year', 'lifetime']),
   basePriceCents: z.number().int().nonnegative(),
   additionalUserPriceCents: z.number().int().nonnegative().optional(),
@@ -69,14 +69,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
   await connectMongoose();
-  const maxV = await SubscriptionPlanModel.findOne({ slug: parsed.data.slug })
-    .sort({ version: -1 })
-    .select('version')
-    .lean();
-  const version = (maxV?.version ?? 0) + 1;
+  const slug = await uniquePlanSlugForName(parsed.data.name);
   try {
     const plan = await SubscriptionPlanModel.create({
       ...parsed.data,
+      slug,
+      version: 1,
       additionalUserPriceCents: parsed.data.additionalUserPriceCents ?? 0,
       includedUsers: parsed.data.includedUsers ?? 1,
       description: parsed.data.description ?? '',
@@ -85,7 +83,6 @@ export async function POST(request: Request) {
       paused: parsed.data.paused ?? false,
       maxSubscriptionSlots: parsed.data.maxSubscriptionSlots ?? 0,
       archived: parsed.data.archived ?? false,
-      version,
     });
     return NextResponse.json({ plan });
   } catch (e) {

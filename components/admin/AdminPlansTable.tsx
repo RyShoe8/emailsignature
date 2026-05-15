@@ -144,7 +144,7 @@ export function AdminPlansTable({
                 <tr key={p._id} className="border-b last:border-0">
                   <td className="p-3 font-medium">
                     {p.name}
-                    <span className="block text-xs text-muted-foreground">{p.slug}</span>
+                    <span className="block text-xs text-muted-foreground">v{p.version}</span>
                   </td>
                   <td className="p-3">{p.interval}</td>
                   <td className="p-3">{fmtMoney(p.basePriceCents)}</td>

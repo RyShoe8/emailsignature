@@ -18,7 +18,6 @@ export default async function EditAdminPlanPage({ params }: Props) {
 
   const initial = {
     name: String(p.name ?? ''),
-    slug: String(p.slug ?? ''),
     interval: (p.interval as 'month' | 'year' | 'lifetime') ?? 'year',
     basePriceCents: Number(p.basePriceCents ?? 0),
     additionalUserPriceCents: Number(p.additionalUserPriceCents ?? 0),

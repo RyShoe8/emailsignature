@@ -10,7 +10,6 @@ export const dynamic = 'force-dynamic';
 
 const PatchSchema = z.object({
   name: z.string().min(1).optional(),
-  slug: z.string().min(1).regex(/^[a-z0-9-]+$/).optional(),
   interval: z.enum(['month', 'year', 'lifetime']).optional(),
   basePriceCents: z.number().int().nonnegative().optional(),
   additionalUserPriceCents: z.number().int().nonnegative().optional(),

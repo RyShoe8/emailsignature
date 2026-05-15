@@ -67,13 +67,6 @@ export default async function DashboardHomePage() {
         </p>
       </div>
 
-      <OverviewOrganizationCard
-        organizationId={orgDoc._id.toString()}
-        initialName={String(orgDoc.name ?? '')}
-        initialSignatureClickTrackingEnabled={trackingOn}
-        canEdit={canEdit}
-      />
-
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
           <CardHeader>
@@ -105,7 +98,7 @@ export default async function DashboardHomePage() {
         <h2 className="text-lg font-semibold tracking-tight mb-1">Signature clicks (last 30 days)</h2>
         <p className="text-sm text-muted-foreground mb-4">
           Counts when recipients follow links in sent signatures. Tracking is on by default; turn it off in the
-          Organization section above if you do not want click logging.
+          Organization section below if you do not want click logging.
         </p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Card>
@@ -155,6 +148,13 @@ export default async function DashboardHomePage() {
           </Card>
         </div>
       </div>
+
+      <OverviewOrganizationCard
+        organizationId={orgDoc._id.toString()}
+        initialName={String(orgDoc.name ?? '')}
+        initialSignatureClickTrackingEnabled={trackingOn}
+        canEdit={canEdit}
+      />
     </div>
   );
 }

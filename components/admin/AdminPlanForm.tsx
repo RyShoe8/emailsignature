@@ -12,7 +12,6 @@ type Interval = 'month' | 'year' | 'lifetime';
 
 const empty = {
   name: '',
-  slug: '',
   interval: 'year' as Interval,
   basePriceCents: 1000,
   additionalUserPriceCents: 0,
@@ -43,7 +42,6 @@ export function AdminPlanForm({
     try {
       const body = {
         name: form.name,
-        slug: form.slug,
         interval: form.interval,
         basePriceCents: Number(form.basePriceCents),
         additionalUserPriceCents: Number(form.additionalUserPriceCents),
@@ -82,16 +80,6 @@ export function AdminPlanForm({
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
             <Input id="name" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="slug">Slug (lowercase, hyphens)</Label>
-            <Input
-              id="slug"
-              value={form.slug}
-              onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value.toLowerCase() }))}
-              required
-              disabled={mode === 'edit'}
-            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="interval">Interval</Label>
