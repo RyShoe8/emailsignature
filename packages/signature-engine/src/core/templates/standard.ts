@@ -180,7 +180,7 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
       {{/if}}
     </td>
     {{#if sideColumnContentBlocks}}
-    <td class="sig-blocks-stack sig-blocks-desktop" valign="top" style="vertical-align:top;padding-left:14px;border-left:1px solid #e5e5e5;width:54%;min-width:205px;">
+    <td class="sig-blocks-stack sig-blocks-desktop" valign="top" style="vertical-align:top;padding-left:12px;border-left:1px solid #e5e5e5;width:54%;min-width:205px;">
       {{contentBlocksHtml}}
     </td>
     {{/if}}

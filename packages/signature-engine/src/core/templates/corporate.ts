@@ -241,7 +241,7 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
           </td>
 
           {{#if sideColumnContentBlocks}}
-          <td class="sig-corp-blocks-stack sig-blocks-desktop" valign="top" style="vertical-align:top;padding-left:14px;border-left:1px solid #e5e5e5;width:52%;min-width:200px;">
+          <td class="sig-corp-blocks-stack sig-blocks-desktop" valign="top" style="vertical-align:top;padding-left:12px;border-left:1px solid #e5e5e5;width:52%;min-width:200px;">
             {{contentBlocksHtml}}
           </td>
           {{/if}}

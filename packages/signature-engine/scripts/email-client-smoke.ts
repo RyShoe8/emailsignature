@@ -108,6 +108,11 @@ const htmlStacked = renderSignature({
   publicSiteOrigin: origin,
 });
 assert.match(htmlStacked, /height:auto/, 'stacked: generic static logo uses height:auto');
+assert.match(
+  htmlStacked,
+  /max-width:665px/,
+  'stacked: root table uses a slightly wider cap than the 640px minimal/corporate layouts'
+);
 
 const htmlAnimatedLogo = renderSignature({
   profile,
@@ -213,7 +218,7 @@ assert.ok(
 );
 assert.ok(
   htmlListImage.includes('sig-corp-blocks-stack') &&
-    /class="sig-corp-blocks-stack[^"]*"[^>]*style="[^"]*padding-left:14px/.test(htmlListImage),
+    /class="sig-corp-blocks-stack[^"]*"[^>]*style="[^"]*padding-left:12px/.test(htmlListImage),
   'corporate: blocks column has comfortable padding beside vertical divider'
 );
 assert.match(
@@ -390,7 +395,7 @@ assert.ok(
 );
 assert.ok(
   htmlMinimalBlocks.includes('sig-blocks-stack') &&
-    /class="sig-blocks-stack[^"]*"[^>]*style="[^"]*padding-left:14px/.test(htmlMinimalBlocks),
+    /class="sig-blocks-stack[^"]*"[^>]*style="[^"]*padding-left:12px/.test(htmlMinimalBlocks),
   'minimal: blocks column has comfortable padding beside vertical divider'
 );
 assert.match(

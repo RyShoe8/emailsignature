@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SignatureForm } from '@/components/signature/SignatureForm';
-import { SignaturePreviewFrame } from '@/components/signature/SignaturePreviewFrame';
+import { SignaturePreviewFrame, STACKED_MOBILE_FRAME_WIDTH } from '@/components/signature/SignaturePreviewFrame';
 import { CopySignatureButton } from '@/components/signature/CopySignatureButton';
 import { CopyRichTextButton } from '@/components/signature/CopyRichTextButton';
 import { OutlookInstallHelp } from '@/components/signature/OutlookInstallHelp';
@@ -134,10 +134,10 @@ export default function EmployeeDetailPage() {
     [templates, templateId]
   );
 
-  const html = useMemo(() => {
-    if (!org || !selectedTemplate) return '';
+  const engineTemplate = useMemo(() => {
+    if (!org || !selectedTemplate) return null;
     const planKey = String(org.plan || 'none');
-    const engineTemplate = engineTemplateFromStoredConfig({
+    return engineTemplateFromStoredConfig({
       templateId: selectedTemplate._id,
       name: selectedTemplate.name,
       presetId: selectedTemplate.presetId as TemplatePresetId,
@@ -156,6 +156,10 @@ export default function EmployeeDetailPage() {
         { includeAnimationSlot: Boolean(selectedTemplate.includeAnimationSlot) }
       ),
     });
+  }, [org, selectedTemplate]);
+
+  const html = useMemo(() => {
+    if (!engineTemplate) return '';
     const renderInput = buildRenderInput({
       orgBrand: mergeEmployeeSocialIntoOrgBrand(org as never, { linkedin }),
       employee: {
@@ -173,7 +177,7 @@ export default function EmployeeDetailPage() {
     renderInput.brand.contentBlocks = contentBlocks;
     return renderSignature(renderInput);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- assetOriginNonce forces post-mount recompute so preview URLs use window origin, not SSR fallback
-  }, [org, selectedTemplate, profile, assetOriginNonce, linkedin, contentBlocks]);
+  }, [engineTemplate, org, profile, assetOriginNonce, linkedin, contentBlocks]);
 
   const trackingEnabled = Boolean(org && org.signatureClickTrackingEnabled);
 
@@ -462,7 +466,13 @@ export default function EmployeeDetailPage() {
             </div>
             <div className="min-w-0 space-y-2">
               <p className="text-xs text-muted-foreground font-medium">Mobile</p>
-              <SignaturePreviewFrame html={previewHtml} variant="mobile" />
+              <SignaturePreviewFrame
+                html={previewHtml}
+                variant="mobile"
+                mobileFrameWidth={
+                  engineTemplate?.layout === 'stacked' ? STACKED_MOBILE_FRAME_WIDTH : undefined
+                }
+              />
             </div>
           </div>
           <div className="flex flex-wrap gap-2">

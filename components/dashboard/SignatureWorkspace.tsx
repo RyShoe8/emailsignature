@@ -17,7 +17,7 @@ import { ContentBlocksEditor } from '@/components/signature/ContentBlocksEditor'
 import { SocialLinksEditor } from '@/components/signature/SocialLinksEditor';
 import type { ContentBlockData } from 'emailsignature-engine';
 import { SignatureForm } from '@/components/signature/SignatureForm';
-import { SignaturePreviewFrame } from '@/components/signature/SignaturePreviewFrame';
+import { SignaturePreviewFrame, STACKED_MOBILE_FRAME_WIDTH } from '@/components/signature/SignaturePreviewFrame';
 import { CopySignatureButton } from '@/components/signature/CopySignatureButton';
 import { CopyRichTextButton } from '@/components/signature/CopyRichTextButton';
 import { OutlookInstallHelp } from '@/components/signature/OutlookInstallHelp';
@@ -723,7 +723,13 @@ export function SignatureWorkspace() {
             </div>
             <div className="min-w-0 space-y-2">
               <p className="text-xs text-muted-foreground font-medium">Mobile</p>
-              <SignaturePreviewFrame html={previewHtml} variant="mobile" />
+              <SignaturePreviewFrame
+                html={previewHtml}
+                variant="mobile"
+                mobileFrameWidth={
+                  engineTemplate?.layout === 'stacked' ? STACKED_MOBILE_FRAME_WIDTH : undefined
+                }
+              />
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
