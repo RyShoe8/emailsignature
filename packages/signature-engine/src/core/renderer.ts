@@ -198,8 +198,8 @@ function substituteVariables(html: string, strings: Record<string, string>): str
 }
 
 /**
- * Render content blocks HTML for the corporate template.
- * Produces email-safe table markup for up to 2 blocks.
+ * Render content blocks HTML for side-column layouts (standard / corporate).
+ * Produces email-safe table markup for up to 2 blocks; two blocks become a 50/50 row on desktop.
  */
 function renderContentBlocksHtml(
   blocks: ContentBlockData[],
@@ -317,7 +317,16 @@ function renderContentBlocksHtml(
     }
   }
 
-  return parts.join('');
+  if (parts.length === 0) return '';
+  if (parts.length === 1) return parts[0]!;
+
+  const [left, right] = parts;
+  return `<table class="sig-content-blocks-grid" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;">
+<tr>
+<td class="sig-content-block-cell" valign="top" width="50%" style="vertical-align:top;width:50%;padding-right:6px;">${left}</td>
+<td class="sig-content-block-cell" valign="top" width="50%" style="vertical-align:top;width:50%;padding-left:6px;">${right}</td>
+</tr>
+</table>`;
 }
 
 /**

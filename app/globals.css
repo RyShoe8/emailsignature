@@ -88,6 +88,86 @@
     object-fit: contain;
   }
 
+  /* Mobile preview: @media in email HTML uses viewport width; desktop browsers stay wide so stack rules never run.
+     Mirror template @media stack rules via container queries on the fixed ~360px frame. Keep in sync with
+     packages/signature-engine/src/core/templates/standard.ts and corporate.ts */
+  .sig-mobile-preview-container {
+    container-type: inline-size;
+    container-name: sig-mobile-preview;
+  }
+
+  @container sig-mobile-preview (max-width: 600px) {
+    table.sig-root-layout-table,
+    table.sig-corp-header-layout-table {
+      table-layout: auto !important;
+    }
+    td.sig-logo-stack {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      padding-left: 14px !important;
+      padding-right: 14px !important;
+      padding-bottom: 8px !important;
+      box-sizing: border-box !important;
+    }
+    td.sig-main-stack {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      border-left: none !important;
+      padding-left: 14px !important;
+      padding-right: 14px !important;
+    }
+    td.sig-blocks-stack {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      padding-left: 14px !important;
+      padding-right: 14px !important;
+      padding-top: 14px !important;
+      border-left: none !important;
+    }
+    td.sig-corp-logo-stack {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      padding-left: 14px !important;
+      padding-right: 14px !important;
+      padding-bottom: 12px !important;
+      box-sizing: border-box !important;
+    }
+    td.sig-corp-main-stack {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      border-left: none !important;
+      padding-left: 14px !important;
+      padding-right: 14px !important;
+    }
+    td.sig-corp-blocks-stack {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      padding-left: 14px !important;
+      padding-right: 14px !important;
+      padding-top: 14px !important;
+      border-left: none !important;
+    }
+    td.sig-content-block-cell {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+      padding-bottom: 12px !important;
+    }
+  }
+
   /* Mobile preview: only the outer-most signature table flexes; nested block tables keep intrinsic width for measurement. */
   .signature-email-preview--mobile .mobile-signature-scale-root > table:first-of-type {
     max-width: 100% !important;

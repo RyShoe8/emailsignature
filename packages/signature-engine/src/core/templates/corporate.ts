@@ -43,6 +43,15 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
     padding-top: 14px !important;
     border-left: none !important;
   }
+  td.sig-content-block-cell {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-bottom: 12px !important;
+  }
 }
 </style>
 <table class="sig-root-layout-table" cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family: {{fontFamily}}, Arial, Helvetica, sans-serif; font-size:14px; color:#1a1a1a; line-height:1.4; max-width:600px;width:100%;table-layout:fixed;">
@@ -61,7 +70,7 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
       <table class="sig-corp-header-layout-table" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;table-layout:fixed;">
         <tr>
           <!-- Logo column -->
-          <td class="sig-corp-logo-stack" width="{{logoWidth}}" style="vertical-align:top;line-height:0;font-size:0;padding-right:16px;width:{{logoWidth}}px;">
+          <td class="sig-corp-logo-stack" width="{{logoWidth}}" style="vertical-align:top;line-height:0;font-size:0;padding-right:21px;width:{{logoWidth}}px;">
             {{#if hasLogo}}
             <a href="{{logoLink}}" style="text-decoration:none; border:0; outline:none; display:inline-block;">
 {{#if hasLogoSizedHeight}}

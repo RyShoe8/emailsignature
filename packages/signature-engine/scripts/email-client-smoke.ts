@@ -230,6 +230,16 @@ assert.match(
   /td\.sig-corp-main-stack\s*\{[\s\S]*?padding-left:\s*14px\s*!important[\s\S]*?padding-right:\s*14px\s*!important/,
   'corporate: mobile stack restores symmetric horizontal inset on main column'
 );
+assert.ok(
+  htmlListImage.includes('class="sig-content-blocks-grid"') &&
+    htmlListImage.includes('sig-content-block-cell'),
+  'corporate: two enabled blocks render in a side-by-side grid inside the blocks column'
+);
+assert.match(
+  htmlListImage,
+  /td\.sig-content-block-cell\s*\{/,
+  'corporate: responsive CSS stacks dual content-block cells on narrow viewports'
+);
 
 // Corporate template should not show redundant Phone/Email/Web labels — the values
 // already look like phone numbers / emails / URLs. Mobile keeps its label so it can
@@ -349,6 +359,39 @@ assert.match(
   htmlMinimalBlocks,
   /td\.sig-main-stack\s*\{[\s\S]*?padding-left:\s*14px\s*!important[\s\S]*?padding-right:\s*14px\s*!important/,
   'minimal: mobile stack restores symmetric horizontal inset on main column'
+);
+assert.match(
+  htmlMinimalBlocks,
+  /td\.sig-content-block-cell\s*\{/,
+  'minimal: responsive CSS stacks dual content-block cells on narrow viewports'
+);
+
+const htmlMinimalTwoBlocks = renderSignature({
+  profile,
+  brand: {
+    ...mockSignatureBrand,
+    contentBlocks: [
+      {
+        type: 'list',
+        enabled: true,
+        listTitle: 'Column A',
+        listItems: [{ title: 'First', url: 'https://example.com/a' }],
+      },
+      {
+        type: 'list',
+        enabled: true,
+        listTitle: 'Column B',
+        listItems: [{ title: 'Second', url: 'https://example.com/b' }],
+      },
+    ],
+  },
+  template: minimalTemplate,
+  publicSiteOrigin: origin,
+});
+assert.ok(
+  htmlMinimalTwoBlocks.includes('class="sig-content-blocks-grid"') &&
+    htmlMinimalTwoBlocks.includes('sig-content-block-cell'),
+  'minimal: two enabled blocks render in a side-by-side grid inside the blocks column'
 );
 
 // Stacked template should also support blocks.

@@ -80,7 +80,7 @@ function MobileSignaturePreviewFrame({ html, animationKey }: { html: string; ani
   return (
     <div
       ref={frameRef}
-      className="signature-email-preview signature-email-preview--mobile rounded-md border bg-white p-4 text-left"
+      className="signature-email-preview signature-email-preview--mobile sig-mobile-preview-container rounded-md border bg-white p-4 text-left"
       style={{ width: MOBILE_FRAME_WIDTH, maxWidth: '100%', minHeight: 200 }}
     >
       <div
