@@ -1,4 +1,4 @@
-import { renderSignature, type RenderSignatureInput } from 'emailsignature-engine';
+import { renderSignature, type RenderSignatureInput, type ContentBlockData } from 'emailsignature-engine';
 import { buildRenderInput, type OrgBrandInput, type EmployeeProfileInput } from '@/lib/email/toRenderInput';
 import { engineTemplateFromStoredConfig, type TemplatePresetId } from '@/lib/email/templatePresets';
 import type { OrganizationDoc } from '@/models/Organization';
@@ -8,7 +8,10 @@ import { shouldIncludeSignatureAnimation } from '@/lib/billing/entitlements';
 import { getSignatureAssetOrigin } from '@/lib/siteOrigin';
 import { appendSignatureClickTrackingIfEnabled } from '@/lib/signatureTrackingHtml';
 
-export function orgToBrandInput(org: OrganizationDoc): OrgBrandInput {
+/** Default UTM parameters for Tailnote signatures. */
+const DEFAULT_UTM = { source: 'Tailnote', medium: 'Email', campaign: 'Footer' };
+
+export function orgToBrandInput(org: OrganizationDoc, contentBlocks?: ContentBlockData[]): OrgBrandInput {
   const sl = org.socialLinks as { linkedin?: string; facebook?: string; instagram?: string; reddit?: string } | undefined;
   return {
     companyName: (org.companyName || org.name || '').trim(),
@@ -27,6 +30,7 @@ export function orgToBrandInput(org: OrganizationDoc): OrgBrandInput {
     state: org.state ?? undefined,
     zip: org.zip ?? undefined,
     animation: org.animation as OrgBrandInput['animation'],
+    contentBlocks,
   };
 }
 
@@ -40,12 +44,26 @@ export function employeeToProfile(emp: EmployeeDoc): EmployeeProfileInput {
   };
 }
 
+/**
+ * Extract content blocks from an employee document into engine-compatible data.
+ */
+export function employeeContentBlocks(emp: EmployeeDoc): ContentBlockData[] {
+  const blocks = (emp as unknown as { contentBlocks?: unknown[] }).contentBlocks;
+  if (!Array.isArray(blocks)) return [];
+  return blocks
+    .filter((b: unknown): b is ContentBlockData =>
+      typeof b === 'object' && b !== null && 'type' in b
+    )
+    .slice(0, 2);
+}
+
 /** Employee LinkedIn overrides org default when set (dashboard + server renders stay aligned). */
 export function mergeEmployeeSocialIntoOrgBrand(
   org: OrganizationDoc,
-  employee: Pick<EmployeeDoc, 'linkedin'>
+  employee: Pick<EmployeeDoc, 'linkedin'>,
+  contentBlocks?: ContentBlockData[]
 ): OrgBrandInput {
-  const base = orgToBrandInput(org);
+  const base = orgToBrandInput(org, contentBlocks);
   const li = employee.linkedin?.trim();
   return {
     ...base,
@@ -71,12 +89,15 @@ export function renderSignatureForEmployee(
     includeAnimationSlot: includeAnimation,
   });
   const publicSiteOrigin = options?.publicSiteOrigin?.trim() || getSignatureAssetOrigin();
+  const contentBlocks = employeeContentBlocks(emp);
+  const utmEnabled = (org as unknown as { utmEnabled?: boolean }).utmEnabled !== false;
   const renderInput: RenderSignatureInput = {
     ...buildRenderInput({
-      orgBrand: mergeEmployeeSocialIntoOrgBrand(org, emp),
+      orgBrand: mergeEmployeeSocialIntoOrgBrand(org, emp, contentBlocks),
       employee: employeeToProfile(emp),
       template,
       publicSiteOrigin,
+      utm: utmEnabled ? DEFAULT_UTM : false,
     }),
     publicSiteOrigin,
   };

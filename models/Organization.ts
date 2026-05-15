@@ -33,6 +33,8 @@ const OrganizationSchema = new Schema(
     },
     /** When true, signature links are rewritten through /api/track/signature for click analytics. */
     signatureClickTrackingEnabled: { type: Boolean, default: true },
+    /** UTM tracking appended to http/https links in rendered signatures (default on). */
+    utmEnabled: { type: Boolean, default: true },
   },
   { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } }
 );

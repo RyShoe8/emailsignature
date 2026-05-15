@@ -3,6 +3,7 @@ import type {
   SignatureBrand,
   SignatureProfile,
   SignatureTemplate,
+  ContentBlockData,
 } from 'emailsignature-engine';
 
 /** App-side org brand fields that map into engine `SignatureBrand`. */
@@ -23,6 +24,7 @@ export type OrgBrandInput = {
   state?: string;
   zip?: string;
   animation?: { enabled: boolean; gifUrl?: string };
+  contentBlocks?: ContentBlockData[];
 };
 
 export type EmployeeProfileInput = {
@@ -55,6 +57,7 @@ export function toSignatureBrand(input: OrgBrandInput): SignatureBrand {
       enabled: Boolean(input.animation?.enabled),
       gifUrl: input.animation?.gifUrl?.trim() || undefined,
     },
+    contentBlocks: input.contentBlocks,
   };
 }
 
@@ -75,6 +78,8 @@ export function buildRenderInput(args: {
   template: SignatureTemplate;
   /** Passed to signature engine for absolute /images/... URLs in email HTML */
   publicSiteOrigin?: string;
+  /** UTM config. false = disabled. undefined = use defaults. */
+  utm?: { source: string; medium: string; campaign: string } | false;
 }): RenderSignatureInput {
   const origin = args.publicSiteOrigin?.trim();
   return {
@@ -82,5 +87,6 @@ export function buildRenderInput(args: {
     brand: toSignatureBrand(args.orgBrand),
     template: args.template,
     ...(origin ? { publicSiteOrigin: origin } : {}),
+    ...(args.utm !== undefined ? { utm: args.utm } : {}),
   };
 }

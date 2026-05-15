@@ -153,6 +153,7 @@ export default async function DashboardHomePage() {
         organizationId={orgDoc._id.toString()}
         initialName={String(orgDoc.name ?? '')}
         initialSignatureClickTrackingEnabled={trackingOn}
+        initialUtmEnabled={orgDoc.utmEnabled !== false}
         canEdit={canEdit}
       />
     </div>

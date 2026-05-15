@@ -15,6 +15,35 @@ const EmployeeSchema = new Schema(
     /** References SignatureTemplate doc _id */
     templateId: { type: Schema.Types.ObjectId, ref: 'SignatureTemplate', required: true },
     previewToken: { type: String, required: true, unique: true, index: true },
+    /** Up to 2 promotional content blocks displayed in the corporate template. */
+    contentBlocks: [
+      {
+        type: { type: String, enum: ['book_a_call', 'latest_blogs', 'custom'] },
+        enabled: { type: Boolean, default: true },
+        // Book a Call
+        callTitle: { type: String },
+        callUrl: { type: String },
+        callButtonText: { type: String },
+        // Latest Blogs (RSS)
+        rssUrl: { type: String },
+        rssItems: [
+          {
+            title: { type: String },
+            url: { type: String },
+            imageUrl: { type: String },
+            pubDate: { type: String },
+          },
+        ],
+        rssLastFetched: { type: Date },
+        /** Optional auto-refresh cadence: 'none' (manual only), 'daily', 'weekly' */
+        rssRefreshInterval: { type: String, enum: ['none', 'daily', 'weekly'], default: 'none' },
+        // Custom
+        customTitle: { type: String },
+        customText: { type: String },
+        customUrl: { type: String },
+        customImageUrl: { type: String },
+      },
+    ],
   },
   { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } }
 );

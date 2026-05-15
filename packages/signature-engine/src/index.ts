@@ -3,6 +3,8 @@ export type {
   SignatureBrand,
   SignatureTemplate,
   SignatureElement,
+  SignatureLayout,
+  ContentBlockData,
   RenderSignatureInput,
 } from './core/types';
 
@@ -22,6 +24,7 @@ export {
 
 export { STANDARD_SIGNATURE_TEMPLATE } from './core/templates/standard';
 export { STACKED_SIGNATURE_TEMPLATE } from './core/templates/stacked';
+export { CORPORATE_SIGNATURE_TEMPLATE } from './core/templates/corporate';
 
 export {
   mockSignatureBrand,

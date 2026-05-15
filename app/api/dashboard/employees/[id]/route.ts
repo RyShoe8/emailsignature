@@ -47,6 +47,27 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
   return NextResponse.json({ employee });
 }
 
+const ContentBlockSchema = z.object({
+  type: z.enum(['book_a_call', 'latest_blogs', 'custom']),
+  enabled: z.boolean().optional(),
+  callTitle: z.string().optional(),
+  callUrl: z.string().optional(),
+  callButtonText: z.string().optional(),
+  rssUrl: z.string().optional(),
+  rssItems: z.array(z.object({
+    title: z.string(),
+    url: z.string(),
+    imageUrl: z.string().optional(),
+    pubDate: z.string().optional(),
+  })).optional(),
+  rssLastFetched: z.string().optional(),
+  rssRefreshInterval: z.enum(['none', 'daily', 'weekly']).optional(),
+  customTitle: z.string().optional(),
+  customText: z.string().optional(),
+  customUrl: z.string().optional(),
+  customImageUrl: z.string().optional(),
+});
+
 const PatchSchema = z.object({
   firstName: z.string().min(1).optional(),
   lastName: z.string().min(1).optional(),
@@ -58,6 +79,7 @@ const PatchSchema = z.object({
   twitter: z.string().optional(),
   avatarUrl: z.string().optional(),
   templateId: z.string().optional(),
+  contentBlocks: z.array(ContentBlockSchema).max(2).optional(),
 });
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
@@ -103,6 +125,9 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   if (data.linkedin !== undefined) employee.linkedin = data.linkedin.trim();
   if (data.twitter !== undefined) employee.twitter = data.twitter.trim();
   if (data.avatarUrl !== undefined) employee.avatarUrl = data.avatarUrl.trim();
+  if (data.contentBlocks !== undefined) {
+    (employee as unknown as { contentBlocks: unknown }).contentBlocks = data.contentBlocks.slice(0, 2);
+  }
 
   await employee.save();
   return NextResponse.json({ employee: employee.toObject() });

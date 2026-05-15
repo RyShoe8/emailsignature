@@ -8,6 +8,7 @@ import {
   type SignatureTemplate,
 } from 'emailsignature-engine';
 import { engineTemplateFromStoredConfig, type TemplatePresetId } from '@/lib/email/templatePresets';
+import { FONT_GROUPS, findFontByStack } from '@/lib/email/fontOptions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -608,6 +609,24 @@ export function SignatureWorkspace() {
                 value={org.primaryColor ?? ''}
                 onChange={(e) => setOrg((o) => ({ ...(o || {}), primaryColor: e.target.value }))}
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Font</Label>
+              <select
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+                value={findFontByStack(org.fontFamily || 'Arial')?.stack || 'Arial'}
+                onChange={(e) => setOrg((o) => ({ ...(o || {}), fontFamily: e.target.value }))}
+              >
+                {FONT_GROUPS.map((group) => (
+                  <optgroup key={group.label} label={group.label}>
+                    {group.fonts.map((f) => (
+                      <option key={f.id} value={f.stack} style={{ fontFamily: f.stack }}>
+                        {f.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <Label>Preview template</Label>

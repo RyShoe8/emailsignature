@@ -1,4 +1,4 @@
-import type { SignatureBrand, SignatureTemplate, SignatureElement } from './core/types';
+import type { SignatureBrand, SignatureTemplate, SignatureElement, SignatureLayout } from './core/types';
 
 /** Full default element set for engine tests and previews. */
 export const defaultSignatureElements: SignatureElement[] = [
@@ -34,7 +34,7 @@ export const mockSignatureBrand: SignatureBrand = {
 };
 
 export function mockSignatureTemplate(
-  layout: SignatureTemplate['layout'] = 'standard'
+  layout: SignatureLayout = 'standard'
 ): SignatureTemplate {
   return {
     id: 'default',

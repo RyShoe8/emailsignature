@@ -4,9 +4,11 @@ import type {
   SignatureProfile,
   SignatureTemplate,
   SignatureElement,
+  ContentBlockData,
 } from './types';
 import { STANDARD_SIGNATURE_TEMPLATE } from './templates/standard';
 import { STACKED_SIGNATURE_TEMPLATE } from './templates/stacked';
+import { CORPORATE_SIGNATURE_TEMPLATE } from './templates/corporate';
 import {
   SOCIAL_ICON_FACEBOOK,
   SOCIAL_ICON_INSTAGRAM,
@@ -172,6 +174,104 @@ function substituteVariables(html: string, strings: Record<string, string>): str
   });
 }
 
+/**
+ * Render content blocks HTML for the corporate template.
+ * Produces email-safe table markup for up to 2 blocks.
+ */
+function renderContentBlocksHtml(
+  blocks: ContentBlockData[],
+  origin: string
+): string {
+  const enabled = blocks.filter((b) => b.enabled).slice(0, 2);
+  if (enabled.length === 0) return '';
+
+  const parts: string[] = [];
+
+  for (const block of enabled) {
+    if (block.type === 'book_a_call') {
+      const title = escapeHtml((block.callTitle || 'Book a Call').trim());
+      const url = escapeHtml((block.callUrl || '#').trim());
+      const btnText = escapeHtml((block.callButtonText || 'Schedule Now').trim());
+      parts.push(`<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:12px;" width="100%">
+  <tr><td style="font-size:12px;font-weight:700;color:#333;padding-bottom:6px;text-transform:uppercase;letter-spacing:0.4px;">${title}</td></tr>
+  <tr><td style="padding:0;">
+    <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;">
+      <tr>
+        <td align="center" valign="middle" style="background-color:{{primaryColor}};border-radius:4px;padding:8px 18px;">
+          <a href="${url}" style="color:#ffffff;font-size:12px;font-weight:600;text-decoration:none;display:inline-block;line-height:1.3;">${btnText}</a>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>`);
+    } else if (block.type === 'latest_blogs') {
+      const items = (block.rssItems || []).slice(0, 3);
+      if (items.length === 0) continue;
+      let itemsHtml = '';
+      for (const item of items) {
+        const itemTitle = escapeHtml((item.title || '').trim());
+        const itemUrl = escapeHtml((item.url || '#').trim());
+        itemsHtml += `<tr><td style="padding:0 0 6px 0;font-size:12px;line-height:1.4;">
+  <a href="${itemUrl}" style="color:#333;text-decoration:none;font-weight:500;">${itemTitle}</a>
+</td></tr>`;
+      }
+      parts.push(`<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:12px;" width="100%">
+  <tr><td style="font-size:12px;font-weight:700;color:#333;padding-bottom:6px;text-transform:uppercase;letter-spacing:0.4px;">Latest Posts</td></tr>
+  ${itemsHtml}
+</table>`);
+    } else if (block.type === 'custom') {
+      const title = escapeHtml((block.customTitle || '').trim());
+      const text = escapeHtml((block.customText || '').trim());
+      const url = block.customUrl?.trim() || '';
+      const imageUrl = block.customImageUrl?.trim() || '';
+      let html = '';
+      if (title) {
+        html += `<tr><td style="font-size:12px;font-weight:700;color:#333;padding-bottom:4px;text-transform:uppercase;letter-spacing:0.4px;">${title}</td></tr>`;
+      }
+      if (imageUrl) {
+        const absImg = escapeHtml(ensureAbsolutePublicUrl(normalizeImageUrl(imageUrl), origin));
+        const imgTag = `<img src="${absImg}" width="200" border="0" alt="" style="display:block;max-width:200px;width:200px;height:auto;border:0;outline:none;text-decoration:none;border-radius:4px;" />`;
+        if (url) {
+          html += `<tr><td style="padding:0 0 4px 0;line-height:0;font-size:0;"><a href="${escapeHtml(url)}" style="text-decoration:none;border:0;outline:none;display:inline-block;">${imgTag}</a></td></tr>`;
+        } else {
+          html += `<tr><td style="padding:0 0 4px 0;line-height:0;font-size:0;">${imgTag}</td></tr>`;
+        }
+      }
+      if (text) {
+        html += `<tr><td style="font-size:12px;color:#555;line-height:1.4;padding-bottom:4px;">${text}</td></tr>`;
+      }
+      if (url && !imageUrl) {
+        html += `<tr><td style="font-size:12px;padding:0;"><a href="${escapeHtml(url)}" style="color:{{primaryColor}};text-decoration:none;font-weight:500;">Learn more &rarr;</a></td></tr>`;
+      }
+      if (html) {
+        parts.push(`<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:12px;" width="100%">${html}</table>`);
+      }
+    }
+  }
+
+  return parts.join('');
+}
+
+/**
+ * Append UTM parameters to http/https links in rendered HTML.
+ * Skips mailto:, tel:, and anchor-only (#) links.
+ */
+function appendUtmParams(
+  html: string,
+  utm: { source: string; medium: string; campaign: string }
+): string {
+  const params = `utm_source=${encodeURIComponent(utm.source)}&utm_medium=${encodeURIComponent(utm.medium)}&utm_campaign=${encodeURIComponent(utm.campaign)}`;
+
+  return html.replace(/href="(https?:\/\/[^"]+)"/gi, (_match, url: string) => {
+    try {
+      const separator = url.includes('?') ? '&' : '?';
+      return `href="${url}${separator}${params}"`;
+    } catch {
+      return _match;
+    }
+  });
+}
+
 export function mergeRenderContext(
   profile: SignatureProfile,
   brand: SignatureBrand,
@@ -191,6 +291,7 @@ export function mergeRenderContext(
   const hasDivider = hasElement(elements, 'divider');
   const hasAddressEl = hasElement(elements, 'address');
   const hasAnimationEl = hasElement(elements, 'animation');
+  const hasContentBlocksEl = hasElement(elements, 'contentBlocks');
 
   const useAnimation =
     hasAnimationEl &&
@@ -256,17 +357,17 @@ export function mergeRenderContext(
   if (linkedin) {
     socialTdLiStyle =
       facebook || instagram || reddit
-        ? 'padding:0 8px 0 0;vertical-align:middle;'
+        ? 'padding:0 6px 0 0;vertical-align:middle;'
         : 'padding:0;vertical-align:middle;';
   }
   if (facebook) {
     socialTdFbStyle = instagram || reddit
-      ? 'padding:0 8px 0 0;vertical-align:middle;'
+      ? 'padding:0 6px 0 0;vertical-align:middle;'
       : 'padding:0;vertical-align:middle;';
   }
   if (instagram) {
     socialTdIgStyle = reddit
-      ? 'padding:0 8px 0 0;vertical-align:middle;'
+      ? 'padding:0 6px 0 0;vertical-align:middle;'
       : 'padding:0;vertical-align:middle;';
   }
   if (reddit) {
@@ -287,6 +388,13 @@ export function mergeRenderContext(
   const officePhoneTelHref = officePhone ? telHref(officePhone) : '';
   const mobilePhoneTelHref = mobilePhone ? telHref(mobilePhone) : '';
 
+  // Content blocks
+  const contentBlocks = brand.contentBlocks?.filter((b) => b.enabled) ?? [];
+  const hasContentBlocks = hasContentBlocksEl && contentBlocks.length > 0;
+  const contentBlocksHtml = hasContentBlocks
+    ? renderContentBlocksHtml(contentBlocks, origin)
+    : '';
+
   const evalCtx: Record<string, string | boolean | undefined> = {
     hasLogo,
     hasName,
@@ -303,6 +411,8 @@ export function mergeRenderContext(
     hasReddit: Boolean(reddit),
     hasLogoSizedHeight,
     hasLogoAutoHeight,
+    hasContentBlocks,
+    hasWebsite: Boolean(website),
   };
 
   const stringCtx: Record<string, string> = {
@@ -320,6 +430,7 @@ export function mergeRenderContext(
     logoDisplayHeight: logoDisplayHeightStr,
     primaryColor: escapeHtml(brand.primaryColor.trim()),
     fontFamily: escapeHtml(brand.fontFamily.trim()),
+    companyName: escapeHtml(brand.companyName.trim()),
     website: escapeHtml(website),
     linkedin: escapeHtml(linkedin),
     facebook: escapeHtml(facebook),
@@ -334,22 +445,32 @@ export function mergeRenderContext(
     socialTdFbStyle,
     socialTdIgStyle,
     socialTdRedditStyle,
+    contentBlocksHtml,
   };
 
   return { evalCtx, stringCtx };
 }
 
 function pickTemplate(layout: SignatureTemplate['layout']): string {
-  return layout === 'stacked' ? STACKED_SIGNATURE_TEMPLATE : STANDARD_SIGNATURE_TEMPLATE;
+  if (layout === 'stacked') return STACKED_SIGNATURE_TEMPLATE;
+  if (layout === 'corporate') return CORPORATE_SIGNATURE_TEMPLATE;
+  return STANDARD_SIGNATURE_TEMPLATE;
 }
 
 export function renderSignature(input: RenderSignatureInput): string {
-  const { profile, brand, template, publicSiteOrigin } = input;
+  const { profile, brand, template, publicSiteOrigin, utm } = input;
   const origin = stripTrailingSlash(
     (publicSiteOrigin ?? DEFAULT_PUBLIC_SITE_ORIGIN).trim() || DEFAULT_PUBLIC_SITE_ORIGIN
   );
   const tmpl = pickTemplate(template.layout);
   const { evalCtx, stringCtx } = mergeRenderContext(profile, brand, template, origin);
   const afterIf = processConditionals(tmpl, evalCtx);
-  return substituteVariables(afterIf, stringCtx);
+  let html = substituteVariables(afterIf, stringCtx);
+
+  // Append UTM parameters when configured
+  if (utm) {
+    html = appendUtmParams(html, utm);
+  }
+
+  return html;
 }

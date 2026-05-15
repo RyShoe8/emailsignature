@@ -7,6 +7,22 @@ export type SignatureProfile = {
   mobilePhone?: string;
 };
 
+export type ContentBlockData = {
+  type: 'book_a_call' | 'latest_blogs' | 'custom';
+  enabled: boolean;
+  callTitle?: string;
+  callUrl?: string;
+  callButtonText?: string;
+  rssUrl?: string;
+  rssItems?: { title: string; url: string; imageUrl?: string; pubDate?: string }[];
+  rssLastFetched?: string;
+  rssRefreshInterval?: 'none' | 'daily' | 'weekly';
+  customTitle?: string;
+  customText?: string;
+  customUrl?: string;
+  customImageUrl?: string;
+};
+
 export type SignatureBrand = {
   companyName: string;
   website: string;
@@ -29,6 +45,7 @@ export type SignatureBrand = {
     enabled: boolean;
     gifUrl?: string;
   };
+  contentBlocks?: ContentBlockData[];
 };
 
 export type SignatureElement =
@@ -39,12 +56,15 @@ export type SignatureElement =
   | { type: 'social' }
   | { type: 'address' }
   | { type: 'divider' }
-  | { type: 'animation' };
+  | { type: 'animation' }
+  | { type: 'contentBlocks' };
+
+export type SignatureLayout = 'standard' | 'stacked' | 'corporate';
 
 export type SignatureTemplate = {
   id: string;
   name: string;
-  layout: 'standard' | 'stacked';
+  layout: SignatureLayout;
   elements: SignatureElement[];
 };
 
@@ -54,4 +74,6 @@ export type RenderSignatureInput = {
   template: SignatureTemplate;
   /** Origin for resolving relative /images/... URLs (e.g. process.env.NEXT_PUBLIC_SITE_URL). */
   publicSiteOrigin?: string;
+  /** UTM params to append to http/https links. false = disabled. */
+  utm?: { source: string; medium: string; campaign: string } | false;
 };

@@ -19,7 +19,8 @@ import { CopySignatureButton } from '@/components/signature/CopySignatureButton'
 import { CopyRichTextButton } from '@/components/signature/CopyRichTextButton';
 import { OutlookInstallHelp } from '@/components/signature/OutlookInstallHelp';
 import { downloadHtml } from '@/lib/clipboard';
-import type { SignatureProfile } from 'emailsignature-engine';
+import type { SignatureProfile, ContentBlockData } from 'emailsignature-engine';
+import { ContentBlocksEditor } from '@/components/signature/ContentBlocksEditor';
 
 type TemplateOption = { _id: string; name: string; presetId: string; includeAnimationSlot?: boolean };
 type OrgJson = Record<string, unknown>;
@@ -38,6 +39,7 @@ export default function EmployeeDetailPage() {
   const [phone, setPhone] = useState('');
   const [linkedin, setLinkedin] = useState('');
   const [twitter, setTwitter] = useState('');
+  const [contentBlocks, setContentBlocks] = useState<ContentBlockData[]>([]);
   const [previewToken, setPreviewToken] = useState('');
   const [profile, setProfile] = useState<SignatureProfile>({
     firstName: '',
@@ -82,6 +84,7 @@ export default function EmployeeDetailPage() {
       setPhone(e.phone || '');
       setLinkedin(e.linkedin || '');
       setTwitter(e.twitter || '');
+      setContentBlocks((e as any).contentBlocks || []);
       setTemplateId(String(e.templateId));
       setPreviewToken(e.previewToken);
       setProfile({
@@ -153,23 +156,24 @@ export default function EmployeeDetailPage() {
         { includeAnimationSlot: Boolean(selectedTemplate.includeAnimationSlot) }
       ),
     });
-    return renderSignature(
-      buildRenderInput({
-        orgBrand: mergeEmployeeSocialIntoOrgBrand(org as never, { linkedin }),
-        employee: {
-          firstName: profile.firstName,
-          lastName: profile.lastName,
-          title: profile.title,
-          email: profile.email,
-          officePhone: profile.officePhone,
-          mobilePhone: profile.mobilePhone,
-        },
-        template: engineTemplate,
-        publicSiteOrigin: getSignatureAssetOrigin(),
-      })
-    );
+    const renderInput = buildRenderInput({
+      orgBrand: mergeEmployeeSocialIntoOrgBrand(org as never, { linkedin }),
+      employee: {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        title: profile.title,
+        email: profile.email,
+        officePhone: profile.officePhone,
+        mobilePhone: profile.mobilePhone,
+      },
+      template: engineTemplate,
+      publicSiteOrigin: getSignatureAssetOrigin(),
+    });
+    // Override contentBlocks for preview
+    renderInput.brand.contentBlocks = contentBlocks;
+    return renderSignature(renderInput);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- assetOriginNonce forces post-mount recompute so preview URLs use window origin, not SSR fallback
-  }, [org, selectedTemplate, profile, assetOriginNonce, linkedin]);
+  }, [org, selectedTemplate, profile, assetOriginNonce, linkedin, contentBlocks]);
 
   const trackingEnabled = Boolean(org && org.signatureClickTrackingEnabled);
 
@@ -257,6 +261,7 @@ export default function EmployeeDetailPage() {
         linkedin,
         twitter,
         templateId,
+        contentBlocks,
       }),
     });
     if (!res.ok) {
@@ -376,6 +381,15 @@ export default function EmployeeDetailPage() {
               <Label>Twitter URL</Label>
               <Input value={twitter} onChange={(e) => setTwitter(e.target.value)} />
             </div>
+
+            <div className="pt-4 border-t space-y-4">
+              <div>
+                <h3 className="text-sm font-medium leading-none mb-1">Promotional Content Blocks</h3>
+                <p className="text-sm text-muted-foreground">Up to 2 blocks to the right of the signature in the Corporate template.</p>
+              </div>
+              <ContentBlocksEditor value={contentBlocks} onChange={setContentBlocks} />
+            </div>
+
             {error && <p className="text-sm text-destructive">{error}</p>}
             <div className="flex flex-wrap gap-2">
               <Button type="button" onClick={() => void save()}>

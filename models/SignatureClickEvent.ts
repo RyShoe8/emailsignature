@@ -10,6 +10,8 @@ const KINDS = [
   'social_facebook',
   'social_instagram',
   'social_reddit',
+  'content_block_1',
+  'content_block_2',
 ] as const;
 
 export type SignatureClickKind = (typeof KINDS)[number];

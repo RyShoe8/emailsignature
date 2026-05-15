@@ -41,6 +41,7 @@ function classifyAnchor(
     officeTelNorm: string;
     mobileTelNorm: string;
     websiteNorm: string;
+    contentBlockUrlMap: Map<string, SignatureClickKind>;
   }
 ): SignatureClickKind | null {
   const h = normalizeHref(hrefRaw);
@@ -55,6 +56,10 @@ function classifyAnchor(
   if (ctx.officeTelNorm && h === ctx.officeTelNorm) return 'office_phone';
   if (ctx.mobileTelNorm && h === ctx.mobileTelNorm) return 'mobile_phone';
   if (ctx.websiteNorm && h === ctx.websiteNorm) return 'website';
+  
+  const cbKind = ctx.contentBlockUrlMap.get(h);
+  if (cbKind) return cbKind;
+
   return null;
 }
 
@@ -82,7 +87,27 @@ function buildClassificationContext(input: RenderSignatureInput) {
   const mobileTelNorm = stringCtx.mobilePhoneTelHref ? normalizeHref(dec(stringCtx.mobilePhoneTelHref)) : '';
   const websiteNorm = stringCtx.website ? normalizeHref(dec(stringCtx.website)) : '';
 
-  return { socialByHref, logoHrefNorm, mailtoNorm, officeTelNorm, mobileTelNorm, websiteNorm };
+  const contentBlockUrlMap = new Map<string, SignatureClickKind>();
+  if (input.brand.contentBlocks) {
+    input.brand.contentBlocks.forEach((block, index) => {
+      if (!block.enabled) return;
+      const kind = index === 0 ? 'content_block_1' : 'content_block_2';
+      if (block.type === 'book_a_call' && block.callUrl) {
+        const h = normalizeHref(block.callUrl);
+        if (h) contentBlockUrlMap.set(h, kind);
+      } else if (block.type === 'latest_blogs' && block.rssItems) {
+        block.rssItems.forEach(item => {
+          const h = normalizeHref(item.url);
+          if (h) contentBlockUrlMap.set(h, kind);
+        });
+      } else if (block.type === 'custom' && block.customUrl) {
+        const h = normalizeHref(block.customUrl);
+        if (h) contentBlockUrlMap.set(h, kind);
+      }
+    });
+  }
+
+  return { socialByHref, logoHrefNorm, mailtoNorm, officeTelNorm, mobileTelNorm, websiteNorm, contentBlockUrlMap };
 }
 
 /**

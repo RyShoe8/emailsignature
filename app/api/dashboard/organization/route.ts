@@ -24,6 +24,7 @@ const PATCHABLE_FIELDS = [
   'zip',
   'animation',
   'signatureClickTrackingEnabled',
+  'utmEnabled',
 ] as const;
 
 type PatchableField = (typeof PATCHABLE_FIELDS)[number];

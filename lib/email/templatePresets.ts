@@ -1,4 +1,4 @@
-import type { SignatureElement, SignatureTemplate } from 'emailsignature-engine';
+import type { SignatureElement, SignatureTemplate, SignatureLayout } from 'emailsignature-engine';
 
 export type TemplatePresetId = 'minimal' | 'modern' | 'corporate';
 
@@ -22,7 +22,7 @@ export const TEMPLATE_PRESET_META: TemplatePresetMeta[] = [
   {
     id: 'corporate',
     name: 'Corporate',
-    description: 'Standard layout with optional address and full brand blocks.',
+    description: 'Premium layout with accent bars, branded footer, circular social icons, and promotional content blocks.',
   },
 ];
 
@@ -50,6 +50,7 @@ function elementsCorporate(): SignatureElement[] {
     { type: 'social' },
     { type: 'divider' },
     { type: 'address' },
+    { type: 'contentBlocks' },
   ];
 }
 
@@ -82,7 +83,7 @@ export function presetToEngineTemplate(
       return {
         id: templateDocId,
         name: displayName ?? 'Corporate',
-        layout: 'standard',
+        layout: 'corporate',
         elements: elementsCorporate(),
       };
   }
