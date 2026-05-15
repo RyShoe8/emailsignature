@@ -7,11 +7,16 @@
 export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
 @media only screen and (min-width:601px),
   only screen and (min-device-width:601px) {
-  tr.sig-blocks-mobile-row {
+  table.sig-blocks-mobile-sibling {
     display: none !important;
     max-height: 0 !important;
     overflow: hidden !important;
     mso-hide: all;
+  }
+  tr.sig-blocks-mobile-host td {
+    padding: 0 !important;
+    line-height: 0 !important;
+    font-size: 0 !important;
   }
   td.sig-blocks-desktop {
     display: table-cell !important;
@@ -55,8 +60,15 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
     overflow: hidden !important;
     mso-hide: all;
   }
-  tr.sig-blocks-mobile-row {
-    display: table-row !important;
+  table.sig-blocks-mobile-sibling {
+    display: table !important;
+    width: 100% !important;
+    max-height: none !important;
+  }
+  tr.sig-blocks-mobile-host td {
+    line-height: normal !important;
+    font-size: 14px !important;
+    padding: 0 !important;
   }
   td.sig-blocks-mobile {
     padding-left: 14px !important;
@@ -78,7 +90,7 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
   }
 }
 </style>
-<table class="sig-root-layout-table" cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family: {{fontFamily}}, Arial, Helvetica, sans-serif; font-size:14px; color:#1a1a1a; line-height:1.4;width:100%;max-width:600px;">
+<table class="sig-root-layout-table" cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family: {{fontFamily}}, Arial, Helvetica, sans-serif; font-size:14px; color:#1a1a1a; line-height:1.4;width:100%;max-width:640px;">
   <tr>
     <td class="sig-logo-stack" width="{{logoWidth}}" style="vertical-align:top;line-height:0;font-size:0;padding-right:24px;width:{{logoWidth}}px;">
       {{#if hasLogo}}
@@ -92,7 +104,7 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
       </a>
       {{/if}}
     </td>
-    <td class="sig-main-stack" style="vertical-align:top; border-left:2px solid {{primaryColor}}; padding-left:16px;padding-right:12px;">
+    <td class="sig-main-stack" style="vertical-align:top; border-left:2px solid {{primaryColor}}; padding-left:14px;padding-right:10px;">
       
       {{#if hasName}}
       <div style="font-size:16px; font-weight:600; color:#000;">
@@ -168,15 +180,17 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
       {{/if}}
     </td>
     {{#if sideColumnContentBlocks}}
-    <td class="sig-blocks-stack sig-blocks-desktop" valign="top" style="vertical-align:top;padding-left:18px;border-left:1px solid #e5e5e5;width:48%;min-width:190px;">
+    <td class="sig-blocks-stack sig-blocks-desktop" valign="top" style="vertical-align:top;padding-left:14px;border-left:1px solid #e5e5e5;width:54%;min-width:205px;">
       {{contentBlocksHtml}}
     </td>
     {{/if}}
   </tr>
   {{#if sideColumnContentBlocks}}
-  <tr class="sig-blocks-mobile-row">
-    <td colspan="{{signatureRootColspan}}" class="sig-blocks-mobile">
-      {{contentBlocksHtml}}
+  <tr class="sig-blocks-mobile-host">
+    <td colspan="{{signatureRootColspan}}" style="padding:0;line-height:0;font-size:0;mso-line-height-rule:exactly;">
+      <table class="sig-blocks-mobile-sibling" cellpadding="0" cellspacing="0" border="0" width="100%" role="presentation" style="width:100%;max-width:640px;border-collapse:collapse;">
+        <tr><td class="sig-blocks-mobile">{{contentBlocksHtml}}</td></tr>
+      </table>
     </td>
   </tr>
   {{/if}}
