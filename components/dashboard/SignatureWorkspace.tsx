@@ -618,7 +618,7 @@ export function SignatureWorkspace() {
               >
                 {templates.map((t) => (
                   <option key={t._id} value={t._id}>
-                    {t.name} ({t.presetId})
+                    {t.name}
                   </option>
                 ))}
               </select>

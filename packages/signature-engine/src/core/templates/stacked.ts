@@ -103,8 +103,7 @@ export const STACKED_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing="0
   {{#if showAddressBlock}}
   <tr>
     <td colspan="2" style="padding-top:10px; font-size:12px; color:#555;">
-      {{#if hasAddress}}{{address}}<br/>{{/if}}
-      {{#if hasState}}{{state}}{{/if}}{{#if hasZip}} {{zip}}{{/if}}
+      {{addressBlockHtml}}
     </td>
   </tr>
   {{/if}}

@@ -143,7 +143,8 @@ function processConditionals(
       if (nextFi === -1) break;
       if (nextIf !== -1 && nextIf < nextFi) {
         depth += 1;
-        i = nextIf + 5;
+        const innerOpen = result.slice(nextIf).match(/^\{\{#if\s+[\w]+\s*\}\}/);
+        i = nextIf + (innerOpen?.[0].length ?? 5);
       } else {
         depth -= 1;
         if (depth === 0) {
@@ -273,6 +274,11 @@ export function mergeRenderContext(
   }
 
   const showAddressBlock = hasAddressEl && Boolean(addressLine || stateLine || zipLine);
+  const addressBlockLines: string[] = [];
+  if (addressLine) addressBlockLines.push(escapeHtml(addressLine));
+  const stateZipLine = [stateLine, zipLine].filter(Boolean).join(' ');
+  if (stateZipLine) addressBlockLines.push(escapeHtml(stateZipLine));
+  const addressBlockHtml = addressBlockLines.join('<br/>');
 
   const officePhoneRaw = profile.officePhone?.trim() ?? '';
   const mobilePhoneRaw = profile.mobilePhone?.trim() ?? '';
@@ -291,9 +297,6 @@ export function mergeRenderContext(
     hasMobilePhone: Boolean(mobilePhone),
     showSocialBlock,
     showAddressBlock,
-    hasAddress: Boolean(addressLine),
-    hasState: Boolean(stateLine),
-    hasZip: Boolean(zipLine),
     hasLinkedin: Boolean(linkedin),
     hasFacebook: Boolean(facebook),
     hasInstagram: Boolean(instagram),
@@ -322,9 +325,7 @@ export function mergeRenderContext(
     facebook: escapeHtml(facebook),
     instagram: escapeHtml(instagram),
     reddit: escapeHtml(reddit),
-    address: escapeHtml(addressLine),
-    state: escapeHtml(stateLine),
-    zip: escapeHtml(zipLine),
+    addressBlockHtml,
     iconLinkedin: normalizeImageUrl(ensureAbsolutePublicUrl(SOCIAL_ICON_LINKEDIN, origin)),
     iconFacebook: normalizeImageUrl(ensureAbsolutePublicUrl(SOCIAL_ICON_FACEBOOK, origin)),
     iconInstagram: normalizeImageUrl(ensureAbsolutePublicUrl(SOCIAL_ICON_INSTAGRAM, origin)),
