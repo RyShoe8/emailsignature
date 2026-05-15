@@ -28,6 +28,7 @@ const BodySchema = z.object({
       email: z.string().trim().email().max(320),
       officePhone: z.string().trim().max(80).optional(),
       mobilePhone: z.string().trim().max(80).optional(),
+      contentBlocks: z.array(z.any()).optional(),
     })
     .optional(),
 });
@@ -105,9 +106,11 @@ export async function POST(request: Request) {
       lastName: p.lastName,
       title: p.title,
       email: p.email,
-      officePhone: p.officePhone ?? '',
       mobilePhone: p.mobilePhone ?? '',
     };
+    if (p.contentBlocks) {
+      orgBrand.contentBlocks = p.contentBlocks;
+    }
   } else {
     const row = await UserSignatureProfileModel.findOne({ userId: user.id }).lean();
     if (!row) {
@@ -121,6 +124,9 @@ export async function POST(request: Request) {
       officePhone: row.officePhone ?? '',
       mobilePhone: row.mobilePhone ?? '',
     };
+    if ((row as any).contentBlocks) {
+      orgBrand.contentBlocks = (row as any).contentBlocks;
+    }
   }
 
   const presetId = tmpl.presetId as TemplatePresetId;

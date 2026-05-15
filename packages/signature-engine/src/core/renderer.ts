@@ -472,5 +472,18 @@ export function renderSignature(input: RenderSignatureInput): string {
     html = appendUtmParams(html, utm);
   }
 
+  // Inject Google Fonts stylesheet if applicable
+  const primaryFont = (brand.fontFamily || '').split(',')[0].replace(/['"]/g, '').trim();
+  const googleFonts = new Set([
+    'Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Raleway', 'Nunito', 
+    'Work Sans', 'DM Sans', 'Manrope', 'Rubik', 'Outfit', 'Merriweather', 'Playfair Display', 'PT Serif'
+  ]);
+  
+  if (googleFonts.has(primaryFont)) {
+    const formattedFontName = primaryFont.replace(/\s+/g, '+');
+    const fontLink = `<link href="https://fonts.googleapis.com/css2?family=${formattedFontName}:wght@400;500;600;700&display=swap" rel="stylesheet" />\n`;
+    html = fontLink + html;
+  }
+
   return html;
 }

@@ -11,6 +11,7 @@ const ProfileSchema = z.object({
   email: z.string().trim().email().max(320),
   officePhone: z.string().trim().max(80).optional(),
   mobilePhone: z.string().trim().max(80).optional(),
+  contentBlocks: z.array(z.any()).optional(),
 });
 
 type SessionUser = {
@@ -32,6 +33,7 @@ function docToProfile(doc: {
     email: doc.email,
     officePhone: doc.officePhone ?? '',
     mobilePhone: doc.mobilePhone ?? '',
+    contentBlocks: (doc as any).contentBlocks ?? [],
   };
 }
 
@@ -80,6 +82,7 @@ export async function PATCH(request: Request) {
       email: p.email,
       officePhone: p.officePhone ?? '',
       mobilePhone: p.mobilePhone ?? '',
+      contentBlocks: p.contentBlocks ?? [],
     },
     { upsert: true, new: true, setDefaultsOnInsert: true }
   ).lean();

@@ -178,11 +178,39 @@ export function ContentBlocksEditor({ value, onChange }: Props) {
                   </div>
                   <div className="space-y-2">
                     <Label>Image URL (Optional)</Label>
-                    <Input
-                      value={block.customImageUrl || ''}
-                      onChange={(e) => updateBlock(i, { customImageUrl: e.target.value })}
-                      placeholder="https://..."
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        value={block.customImageUrl || ''}
+                        onChange={(e) => updateBlock(i, { customImageUrl: e.target.value })}
+                        placeholder="https://..."
+                      />
+                      <div className="relative">
+                        <Input
+                          type="file"
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const formData = new FormData();
+                            formData.append('file', file);
+                            try {
+                              const res = await fetch('/api/dashboard/me/image', {
+                                method: 'POST',
+                                body: formData,
+                              });
+                              if (!res.ok) throw new Error('Upload failed');
+                              const data = await res.json();
+                              updateBlock(i, { customImageUrl: data.url });
+                            } catch (err) {
+                              console.error(err);
+                              alert('Image upload failed. Please ensure it is < 4MB.');
+                            }
+                          }}
+                        />
+                        <Button type="button" variant="outline">Upload</Button>
+                      </div>
+                    </div>
                   </div>
                 </>
               )}

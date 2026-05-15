@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ContentBlocksEditor } from '@/components/signature/ContentBlocksEditor';
+import type { ContentBlockData } from 'emailsignature-engine';
 import { SignatureForm } from '@/components/signature/SignatureForm';
 import { SignaturePreviewFrame } from '@/components/signature/SignaturePreviewFrame';
 import { CopySignatureButton } from '@/components/signature/CopySignatureButton';
@@ -84,6 +86,8 @@ const defaultProfile: SignatureProfile = {
 export function SignatureWorkspace() {
   const [org, setOrg] = useState<OrgResponse | null>(null);
   const [orgName, setOrgName] = useState('');
+  const [contentBlocks, setContentBlocks] = useState<ContentBlockData[]>([]);
+  const [activeTab, setActiveTab] = useState<'brand' | 'blocks' | 'details' | 'install'>('brand');
   const [templates, setTemplates] = useState<TemplateRow[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [profile, setProfile] = useState<SignatureProfile>(defaultProfile);
@@ -140,6 +144,9 @@ export function SignatureWorkspace() {
           officePhone: typeof sp.officePhone === 'string' ? sp.officePhone : '',
           mobilePhone: typeof sp.mobilePhone === 'string' ? sp.mobilePhone : '',
         });
+        if ((sp as any).contentBlocks) {
+          setContentBlocks((sp as any).contentBlocks);
+        }
       }
     } finally {
       setLoading(false);
@@ -199,7 +206,7 @@ export function SignatureWorkspace() {
     if (!engineTemplate) return '';
     return renderSignature({
       profile,
-      brand,
+      brand: { ...brand, contentBlocks },
       template: engineTemplate,
       publicSiteOrigin: getSignatureAssetOrigin(),
     });
@@ -304,6 +311,7 @@ export function SignatureWorkspace() {
           email: profile.email,
           officePhone: profile.officePhone ?? '',
           mobilePhone: profile.mobilePhone ?? '',
+          contentBlocks,
         }),
       });
       const j = await res.json().catch(() => ({}));
@@ -443,10 +451,19 @@ export function SignatureWorkspace() {
     return <p className="text-sm text-muted-foreground">Create an organization to edit signature defaults.</p>;
   }
 
-  return (
-    <div className="min-w-0 space-y-8 max-w-full">
-      <div className="grid max-w-full min-w-0 gap-8 lg:grid-cols-2">
-        <Card>
+    return (
+    <div className="grid lg:grid-cols-12 gap-8 items-start max-w-full min-w-0 pb-20">
+      <div className="lg:col-span-5 xl:col-span-4 space-y-6">
+        <div className="flex gap-2 pb-2 overflow-x-auto border-b hide-scrollbar">
+          <button onClick={() => setActiveTab('brand')} className={`px-3 py-1.5 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${activeTab === 'brand' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>Brand</button>
+          <button onClick={() => setActiveTab('blocks')} className={`px-3 py-1.5 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${activeTab === 'blocks' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>Blocks</button>
+          <button onClick={() => setActiveTab('details')} className={`px-3 py-1.5 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${activeTab === 'details' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>My Details</button>
+          <button onClick={() => setActiveTab('install')} className={`px-3 py-1.5 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${activeTab === 'install' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>Install</button>
+        </div>
+
+        <div className="pt-2 min-w-0">
+          {activeTab === 'brand' && (
+            <Card>
           <CardHeader>
             <CardTitle>Organization brand</CardTitle>
             <CardDescription>These values feed the signature engine for every employee.</CardDescription>
@@ -648,8 +665,48 @@ export function SignatureWorkspace() {
             </Button>
           </CardContent>
         </Card>
-
-        <Card>
+          )}
+          {activeTab === 'blocks' && (
+            <div className="space-y-4">
+              <div className="mb-2">
+                <h3 className="text-lg font-medium">Promotional Blocks</h3>
+                <p className="text-sm text-muted-foreground">Test your blocks here. When applied, these will show below your signature.</p>
+              </div>
+              <ContentBlocksEditor value={contentBlocks} onChange={setContentBlocks} />
+              <div className="flex flex-wrap items-center gap-3 pt-4">
+                <Button type="button" onClick={() => void handleSaveProfile()} disabled={savingProfile}>
+                  {savingProfile ? 'Saving...' : 'Save Blocks'}
+                </Button>
+                {profileMessage && <p className="text-sm text-muted-foreground">{profileMessage}</p>}
+              </div>
+            </div>
+          )}
+          {activeTab === 'details' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>My Details</CardTitle>
+                <CardDescription>Sample person for preview. Save your details so they persist.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <SignatureForm value={profile} onChange={setProfile} />
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="button" variant="secondary" disabled={savingProfile} onClick={() => void handleSaveProfile()}>
+              {savingProfile ? 'Saving…' : 'Save my details'}
+            </Button>
+            {profileMessage ? <p className="text-sm text-muted-foreground">{profileMessage}</p> : null}
+          </div>
+          
+                <div className="flex flex-wrap items-center gap-3 pt-4">
+                  <Button type="button" variant="secondary" onClick={() => void handleSaveProfile()} disabled={savingProfile}>
+                    {savingProfile ? 'Saving...' : 'Save details'}
+                  </Button>
+                  {profileMessage && <p className="text-sm text-muted-foreground">{profileMessage}</p>}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          {activeTab === 'install' && (
+            <Card>
           <CardHeader>
             <CardTitle>Install to your inbox</CardTitle>
             <CardDescription>Gmail (OAuth) and Outlook (manual).</CardDescription>
@@ -683,24 +740,17 @@ export function SignatureWorkspace() {
             <OutlookInstallHelp />
           </CardContent>
         </Card>
+          )}
+        </div>
       </div>
 
-      <Card className="max-w-full">
+      <div className="lg:col-span-7 xl:col-span-8 lg:sticky lg:top-6 min-w-0">
+        <Card className="shadow-xl border-primary/10 overflow-hidden">
         <CardHeader>
           <CardTitle>Live preview</CardTitle>
-          <CardDescription>
-            Sample person for preview — save your details below so they persist when you return. Employees use their own
-            records on the employee page.
-          </CardDescription>
+          <CardDescription>See your changes in real-time across Desktop and Mobile.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-8 max-w-full min-w-0">
-          <SignatureForm value={profile} onChange={setProfile} />
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="button" variant="secondary" disabled={savingProfile} onClick={() => void handleSaveProfile()}>
-              {savingProfile ? 'Saving…' : 'Save my details'}
-            </Button>
-            {profileMessage ? <p className="text-sm text-muted-foreground">{profileMessage}</p> : null}
-          </div>
           <div className="grid grid-cols-1 gap-10 min-w-0">
             <div className="min-w-0 space-y-2">
               <p className="text-xs text-muted-foreground font-medium">Desktop</p>
@@ -725,6 +775,7 @@ export function SignatureWorkspace() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

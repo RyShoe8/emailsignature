@@ -10,7 +10,6 @@ const MAX_BYTES = 4 * 1024 * 1024;
 type SessionUser = {
   id?: string;
   organizationId?: string;
-  role?: string;
 };
 
 function extFromMime(mime: string): string {
@@ -18,7 +17,7 @@ function extFromMime(mime: string): string {
   if (mime === 'image/png') return 'png';
   if (mime === 'image/webp') return 'webp';
   if (mime === 'image/gif') return 'gif';
-  return 'webp'; // default to webp since we compress to webp
+  return 'webp'; // default to webp
 }
 
 export async function POST(request: Request) {
@@ -33,9 +32,6 @@ export async function POST(request: Request) {
   const user = session.user as SessionUser;
   if (!user.organizationId || !user.id) {
     return NextResponse.json({ error: 'No organization' }, { status: 400 });
-  }
-  if (user.role !== 'owner' && user.role !== 'admin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   let formData: FormData;
@@ -67,10 +63,11 @@ export async function POST(request: Request) {
   let ext = extFromMime(mime);
 
   // Compress and resize images using sharp (skip GIFs to preserve animation)
+  // Max width 400px for content blocks
   if (mime !== 'image/gif') {
     try {
       processedBuffer = await sharp(buffer)
-        .resize({ width: 800, withoutEnlargement: true })
+        .resize({ width: 400, withoutEnlargement: true })
         .webp({ quality: 80, effort: 4 })
         .toBuffer();
       finalMime = 'image/webp';
@@ -80,7 +77,7 @@ export async function POST(request: Request) {
     }
   }
 
-  const pathname = `tailnote/orgs/${user.organizationId}/logo-${Date.now()}.${ext}`;
+  const pathname = `tailnote/users/${user.id}/images/${Date.now()}.${ext}`;
 
   const blob = await put(pathname, processedBuffer, {
     access: 'public',

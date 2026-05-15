@@ -10,6 +10,7 @@ const UserSignatureProfileSchema = new Schema(
     email: { type: String, required: true, trim: true, default: '' },
     officePhone: { type: String, default: '' },
     mobilePhone: { type: String, default: '' },
+    contentBlocks: { type: Schema.Types.Mixed, default: [] },
   },
   { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } }
 );
