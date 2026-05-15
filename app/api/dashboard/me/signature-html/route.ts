@@ -29,6 +29,7 @@ const BrandOverrideSchema = z
         facebook: z.string().max(2000).optional(),
         instagram: z.string().max(2000).optional(),
         reddit: z.string().max(2000).optional(),
+        discord: z.string().max(2000).optional(),
       })
       .optional(),
     address: z.string().max(300).optional(),

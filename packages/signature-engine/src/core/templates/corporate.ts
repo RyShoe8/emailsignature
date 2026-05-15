@@ -4,13 +4,14 @@
  * Structure:
  *   ┌─────────────────────────────────────────────────────────────────────┐
  *   │  Accent bar (primaryColor, 3px)                                     │
- *   ├─────────┬───────────────────────────┬──────────────────────────────┤
- *   │  Logo   │  Name / Title / Contact   │  Content Block 1 | Block 2  │
- *   │         │  Social icons             │                              │
- *   ├─────────┴───────────────────────────┴──────────────────────────────┤
- *   │  Divider (subtle gradient-stepped)                                  │
+ *   ├─────────┬───────────────────────────────────────────────────────────┤
+ *   │  Logo   │  Name / Title / Contact / Social icons                    │
+ *   ├─────────┴───────────────────────────────────────────────────────────┤
+ *   │  Divider (subtle, primary-tinted)                                   │
  *   ├────────────────────────────────────────────────────────────────────┤
  *   │  Address line (muted)                                               │
+ *   ├────────────────────────────────────────────────────────────────────┤
+ *   │  Content blocks (full-width row, mobile-safe)                       │
  *   ├────────────────────────────────────────────────────────────────────┤
  *   │  Footer bar (primaryColor, company name in white)                   │
  *   └────────────────────────────────────────────────────────────────────┘
@@ -66,8 +67,7 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing=
             <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; font-size:13px;">
               {{#if hasOfficePhone}}
               <tr>
-                <td width="1%" valign="top" style="width:1%;white-space:nowrap;padding:0 8px 5px 0; color:{{primaryColor}}; font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.3px;">Phone</td>
-                <td valign="top" style="padding:0 0 5px 0;">
+                <td colspan="2" valign="top" style="padding:0 0 5px 0;">
                   <a href="{{officePhoneTelHref}}" style="color:#333; text-decoration:none;">
                     {{officePhone}}
                   </a>
@@ -85,8 +85,7 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing=
               </tr>
               {{/if}}
               <tr>
-                <td width="1%" valign="top" style="width:1%;white-space:nowrap;padding:0 8px 5px 0; color:{{primaryColor}}; font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.3px;">Email</td>
-                <td valign="top" style="padding:0 0 5px 0;">
+                <td colspan="2" valign="top" style="padding:0 0 5px 0;">
                   <a href="mailto:{{email}}" style="color:{{primaryColor}}; text-decoration:none; font-weight:500;">
                     {{email}}
                   </a>
@@ -94,10 +93,9 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing=
               </tr>
               {{#if hasWebsite}}
               <tr>
-                <td width="1%" valign="top" style="width:1%;white-space:nowrap;padding:0 8px 2px 0; color:{{primaryColor}}; font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.3px;">Web</td>
-                <td valign="top" style="padding:0 0 2px 0;">
+                <td colspan="2" valign="top" style="padding:0 0 2px 0;">
                   <a href="{{website}}" style="color:#333; text-decoration:none;">
-                    {{website}}
+                    {{websiteDisplay}}
                   </a>
                 </td>
               </tr>
@@ -151,16 +149,21 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing=
                 </a>
               </td>
               {{/if}}
+              {{#if hasDiscord}}
+              <td style="{{socialTdDiscordStyle}}">
+                <a href="{{discord}}" style="text-decoration:none;border:0;outline:none;display:inline-block;">
+                  <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr>
+                    <td width="28" height="28" align="center" valign="middle" bgcolor="{{primaryColor}}" style="width:28px;height:28px;border-radius:14px;text-align:center;vertical-align:middle;background-color:{{primaryColor}};padding:0;">
+                      <img src="{{iconDiscord}}" width="14" height="14" border="0" alt="" style="display:block;margin:0 auto;border:0;outline:none;text-decoration:none;" />
+                    </td>
+                  </tr></table>
+                </a>
+              </td>
+              {{/if}}
             </tr></table>
             {{/if}}
           </td>
 
-          <!-- Content blocks column -->
-          {{#if hasContentBlocks}}
-          <td style="vertical-align:top; padding-left:24px; border-left:1px solid #e0e0e0;" width="220">
-            {{contentBlocksHtml}}
-          </td>
-          {{/if}}
         </tr>
       </table>
     </td>
@@ -182,6 +185,14 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing=
   <tr>
     <td colspan="3" style="padding-top:10px; font-size:11px; color:#888; letter-spacing:0.2px;">
       {{addressBlockHtml}}
+    </td>
+  </tr>
+  {{/if}}
+
+  {{#if hasContentBlocks}}
+  <tr>
+    <td colspan="3" style="padding-top:14px;">
+      {{contentBlocksHtml}}
     </td>
   </tr>
   {{/if}}

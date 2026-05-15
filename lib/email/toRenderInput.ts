@@ -19,6 +19,7 @@ export type OrgBrandInput = {
     facebook?: string;
     instagram?: string;
     reddit?: string;
+    discord?: string;
   };
   address?: string;
   state?: string;
@@ -49,6 +50,7 @@ export function toSignatureBrand(input: OrgBrandInput): SignatureBrand {
       facebook: input.socialLinks.facebook?.trim() || undefined,
       instagram: input.socialLinks.instagram?.trim() || undefined,
       reddit: input.socialLinks.reddit?.trim() || undefined,
+      discord: input.socialLinks.discord?.trim() || undefined,
     },
     address: input.address?.trim() || undefined,
     state: input.state?.trim() || undefined,

@@ -27,7 +27,14 @@ export const TEMPLATE_PRESET_META: TemplatePresetMeta[] = [
 ];
 
 function elementsMinimal(): SignatureElement[] {
-  return [{ type: 'logo' }, { type: 'name' }, { type: 'title' }, { type: 'contact' }, { type: 'social' }];
+  return [
+    { type: 'logo' },
+    { type: 'name' },
+    { type: 'title' },
+    { type: 'contact' },
+    { type: 'social' },
+    { type: 'contentBlocks' },
+  ];
 }
 
 function elementsModern(): SignatureElement[] {
@@ -38,6 +45,7 @@ function elementsModern(): SignatureElement[] {
     { type: 'contact' },
     { type: 'social' },
     { type: 'divider' },
+    { type: 'contentBlocks' },
   ];
 }
 

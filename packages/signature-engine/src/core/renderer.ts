@@ -10,6 +10,7 @@ import { STANDARD_SIGNATURE_TEMPLATE } from './templates/standard';
 import { STACKED_SIGNATURE_TEMPLATE } from './templates/stacked';
 import { CORPORATE_SIGNATURE_TEMPLATE } from './templates/corporate';
 import {
+  SOCIAL_ICON_DISCORD,
   SOCIAL_ICON_FACEBOOK,
   SOCIAL_ICON_INSTAGRAM,
   SOCIAL_ICON_LINKEDIN,
@@ -256,13 +257,20 @@ function renderContentBlocksHtml(
 </table>`);
     } else if (block.type === 'custom') {
       // Legacy fallback: render saved `custom` blocks so existing data keeps working.
-      const title = escapeHtml((block.customTitle || '').trim());
+      // We deliberately skip the old "Learn more ->" trailing row; if the block has a URL
+      // and no image, the title itself becomes the link.
+      const rawTitle = (block.customTitle || '').trim();
+      const title = escapeHtml(rawTitle);
       const text = escapeHtml((block.customText || '').trim());
       const url = block.customUrl?.trim() || '';
       const imageUrl = block.customImageUrl?.trim() || '';
       let html = '';
       if (title) {
-        html += `<tr><td style="font-size:12px;font-weight:700;color:#333;padding-bottom:4px;text-transform:uppercase;letter-spacing:0.4px;">${title}</td></tr>`;
+        const titleInner =
+          url && !imageUrl
+            ? `<a href="${escapeHtml(url)}" style="color:#333;text-decoration:none;">${title}</a>`
+            : title;
+        html += `<tr><td style="font-size:12px;font-weight:700;color:#333;padding-bottom:4px;text-transform:uppercase;letter-spacing:0.4px;">${titleInner}</td></tr>`;
       }
       if (imageUrl) {
         const absImg = escapeHtml(ensureAbsolutePublicUrl(normalizeImageUrl(imageUrl), origin));
@@ -275,9 +283,6 @@ function renderContentBlocksHtml(
       }
       if (text) {
         html += `<tr><td style="font-size:12px;color:#555;line-height:1.4;padding-bottom:4px;">${text}</td></tr>`;
-      }
-      if (url && !imageUrl) {
-        html += `<tr><td style="font-size:12px;padding:0;"><a href="${escapeHtml(url)}" style="color:{{primaryColor}};text-decoration:none;font-weight:500;">Learn more &rarr;</a></td></tr>`;
       }
       if (html) {
         parts.push(`<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:12px;" width="100%">${html}</table>`);
@@ -338,6 +343,11 @@ export function mergeRenderContext(
   const logoUrl = normalizeImageUrl(ensureAbsolutePublicUrl(rawLogoUrl, origin));
 
   const website = normalizeWebsite(brand.website);
+  // Display value strips the protocol so it reads cleanly as "example.com" while the
+  // href stays a fully qualified URL.
+  const websiteDisplay = website
+    .replace(/^https?:\/\//i, '')
+    .replace(/\/+$/, '');
   const logoLinkForHref =
     brand.logoLink.trim() || website || stripTrailingSlash(origin);
 
@@ -378,36 +388,46 @@ export function mergeRenderContext(
     hasSocial && brand.socialLinks.reddit?.trim()
       ? brand.socialLinks.reddit.trim()
       : '';
+  const discord =
+    hasSocial && brand.socialLinks.discord?.trim()
+      ? brand.socialLinks.discord.trim()
+      : '';
 
   const addressLine =
     hasAddressEl && brand.address?.trim() ? brand.address.trim() : '';
   const stateLine = hasAddressEl && brand.state?.trim() ? brand.state.trim() : '';
   const zipLine = hasAddressEl && brand.zip?.trim() ? brand.zip.trim() : '';
 
-  const showSocialBlock = hasSocial && Boolean(linkedin || facebook || instagram || reddit);
+  const showSocialBlock = hasSocial && Boolean(linkedin || facebook || instagram || reddit || discord);
 
   let socialTdLiStyle = '';
   let socialTdFbStyle = '';
   let socialTdIgStyle = '';
   let socialTdRedditStyle = '';
+  let socialTdDiscordStyle = '';
   if (linkedin) {
     socialTdLiStyle =
-      facebook || instagram || reddit
+      facebook || instagram || reddit || discord
         ? 'padding:0 6px 0 0;vertical-align:middle;'
         : 'padding:0;vertical-align:middle;';
   }
   if (facebook) {
-    socialTdFbStyle = instagram || reddit
+    socialTdFbStyle = instagram || reddit || discord
       ? 'padding:0 6px 0 0;vertical-align:middle;'
       : 'padding:0;vertical-align:middle;';
   }
   if (instagram) {
-    socialTdIgStyle = reddit
+    socialTdIgStyle = reddit || discord
       ? 'padding:0 6px 0 0;vertical-align:middle;'
       : 'padding:0;vertical-align:middle;';
   }
   if (reddit) {
-    socialTdRedditStyle = 'padding:0;vertical-align:middle;';
+    socialTdRedditStyle = discord
+      ? 'padding:0 6px 0 0;vertical-align:middle;'
+      : 'padding:0;vertical-align:middle;';
+  }
+  if (discord) {
+    socialTdDiscordStyle = 'padding:0;vertical-align:middle;';
   }
 
   const showAddressBlock = hasAddressEl && Boolean(addressLine || stateLine || zipLine);
@@ -445,6 +465,7 @@ export function mergeRenderContext(
     hasFacebook: Boolean(facebook),
     hasInstagram: Boolean(instagram),
     hasReddit: Boolean(reddit),
+    hasDiscord: Boolean(discord),
     hasLogoSizedHeight,
     hasLogoAutoHeight,
     hasContentBlocks,
@@ -468,19 +489,23 @@ export function mergeRenderContext(
     fontFamily: escapeHtml(brand.fontFamily.trim()),
     companyName: escapeHtml(brand.companyName.trim()),
     website: escapeHtml(website),
+    websiteDisplay: escapeHtml(websiteDisplay),
     linkedin: escapeHtml(linkedin),
     facebook: escapeHtml(facebook),
     instagram: escapeHtml(instagram),
     reddit: escapeHtml(reddit),
+    discord: escapeHtml(discord),
     addressBlockHtml,
     iconLinkedin: normalizeImageUrl(ensureAbsolutePublicUrl(SOCIAL_ICON_LINKEDIN, origin)),
     iconFacebook: normalizeImageUrl(ensureAbsolutePublicUrl(SOCIAL_ICON_FACEBOOK, origin)),
     iconInstagram: normalizeImageUrl(ensureAbsolutePublicUrl(SOCIAL_ICON_INSTAGRAM, origin)),
     iconReddit: normalizeImageUrl(ensureAbsolutePublicUrl(SOCIAL_ICON_REDDIT, origin)),
+    iconDiscord: normalizeImageUrl(ensureAbsolutePublicUrl(SOCIAL_ICON_DISCORD, origin)),
     socialTdLiStyle,
     socialTdFbStyle,
     socialTdIgStyle,
     socialTdRedditStyle,
+    socialTdDiscordStyle,
     contentBlocksHtml,
   };
 

@@ -21,6 +21,7 @@ export {
   SOCIAL_ICON_FACEBOOK,
   SOCIAL_ICON_INSTAGRAM,
   SOCIAL_ICON_REDDIT,
+  SOCIAL_ICON_DISCORD,
 } from './core/socialIcons';
 
 export { STANDARD_SIGNATURE_TEMPLATE } from './core/templates/standard';

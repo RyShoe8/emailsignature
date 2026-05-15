@@ -14,6 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ContentBlocksEditor } from '@/components/signature/ContentBlocksEditor';
+import { SocialLinksEditor } from '@/components/signature/SocialLinksEditor';
 import type { ContentBlockData } from 'emailsignature-engine';
 import { SignatureForm } from '@/components/signature/SignatureForm';
 import { SignaturePreviewFrame } from '@/components/signature/SignaturePreviewFrame';
@@ -31,7 +32,7 @@ type OrgResponse = {
   logoLink?: string;
   primaryColor?: string;
   fontFamily?: string;
-  socialLinks?: { linkedin?: string; facebook?: string; instagram?: string; reddit?: string };
+  socialLinks?: { linkedin?: string; facebook?: string; instagram?: string; reddit?: string; discord?: string };
   address?: string;
   state?: string;
   zip?: string;
@@ -63,6 +64,7 @@ function orgToBrand(org: OrgResponse, displayName: string): SignatureBrand {
       facebook: sl.facebook?.trim(),
       instagram: sl.instagram?.trim(),
       reddit: sl.reddit?.trim(),
+      discord: sl.discord?.trim(),
     },
     address: org.address?.trim(),
     state: org.state?.trim(),
@@ -295,6 +297,7 @@ export function SignatureWorkspace() {
     brand.socialLinks?.facebook,
     brand.socialLinks?.instagram,
     brand.socialLinks?.reddit,
+    brand.socialLinks?.discord,
     brand.address,
     brand.state,
     brand.zip,
@@ -537,63 +540,11 @@ export function SignatureWorkspace() {
             <div className="space-y-2">
               <p className="text-sm font-medium">Social links</p>
               <p className="text-xs text-muted-foreground">
-                Shown as icon links when the template includes social. Full profile URLs (https://…).
+                Paste any profile URL and we&apos;ll detect the network and use the matching icon. LinkedIn, Facebook, Instagram, Reddit, and Discord are supported.
               </p>
-            </div>
-            <div className="space-y-2">
-              <Label>LinkedIn</Label>
-              <Input
-                type="url"
-                value={org.socialLinks?.linkedin ?? ''}
-                onChange={(e) =>
-                  setOrg((o) => ({
-                    ...(o || {}),
-                    socialLinks: { ...(o?.socialLinks ?? {}), linkedin: e.target.value },
-                  }))
-                }
-                placeholder="https://www.linkedin.com/company/…"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Facebook</Label>
-              <Input
-                type="url"
-                value={org.socialLinks?.facebook ?? ''}
-                onChange={(e) =>
-                  setOrg((o) => ({
-                    ...(o || {}),
-                    socialLinks: { ...(o?.socialLinks ?? {}), facebook: e.target.value },
-                  }))
-                }
-                placeholder="https://www.facebook.com/…"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Instagram</Label>
-              <Input
-                type="url"
-                value={org.socialLinks?.instagram ?? ''}
-                onChange={(e) =>
-                  setOrg((o) => ({
-                    ...(o || {}),
-                    socialLinks: { ...(o?.socialLinks ?? {}), instagram: e.target.value },
-                  }))
-                }
-                placeholder="https://www.instagram.com/…"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Reddit</Label>
-              <Input
-                type="url"
-                value={org.socialLinks?.reddit ?? ''}
-                onChange={(e) =>
-                  setOrg((o) => ({
-                    ...(o || {}),
-                    socialLinks: { ...(o?.socialLinks ?? {}), reddit: e.target.value },
-                  }))
-                }
-                placeholder="https://www.reddit.com/user/… or https://www.reddit.com/r/…"
+              <SocialLinksEditor
+                value={org.socialLinks}
+                onChange={(next) => setOrg((o) => ({ ...(o || {}), socialLinks: next }))}
               />
             </div>
             <div className="space-y-2">
@@ -690,7 +641,7 @@ export function SignatureWorkspace() {
               <div className="mb-2">
                 <h3 className="text-lg font-medium">Promotional Blocks</h3>
                 <p className="text-sm text-muted-foreground">
-                  Test your blocks here. Blocks appear on the Corporate template; pick it as the Preview template under Brand to see them.
+                  Blocks appear in a row beneath your signature on every template, so they stay readable on phone-sized inboxes.
                 </p>
               </div>
               <ContentBlocksEditor value={contentBlocks} onChange={setContentBlocks} />
@@ -758,8 +709,8 @@ export function SignatureWorkspace() {
         </div>
       </div>
 
-      <div className="lg:col-span-7 xl:col-span-8 lg:sticky lg:top-6 min-w-0">
-        <Card className="shadow-xl border-primary/10 overflow-hidden">
+      <div className="lg:col-span-7 xl:col-span-8 min-w-0 lg:sticky lg:top-6 lg:self-start lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto">
+        <Card className="shadow-xl border-primary/10">
         <CardHeader>
           <CardTitle>Live preview</CardTitle>
           <CardDescription>See your changes in real-time across Desktop and Mobile.</CardDescription>

@@ -83,6 +83,9 @@ export const STACKED_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing="0
         {{#if hasReddit}}
         <td style="{{socialTdRedditStyle}}"><a href="{{reddit}}" style="text-decoration:none;border:0;outline:none;display:inline-block;"><img src="{{iconReddit}}" width="16" height="16" border="0" alt="" style="display:block;border:0;outline:none;text-decoration:none;" /></a></td>
         {{/if}}
+        {{#if hasDiscord}}
+        <td style="{{socialTdDiscordStyle}}"><a href="{{discord}}" style="text-decoration:none;border:0;outline:none;display:inline-block;"><img src="{{iconDiscord}}" width="16" height="16" border="0" alt="" style="display:block;border:0;outline:none;text-decoration:none;" /></a></td>
+        {{/if}}
       </tr></table>
       {{/if}}
     </td>
@@ -104,6 +107,14 @@ export const STACKED_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing="0
   <tr>
     <td colspan="2" style="padding-top:10px; font-size:12px; color:#555;">
       {{addressBlockHtml}}
+    </td>
+  </tr>
+  {{/if}}
+
+  {{#if hasContentBlocks}}
+  <tr>
+    <td colspan="2" style="padding-top:12px;">
+      {{contentBlocksHtml}}
     </td>
   </tr>
   {{/if}}

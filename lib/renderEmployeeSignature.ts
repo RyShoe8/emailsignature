@@ -12,7 +12,9 @@ import { appendSignatureClickTrackingIfEnabled } from '@/lib/signatureTrackingHt
 const DEFAULT_UTM = { source: 'Tailnote', medium: 'Email', campaign: 'Footer' };
 
 export function orgToBrandInput(org: OrganizationDoc, contentBlocks?: ContentBlockData[]): OrgBrandInput {
-  const sl = org.socialLinks as { linkedin?: string; facebook?: string; instagram?: string; reddit?: string } | undefined;
+  const sl = org.socialLinks as
+    | { linkedin?: string; facebook?: string; instagram?: string; reddit?: string; discord?: string }
+    | undefined;
   return {
     companyName: (org.companyName || org.name || '').trim(),
     website: (org.website || '').trim(),
@@ -25,6 +27,7 @@ export function orgToBrandInput(org: OrganizationDoc, contentBlocks?: ContentBlo
       facebook: sl?.facebook,
       instagram: sl?.instagram,
       reddit: sl?.reddit,
+      discord: sl?.discord,
     },
     address: org.address ?? undefined,
     state: org.state ?? undefined,

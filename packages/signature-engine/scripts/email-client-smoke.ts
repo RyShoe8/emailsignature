@@ -55,6 +55,33 @@ assert.ok(
   htmlStandard.includes(`${iconBase}icon-reddit.png?v=2`),
   'standard: Reddit icon resolves to publicSiteOrigin /email-assets/ with cache-bust query'
 );
+
+// Discord support: when a Discord URL is supplied, the icon row should include the
+// Discord asset and the brand href.
+const htmlDiscord = renderSignature({
+  profile,
+  brand: {
+    ...mockSignatureBrand,
+    socialLinks: { ...mockSignatureBrand.socialLinks, discord: 'https://discord.gg/example' },
+  },
+  template: mockSignatureTemplate('standard'),
+  publicSiteOrigin: origin,
+});
+assert.ok(
+  htmlDiscord.includes(`${iconBase}icon-discord.png?v=1`),
+  'standard: Discord icon resolves to publicSiteOrigin /email-assets/ with cache-bust query'
+);
+assert.match(
+  htmlDiscord,
+  /href="https:\/\/discord\.gg\/example[^"]*"/,
+  'standard: Discord URL renders inside the social row'
+);
+// When no Discord URL is provided, the Discord <td> should not appear.
+assert.doesNotMatch(
+  htmlStandard,
+  /icon-discord\.png/,
+  'standard: Discord cell is omitted when no Discord URL is provided'
+);
 assert.doesNotMatch(htmlStandard, /\/api\/image-proxy/i, 'standard: no image proxy URLs in img src');
 assert.doesNotMatch(htmlStandard, /src="http:\/\//i, 'standard: no non-HTTPS image URLs');
 assert.ok(
@@ -170,7 +197,129 @@ assert.match(
   'corporate/image: image is wrapped in anchor when link is set'
 );
 
-// Legacy custom block still renders for back-compat reads
+// Corporate template should not show redundant Phone/Email/Web labels — the values
+// already look like phone numbers / emails / URLs. Mobile keeps its label so it can
+// be distinguished from the main office number when both are set.
+const htmlCorporateWithMobile = renderSignature({
+  profile: { ...profile, mobilePhone: '555-0200' },
+  brand: mockSignatureBrand,
+  template: corporateTemplate,
+  publicSiteOrigin: origin,
+});
+const corporateContactRowRe = /<table[^>]*font-size:13px;[^"]*"[\s\S]*?<\/table>/;
+const contactBlock = htmlCorporateWithMobile.match(corporateContactRowRe)?.[0] ?? '';
+assert.ok(contactBlock.length > 0, 'corporate: contact table is present in rendered output');
+assert.doesNotMatch(contactBlock, /Phone</i, 'corporate: removes "Phone" label');
+assert.doesNotMatch(contactBlock, />Email</i, 'corporate: removes "Email" label');
+assert.doesNotMatch(contactBlock, />Web</i, 'corporate: removes "Web" label');
+assert.match(contactBlock, /Mobile/i, 'corporate: keeps "Mobile" label to differentiate from main phone');
+
+// Website should display without the https:// prefix in the body, but href stays fully qualified.
+const htmlCorporateWebsite = renderSignature({
+  profile,
+  brand: { ...mockSignatureBrand, website: 'www.example.com' },
+  template: corporateTemplate,
+  publicSiteOrigin: origin,
+});
+assert.match(
+  htmlCorporateWebsite,
+  /href="https:\/\/www\.example\.com"[^>]*>\s*www\.example\.com\s*</,
+  'corporate: website displays prefix-less but href keeps https://'
+);
+assert.doesNotMatch(
+  htmlCorporateWebsite,
+  />\s*https:\/\/www\.example\.com\s*</,
+  'corporate: website body should not include https:// prefix'
+);
+assert.match(
+  htmlListImage,
+  /<tr>\s*<td colspan="3"[^>]*>\s*<table[^>]*>[\s\S]*?Recent Wins/,
+  'corporate: blocks render in a full-width bottom row, not the old right column'
+);
+assert.doesNotMatch(
+  htmlListImage,
+  /<td[^>]*width="220"[^>]*>\s*<table[^>]*>[\s\S]*?Recent Wins/,
+  'corporate: blocks must not render in the old 220px right column'
+);
+
+// Minimal template should now also render content blocks beneath the signature.
+const minimalTemplate: import('../src/core/types').SignatureTemplate = {
+  id: 'minimal-smoke',
+  name: 'Minimal',
+  layout: 'standard',
+  elements: [
+    { type: 'logo' },
+    { type: 'name' },
+    { type: 'title' },
+    { type: 'contact' },
+    { type: 'social' },
+    { type: 'contentBlocks' },
+  ],
+};
+
+const htmlMinimalBlocks = renderSignature({
+  profile,
+  brand: {
+    ...mockSignatureBrand,
+    contentBlocks: [
+      {
+        type: 'list',
+        enabled: true,
+        listTitle: 'Resources',
+        listItems: [{ title: 'Docs', url: 'https://example.com/docs' }],
+      },
+    ],
+  },
+  template: minimalTemplate,
+  publicSiteOrigin: origin,
+});
+assert.ok(
+  htmlMinimalBlocks.includes('Resources') && htmlMinimalBlocks.includes('Docs'),
+  'minimal: list block renders below the signature'
+);
+assert.match(
+  htmlMinimalBlocks,
+  /<tr>\s*<td colspan="2"[^>]*>\s*<table[^>]*>[\s\S]*?Resources/,
+  'minimal: blocks render in the new bottom colspan="2" row'
+);
+
+// Stacked template should also support blocks.
+const stackedTemplate: import('../src/core/types').SignatureTemplate = {
+  id: 'stacked-smoke',
+  name: 'Stacked',
+  layout: 'stacked',
+  elements: [
+    { type: 'logo' },
+    { type: 'name' },
+    { type: 'title' },
+    { type: 'contact' },
+    { type: 'social' },
+    { type: 'divider' },
+    { type: 'contentBlocks' },
+  ],
+};
+const htmlStackedBlocks = renderSignature({
+  profile,
+  brand: {
+    ...mockSignatureBrand,
+    contentBlocks: [
+      {
+        type: 'image',
+        enabled: true,
+        imageUrl: 'https://example.com/images/stacked.png',
+      },
+    ],
+  },
+  template: stackedTemplate,
+  publicSiteOrigin: origin,
+});
+assert.match(
+  htmlStackedBlocks,
+  /src="https:\/\/example\.com\/images\/stacked\.png[^"]*"/,
+  'stacked: image block renders inside the new bottom row'
+);
+
+// Legacy custom block still renders for back-compat reads — but without "Learn more".
 const htmlLegacyCustom = renderSignature({
   profile,
   brand: {
@@ -181,6 +330,7 @@ const htmlLegacyCustom = renderSignature({
         enabled: true,
         customTitle: 'Legacy',
         customText: 'Old data still works',
+        customUrl: 'https://example.com/legacy',
       },
     ],
   },
@@ -190,6 +340,16 @@ const htmlLegacyCustom = renderSignature({
 assert.ok(
   htmlLegacyCustom.includes('Legacy') && htmlLegacyCustom.includes('Old data still works'),
   'corporate/custom: legacy custom block still renders'
+);
+assert.doesNotMatch(
+  htmlLegacyCustom,
+  /Learn more/i,
+  'corporate/custom: legacy custom block no longer emits a "Learn more" row'
+);
+assert.match(
+  htmlLegacyCustom,
+  /<a href="https:\/\/example\.com\/legacy[^"]*"[^>]*>Legacy<\/a>/,
+  'corporate/custom: title itself is the link when URL is set and no image'
 );
 
 process.stdout.write('email-client-smoke: all checks passed.\n');

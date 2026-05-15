@@ -243,22 +243,22 @@ function ListEditor({
 
   const updateItem = (index: number, next: Partial<ContentBlockListItem>) => {
     const padded: ContentBlockListItem[] = [];
-    for (let i = 0; i <= index; i += 1) {
+    const maxLen = Math.max(items.length, index + 1);
+    for (let i = 0; i < maxLen; i += 1) {
       padded[i] = items[i] ?? { title: '' };
-    }
-    for (let i = index + 1; i < items.length; i += 1) {
-      padded[i] = items[i];
     }
     padded[index] = { ...padded[index], ...next } as ContentBlockListItem;
     onChange({ listItems: padded.slice(0, MAX_LIST_ITEMS) });
   };
 
-  const removeItem = (index: number) => {
-    const next = items.filter((_, i) => i !== index);
-    onChange({ listItems: next });
+  const clearItem = (index: number) => {
+    const padded: ContentBlockListItem[] = [];
+    const maxLen = Math.max(items.length, index + 1);
+    for (let i = 0; i < maxLen; i += 1) {
+      padded[i] = i === index ? { title: '' } : items[i] ?? { title: '' };
+    }
+    onChange({ listItems: padded.slice(0, MAX_LIST_ITEMS) });
   };
-
-  const visibleSlots = Math.min(MAX_LIST_ITEMS, Math.max(items.length, 1));
 
   return (
     <>
@@ -272,15 +272,22 @@ function ListEditor({
       </div>
       <div className="space-y-3">
         <Label>Items (up to {MAX_LIST_ITEMS})</Label>
-        {Array.from({ length: visibleSlots }).map((_, i) => {
+        <p className="text-xs text-muted-foreground">
+          Fill any of the four slots. Empty slots are skipped in the preview.
+        </p>
+        {Array.from({ length: MAX_LIST_ITEMS }).map((_, i) => {
           const item = items[i] ?? { title: '' };
+          const filled = Boolean(item.title?.trim() || item.description?.trim() || item.url?.trim());
           return (
-            <div key={i} className="rounded-md border p-3 space-y-2">
+            <div
+              key={i}
+              className={`rounded-md border p-3 space-y-2 transition-opacity ${filled ? 'opacity-100' : 'opacity-70'}`}
+            >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-muted-foreground">Item {i + 1}</span>
-                {items[i] ? (
-                  <Button type="button" variant="ghost" size="sm" onClick={() => removeItem(i)}>
-                    Remove
+                {filled ? (
+                  <Button type="button" variant="ghost" size="sm" onClick={() => clearItem(i)}>
+                    Clear
                   </Button>
                 ) : null}
               </div>
@@ -304,16 +311,6 @@ function ListEditor({
             </div>
           );
         })}
-        {visibleSlots < MAX_LIST_ITEMS && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => onChange({ listItems: [...items, { title: '' }] })}
-          >
-            Add item
-          </Button>
-        )}
       </div>
     </>
   );
