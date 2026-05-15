@@ -1,6 +1,0 @@
-Add plan subscription caps, archive workflow, and unified entitlements.
-
-Plans can set maxSubscriptionSlots (promo-style: all org subs count,
-including canceled). Archive retires plans from pricing/checkout with
-active and archived admin lists. Remove legacyPlanKey; all paying orgs
-get full features.
