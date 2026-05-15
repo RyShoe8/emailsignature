@@ -1,0 +1,30 @@
+# One-time bootstrap: grants platform admin in Mongo (same as `npm run grant-platform-admin`).
+# Triggers when this workflow file changes, or manually (Actions → Grant platform admin → Run workflow).
+# After the first successful run, you can delete this file or stop editing it so pushes no longer hit the DB.
+name: Grant platform admin
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - '.github/workflows/grant-platform-admin.yml'
+  workflow_dispatch:
+
+jobs:
+  grant:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Grant platform admin
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          MONGODB_DB_NAME: ${{ secrets.MONGODB_DB_NAME }}
+        run: npm run grant-platform-admin -- ryanschumacher@themediashop.co
