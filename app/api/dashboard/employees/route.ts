@@ -8,6 +8,7 @@ import { EmployeeModel } from '@/models/Employee';
 import { SignatureTemplateModel } from '@/models/SignatureTemplate';
 import { canUsePaidFeatures } from '@/lib/orgAccess';
 import { getDefaultTemplateForOrg } from '@/lib/seedOrgTemplates';
+import { syncStripeSubscriptionSeatsForOrganization } from '@/lib/stripe/syncSubscriptionSeats';
 
 type SessionUser = { organizationId?: string };
 
@@ -105,6 +106,8 @@ export async function POST(request: Request) {
     templateId,
     previewToken,
   });
+
+  void syncStripeSubscriptionSeatsForOrganization(org._id.toString()).catch(() => {});
 
   return NextResponse.json({ employee: employee.toObject() });
 }

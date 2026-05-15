@@ -1,4 +1,10 @@
 export { OrganizationModel, type OrganizationDoc } from './Organization';
+export { SubscriptionPlanModel, type SubscriptionPlanDoc } from './SubscriptionPlan';
+export {
+  OrganizationSubscriptionModel,
+  type OrganizationSubscriptionDoc,
+} from './OrganizationSubscription';
+export { SubscriptionAddonModel, type SubscriptionAddonDoc } from './SubscriptionAddon';
 export { UserSignatureProfileModel, type UserSignatureProfileDoc } from './UserSignatureProfile';
 export { GmailIntegrationModel, type GmailIntegrationDoc } from './GmailIntegration';
 export { EmployeeModel, type EmployeeDoc } from './Employee';

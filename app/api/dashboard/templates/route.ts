@@ -5,12 +5,12 @@ import { getServerSession } from '@/lib/auth/session';
 import { OrganizationModel, type OrganizationDoc } from '@/models/Organization';
 import { SignatureTemplateModel } from '@/models/SignatureTemplate';
 import { canUsePaidFeatures } from '@/lib/orgAccess';
-import { MAX_TEMPLATES_BASIC } from '@/lib/stripe/config';
+import { getBillingEntitlements } from '@/lib/billing/entitlements';
 
 type SessionUser = { organizationId?: string };
 
 function maxTemplates(org: OrganizationDoc) {
-  return org.plan === 'pro' ? 10 : MAX_TEMPLATES_BASIC;
+  return getBillingEntitlements(org).maxTemplates;
 }
 
 async function requireOrg() {
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
   }
 
   const includeAnimationSlot =
-    org.plan === 'pro' && Boolean(parsed.data.includeAnimationSlot);
+    getBillingEntitlements(org).canUseTemplateAnimationSlot && Boolean(parsed.data.includeAnimationSlot);
 
   const doc = await SignatureTemplateModel.create({
     organizationId: org._id,

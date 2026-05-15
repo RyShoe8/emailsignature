@@ -10,6 +10,7 @@ import { buildRenderInput, type EmployeeProfileInput } from '@/lib/email/toRende
 import { EmployeeModel } from '@/models/Employee';
 import { employeeToProfile, mergeEmployeeSocialIntoOrgBrand, orgToBrandInput } from '@/lib/renderEmployeeSignature';
 import { engineTemplateFromStoredConfig, type TemplatePresetId } from '@/lib/email/templatePresets';
+import { shouldIncludeSignatureAnimation } from '@/lib/billing/entitlements';
 import { appendSignatureClickTrackingIfEnabled } from '@/lib/signatureTrackingHtml';
 
 export const dynamic = 'force-dynamic';
@@ -123,7 +124,7 @@ export async function POST(request: Request) {
   }
 
   const presetId = tmpl.presetId as TemplatePresetId;
-  const includeAnimation = org.plan === 'pro' && Boolean(tmpl.includeAnimationSlot);
+  const includeAnimation = shouldIncludeSignatureAnimation(org as never, tmpl as never);
   const template = engineTemplateFromStoredConfig({
     templateId: tmpl._id.toString(),
     name: tmpl.name,

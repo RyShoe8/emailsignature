@@ -6,6 +6,7 @@ import { OrganizationModel } from '@/models/Organization';
 import { EmployeeModel } from '@/models/Employee';
 import { SignatureTemplateModel } from '@/models/SignatureTemplate';
 import { canUsePaidFeatures } from '@/lib/orgAccess';
+import { syncStripeSubscriptionSeatsForOrganization } from '@/lib/stripe/syncSubscriptionSeats';
 
 type SessionUser = { organizationId?: string };
 
@@ -117,5 +118,6 @@ export async function DELETE(_request: Request, context: { params: Promise<{ id:
   if (res.deletedCount === 0) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
+  void syncStripeSubscriptionSeatsForOrganization(org._id.toString()).catch(() => {});
   return NextResponse.json({ ok: true });
 }

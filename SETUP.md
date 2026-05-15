@@ -26,8 +26,8 @@ Add each variable for **Production** (and **Preview** if you want previews fully
 | `NEXT_PUBLIC_APP_URL` | Same value as `BETTER_AUTH_URL` (exposed to the browser for the auth client) |
 | `STRIPE_SECRET_KEY` | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | Webhook signing secret from Stripe (see below) |
-| `STRIPE_BASIC_PRICE_ID` | Yearly Basic Price id |
-| `STRIPE_PRO_PRICE_ID` | Yearly Pro Price id |
+| `STRIPE_BASIC_PRICE_ID` | Optional fallback Basic Price id during migration (prefer seeded plans + admin sync) |
+| `STRIPE_PRO_PRICE_ID` | Optional fallback Pro Price id during migration |
 | `BLOB_READ_WRITE_TOKEN` | [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) read/write token for dashboard logo uploads (`POST /api/dashboard/organization/logo`) |
 | `GOOGLE_CLIENT_ID` | Google OAuth client id for **Connect Gmail** / signature apply |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
@@ -38,13 +38,7 @@ Add each variable for **Production** (and **Preview** if you want previews fully
 
 ### Platform admin (`/admin`)
 
-After first deploy, run once (with `MONGODB_URI` / `MONGODB_DB_NAME` in the environment) to grant the initial operator:
-
-`npm run grant-platform-admin`
-
-Optional: `npm run grant-platform-admin -- other@example.com`
-
-Then sign in as that user and open `/admin` to manage organizations, users, org roles, and plans.
+Users with `platformAdmin: true` on their Better Auth document in the **`user`** collection (app database from `MONGODB_DB_NAME`, default `emailsignature`) can open **`/admin`**. Set that field in MongoDB for the first operator, or have an existing platform admin use **Organizations → Manage → Users** and toggle **Platform admin** for another account.
 
 ### Gmail integration
 
@@ -68,9 +62,20 @@ After changing variables, trigger a new **deployment** (**Deployments** tab → 
 In the [Stripe Dashboard](https://dashboard.stripe.com/webhooks), create an endpoint whose URL is your live app on **Vercel**:
 
 - **URL:** `https://<your-vercel-or-custom-domain>/api/webhooks/stripe`
-- **Events (minimum):** `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
+- **Events (minimum):** `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`
 
 Copy the endpoint **Signing secret** into `STRIPE_WEBHOOK_SECRET` in **Vercel** **Environment Variables** (**Production**), then **Redeploy**.
+
+### Subscription plans (source of truth)
+
+Pricing lives in MongoDB (`subscription_plans`), not only in Stripe env vars.
+
+1. Sign in as a **platform admin** and open **`/admin/plans`**.
+2. Default **Basic** and **Pro** rows are seeded on first load.
+3. For each plan, click **Sync** to create Stripe Product + Price rows (prices are immutable; edit amounts by cloning a new version).
+4. Dashboard checkout uses synced plans when available; `STRIPE_BASIC_PRICE_ID` / `STRIPE_PRO_PRICE_ID` remain a fallback until migration is complete.
+
+Optional add-ons: **`/admin/addons`** with the same sync pattern.
 
 ## Build on Vercel
 

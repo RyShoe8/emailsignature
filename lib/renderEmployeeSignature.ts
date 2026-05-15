@@ -4,6 +4,7 @@ import { engineTemplateFromStoredConfig, type TemplatePresetId } from '@/lib/ema
 import type { OrganizationDoc } from '@/models/Organization';
 import type { EmployeeDoc } from '@/models/Employee';
 import type { SignatureTemplateDoc } from '@/models/SignatureTemplate';
+import { shouldIncludeSignatureAnimation } from '@/lib/billing/entitlements';
 import { getSignatureAssetOrigin } from '@/lib/siteOrigin';
 import { appendSignatureClickTrackingIfEnabled } from '@/lib/signatureTrackingHtml';
 
@@ -62,7 +63,7 @@ export function renderSignatureForEmployee(
   options?: { publicSiteOrigin?: string }
 ): string {
   const presetId = tmpl.presetId as TemplatePresetId;
-  const includeAnimation = org.plan === 'pro' && Boolean(tmpl.includeAnimationSlot);
+  const includeAnimation = shouldIncludeSignatureAnimation(org, tmpl);
   const template = engineTemplateFromStoredConfig({
     templateId: tmpl._id.toString(),
     name: tmpl.name,

@@ -19,6 +19,7 @@ import { CopyRichTextButton } from '@/components/signature/CopyRichTextButton';
 import { OutlookInstallHelp } from '@/components/signature/OutlookInstallHelp';
 import { downloadHtml } from '@/lib/clipboard';
 import { getSignatureAssetOrigin } from '@/lib/siteOrigin';
+import { shouldIncludeSignatureAnimation } from '@/lib/billing/entitlements';
 
 type OrgResponse = {
   companyName?: string;
@@ -33,6 +34,7 @@ type OrgResponse = {
   animation?: { enabled?: boolean; gifUrl?: string };
   name?: string;
   plan?: string;
+  subscriptionStatus?: string;
   signatureClickTrackingEnabled?: boolean;
 };
 
@@ -182,9 +184,17 @@ export function SignatureWorkspace() {
       templateId: selectedTemplate._id,
       name: selectedTemplate.name,
       presetId: selectedTemplate.presetId,
-      includeAnimationSlot: org?.plan === 'pro' && Boolean(selectedTemplate.includeAnimationSlot),
+      includeAnimationSlot: shouldIncludeSignatureAnimation(
+        {
+          plan: org?.plan === 'pro' ? 'pro' : org?.plan === 'basic' ? 'basic' : 'none',
+          subscriptionStatus:
+            (org?.subscriptionStatus as 'none' | 'active' | 'trialing' | 'past_due' | 'canceled' | 'incomplete') ??
+            'none',
+        },
+        { includeAnimationSlot: Boolean(selectedTemplate.includeAnimationSlot) }
+      ),
     });
-  }, [selectedTemplate, org?.plan]);
+  }, [selectedTemplate, org?.plan, org?.subscriptionStatus]);
 
   const html = useMemo(() => {
     if (!engineTemplate) return '';

@@ -12,7 +12,6 @@
     "lint": "next lint",
     "seed": "npx tsx scripts/seed.ts",
     "migrate:legacy": "npx tsx scripts/migrate-legacy.ts",
-    "grant-platform-admin": "npx tsx scripts/grant-platform-admin.ts",
     "verify:signature": "npm run email-client-smoke --workspace=emailsignature-engine"
   },
   "dependencies": {

@@ -3,12 +3,20 @@ import { z } from 'zod';
 import { getServerSession } from '@/lib/auth/session';
 import { connectMongoose } from '@/lib/mongoose';
 import { OrganizationModel } from '@/models/Organization';
+import { EmployeeModel } from '@/models/Employee';
+import { SubscriptionPlanModel, type SubscriptionPlanDoc } from '@/models/SubscriptionPlan';
 import { getStripe } from '@/lib/stripe/client';
 import { stripePriceIds } from '@/lib/stripe/config';
+import { isValidObjectIdString } from '@/lib/admin/data';
 
-const BodySchema = z.object({
-  plan: z.enum(['basic', 'pro']),
-});
+const BodySchema = z
+  .object({
+    plan: z.enum(['basic', 'pro']).optional(),
+    subscriptionPlanId: z.string().optional(),
+  })
+  .refine((b) => b.plan !== undefined || Boolean(b.subscriptionPlanId?.trim()), {
+    message: 'Provide plan (basic|pro) or subscriptionPlanId',
+  });
 
 export async function POST(request: Request) {
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -35,11 +43,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const priceId = parsed.data.plan === 'pro' ? stripePriceIds.pro : stripePriceIds.basic;
-  if (!priceId) {
-    return NextResponse.json({ error: 'Missing STRIPE_BASIC_PRICE_ID or STRIPE_PRO_PRICE_ID' }, { status: 500 });
-  }
-
   await connectMongoose();
   const org = await OrganizationModel.findById(user.organizationId);
   if (!org) {
@@ -49,23 +52,91 @@ export async function POST(request: Request) {
   const base =
     process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || 'http://localhost:3000';
 
+  let priceId = '';
+  let checkoutMode: 'subscription' | 'payment' = 'subscription';
+  let metadataPlan: 'basic' | 'pro' = 'basic';
+  let subscriptionPlanIdMeta = '';
+  let dbPlanForSeats: SubscriptionPlanDoc | null = null;
+
+  if (parsed.data.subscriptionPlanId?.trim()) {
+    const pid = parsed.data.subscriptionPlanId.trim();
+    if (!isValidObjectIdString(pid)) {
+      return NextResponse.json({ error: 'Invalid subscriptionPlanId' }, { status: 400 });
+    }
+    const dbPlan = await SubscriptionPlanModel.findById(pid).lean();
+    if (!dbPlan || !dbPlan.active || dbPlan.paused) {
+      return NextResponse.json({ error: 'Plan not available' }, { status: 400 });
+    }
+    if (!dbPlan.stripeBasePriceId) {
+      return NextResponse.json({ error: 'Plan not synced to Stripe yet' }, { status: 400 });
+    }
+    priceId = dbPlan.stripeBasePriceId;
+    subscriptionPlanIdMeta = String(dbPlan._id);
+    checkoutMode = dbPlan.interval === 'lifetime' ? 'payment' : 'subscription';
+    if (dbPlan.legacyPlanKey === 'pro') metadataPlan = 'pro';
+    else if (dbPlan.legacyPlanKey === 'basic') metadataPlan = 'basic';
+    else metadataPlan = 'basic';
+    dbPlanForSeats = dbPlan;
+  } else if (parsed.data.plan) {
+    metadataPlan = parsed.data.plan;
+    const slugPlan = await SubscriptionPlanModel.findOne({
+      slug: parsed.data.plan,
+      active: true,
+      paused: false,
+      stripeBasePriceId: { $exists: true, $nin: ['', null] },
+    })
+      .sort({ version: -1 })
+      .lean();
+    if (slugPlan?.stripeBasePriceId) {
+      priceId = slugPlan.stripeBasePriceId;
+      subscriptionPlanIdMeta = String(slugPlan._id);
+      checkoutMode = slugPlan.interval === 'lifetime' ? 'payment' : 'subscription';
+      if (slugPlan.legacyPlanKey === 'pro') metadataPlan = 'pro';
+      else if (slugPlan.legacyPlanKey === 'basic') metadataPlan = 'basic';
+      dbPlanForSeats = slugPlan;
+    } else {
+      priceId = parsed.data.plan === 'pro' ? stripePriceIds.pro : stripePriceIds.basic;
+      if (!priceId) {
+        return NextResponse.json({ error: 'Missing STRIPE_BASIC_PRICE_ID or STRIPE_PRO_PRICE_ID' }, { status: 500 });
+      }
+    }
+  }
+
   const stripe = getStripe();
+  const meta: Record<string, string> = {
+    organizationId: org._id.toString(),
+    plan: metadataPlan,
+  };
+  if (subscriptionPlanIdMeta) meta.subscriptionPlanId = subscriptionPlanIdMeta;
+
+  const lineItems: import('stripe').Stripe.Checkout.SessionCreateParams.LineItem[] = [
+    { price: priceId, quantity: 1 },
+  ];
+  if (
+    checkoutMode === 'subscription' &&
+    dbPlanForSeats?.stripeSeatPriceId &&
+    dbPlanForSeats.additionalUserPriceCents > 0
+  ) {
+    const cnt = await EmployeeModel.countDocuments({ organizationId: org._id });
+    const extra = Math.max(0, cnt - (dbPlanForSeats.includedUsers ?? 1));
+    if (extra > 0) {
+      lineItems.push({ price: dbPlanForSeats.stripeSeatPriceId, quantity: extra });
+    }
+  }
+
   const params: import('stripe').Stripe.Checkout.SessionCreateParams = {
-    mode: 'subscription',
-    line_items: [{ price: priceId, quantity: 1 }],
+    mode: checkoutMode,
+    line_items: lineItems,
     success_url: `${base}/dashboard/billing?checkout=success`,
     cancel_url: `${base}/dashboard/billing`,
-    metadata: {
-      organizationId: org._id.toString(),
-      plan: parsed.data.plan,
-    },
-    subscription_data: {
-      metadata: {
-        organizationId: org._id.toString(),
-        plan: parsed.data.plan,
-      },
-    },
+    metadata: meta,
   };
+
+  if (checkoutMode === 'subscription') {
+    params.subscription_data = {
+      metadata: meta,
+    };
+  }
 
   if (org.stripeCustomerId) {
     params.customer = org.stripeCustomerId;

@@ -8,6 +8,7 @@ import { buildRenderInput } from '@/lib/email/toRenderInput';
 import { engineTemplateFromStoredConfig, type TemplatePresetId } from '@/lib/email/templatePresets';
 import { mergeEmployeeSocialIntoOrgBrand } from '@/lib/renderEmployeeSignature';
 import { getSignatureAssetOrigin } from '@/lib/siteOrigin';
+import { shouldIncludeSignatureAnimation } from '@/lib/billing/entitlements';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -132,12 +133,25 @@ export default function EmployeeDetailPage() {
 
   const html = useMemo(() => {
     if (!org || !selectedTemplate) return '';
-    const plan = String(org.plan || 'none');
+    const planKey = String(org.plan || 'none');
     const engineTemplate = engineTemplateFromStoredConfig({
       templateId: selectedTemplate._id,
       name: selectedTemplate.name,
       presetId: selectedTemplate.presetId as TemplatePresetId,
-      includeAnimationSlot: plan === 'pro' && Boolean(selectedTemplate.includeAnimationSlot),
+      includeAnimationSlot: shouldIncludeSignatureAnimation(
+        {
+          plan: planKey === 'pro' ? 'pro' : planKey === 'basic' ? 'basic' : 'none',
+          subscriptionStatus:
+            (org.subscriptionStatus as
+              | 'none'
+              | 'active'
+              | 'trialing'
+              | 'past_due'
+              | 'canceled'
+              | 'incomplete') ?? 'none',
+        },
+        { includeAnimationSlot: Boolean(selectedTemplate.includeAnimationSlot) }
+      ),
     });
     return renderSignature(
       buildRenderInput({

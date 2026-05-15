@@ -6,6 +6,7 @@ import { OrganizationModel } from '@/models/Organization';
 import { SignatureTemplateModel } from '@/models/SignatureTemplate';
 import { EmployeeModel } from '@/models/Employee';
 import { canUsePaidFeatures } from '@/lib/orgAccess';
+import { getBillingEntitlements } from '@/lib/billing/entitlements';
 
 type SessionUser = { organizationId?: string };
 
@@ -54,7 +55,8 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
   if (parsed.data.name !== undefined) template.name = parsed.data.name.trim();
   if (parsed.data.includeAnimationSlot !== undefined) {
-    template.includeAnimationSlot = org.plan === 'pro' && parsed.data.includeAnimationSlot;
+    template.includeAnimationSlot =
+      getBillingEntitlements(org).canUseTemplateAnimationSlot && parsed.data.includeAnimationSlot;
   }
 
   await template.save();
