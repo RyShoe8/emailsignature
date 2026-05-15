@@ -207,6 +207,15 @@ assert.match(
   'corporate/image: image is wrapped in anchor when link is set'
 );
 
+assert.ok(
+  htmlListImage.includes('max-device-width'),
+  'corporate: responsive CSS includes max-device-width for mobile stacking'
+);
+assert.ok(
+  htmlListImage.includes('sig-corp-blocks-stack') && htmlListImage.includes('padding-left:26px'),
+  'corporate: blocks column has extra padding beside vertical divider'
+);
+
 // Corporate template should not show redundant Phone/Email/Web labels — the values
 // already look like phone numbers / emails / URLs. Mobile keeps its label so it can
 // be distinguished from the main office number when both are set.
@@ -303,6 +312,14 @@ assert.doesNotMatch(
   htmlMinimalBlocks,
   /<tr>\s*<td colspan="2"[^>]*>\s*<table[^>]*>[\s\S]*?Resources/,
   'minimal: blocks must not sit in a dedicated bottom colspan="2" row'
+);
+assert.ok(
+  htmlMinimalBlocks.includes('max-device-width'),
+  'minimal: standard layout includes max-device-width stack rules'
+);
+assert.ok(
+  htmlMinimalBlocks.includes('padding-left:28px') && htmlMinimalBlocks.includes('sig-blocks-stack'),
+  'minimal: blocks column has extra padding beside vertical divider'
 );
 
 // Stacked template should also support blocks.

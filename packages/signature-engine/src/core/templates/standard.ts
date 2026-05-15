@@ -1,10 +1,12 @@
 /**
  * Table-based standard layout (logo left, contact right).
- * Content blocks sit in a third column on desktop; stack below on narrow viewports (media query).
+ * Content blocks sit in a third column on desktop; stack below on narrow viewports / phones.
  * Uses {{variables}} and {{#if key}}...{{/if}} (non-nested).
  */
 export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
-@media only screen and (max-width:520px) {
+@media only screen and (max-width:600px),
+  only screen and (max-device-width:600px),
+  only screen and (max-device-width:812px) {
   td.sig-logo-stack {
     display: block !important;
     width: 100% !important;
@@ -20,6 +22,7 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
     box-sizing: border-box !important;
     border-left: none !important;
     padding-left: 0 !important;
+    padding-right: 0 !important;
   }
   td.sig-blocks-stack {
     display: block !important;
@@ -32,7 +35,7 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
   }
 }
 </style>
-<table cellpadding="0" cellspacing="0" border="0" style="font-family: {{fontFamily}}, Arial, Helvetica, sans-serif; font-size:14px; color:#1a1a1a; line-height:1.4;">
+<table cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family: {{fontFamily}}, Arial, Helvetica, sans-serif; font-size:14px; color:#1a1a1a; line-height:1.4;width:100%;max-width:600px;table-layout:fixed;">
   <tr>
     <td class="sig-logo-stack" width="{{logoWidth}}" style="vertical-align:top;line-height:0;font-size:0;padding-right:8px;width:{{logoWidth}}px;">
       {{#if hasLogo}}
@@ -46,7 +49,7 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
       </a>
       {{/if}}
     </td>
-    <td class="sig-main-stack" style="vertical-align:top; border-left:2px solid {{primaryColor}}; padding-left:16px;">
+    <td class="sig-main-stack" style="vertical-align:top; border-left:2px solid {{primaryColor}}; padding-left:16px;padding-right:12px;">
       
       {{#if hasName}}
       <div style="font-size:16px; font-weight:600; color:#000;">
@@ -122,7 +125,7 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
       {{/if}}
     </td>
     {{#if sideColumnContentBlocks}}
-    <td class="sig-blocks-stack" valign="top" style="vertical-align:top;padding-left:18px;border-left:1px solid #e5e5e5;width:38%;min-width:140px;">
+    <td class="sig-blocks-stack" valign="top" style="vertical-align:top;padding-left:28px;border-left:1px solid #e5e5e5;width:38%;min-width:140px;">
       {{contentBlocksHtml}}
     </td>
     {{/if}}

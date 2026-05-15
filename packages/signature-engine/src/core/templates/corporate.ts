@@ -4,11 +4,13 @@
  * Structure:
  *   Accent bar → header row (logo | info | content blocks side column on desktop) →
  *   divider → address → footer bar.
- * Blocks stack below contact on narrow viewports (media query).
+ * Blocks stack below contact on narrow viewports / phones (media queries).
  * Uses {{variables}} and {{#if key}}...{{/if}} (nested supported by renderer).
  */
 export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
-@media only screen and (max-width:520px) {
+@media only screen and (max-width:600px),
+  only screen and (max-device-width:600px),
+  only screen and (max-device-width:812px) {
   td.sig-corp-logo-stack {
     display: block !important;
     width: 100% !important;
@@ -24,6 +26,7 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
     box-sizing: border-box !important;
     border-left: none !important;
     padding-left: 0 !important;
+    padding-right: 0 !important;
   }
   td.sig-corp-blocks-stack {
     display: block !important;
@@ -36,7 +39,7 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
   }
 }
 </style>
-<table cellpadding="0" cellspacing="0" border="0" style="font-family: {{fontFamily}}, Arial, Helvetica, sans-serif; font-size:14px; color:#1a1a1a; line-height:1.4; max-width:600px;">
+<table cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family: {{fontFamily}}, Arial, Helvetica, sans-serif; font-size:14px; color:#1a1a1a; line-height:1.4; max-width:600px;width:100%;table-layout:fixed;">
   <!-- Accent bar -->
   <tr>
     <td colspan="3" style="padding:0;">
@@ -49,7 +52,7 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
   </tr>
   <tr>
     <td style="padding-top:16px;" colspan="3">
-      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;table-layout:fixed;">
         <tr>
           <!-- Logo column -->
           <td class="sig-corp-logo-stack" width="{{logoWidth}}" style="vertical-align:top;line-height:0;font-size:0;padding-right:16px;width:{{logoWidth}}px;">
@@ -66,7 +69,7 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
           </td>
 
           <!-- Info column -->
-          <td class="sig-corp-main-stack" style="vertical-align:top; border-left:3px solid {{primaryColor}}; padding-left:16px;">
+          <td class="sig-corp-main-stack" style="vertical-align:top; border-left:3px solid {{primaryColor}}; padding-left:16px;padding-right:12px;">
             {{#if hasName}}
             <div style="font-size:18px; font-weight:700; color:{{primaryColor}}; letter-spacing:-0.2px;">
               {{firstName}} {{lastName}}
@@ -183,7 +186,7 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
           </td>
 
           {{#if sideColumnContentBlocks}}
-          <td class="sig-corp-blocks-stack" valign="top" style="vertical-align:top;padding-left:16px;border-left:1px solid #e5e5e5;width:34%;min-width:130px;">
+          <td class="sig-corp-blocks-stack" valign="top" style="vertical-align:top;padding-left:26px;border-left:1px solid #e5e5e5;width:34%;min-width:130px;">
             {{contentBlocksHtml}}
           </td>
           {{/if}}

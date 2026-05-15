@@ -31,6 +31,25 @@ function normalizeHref(raw: string): string {
   }
 }
 
+/** Strip known marketing query params so rendered links match contentBlockUrlMap after appendUtmParams. */
+function stripMarketingParams(decodedHttpHref: string): string {
+  const t = decodedHttpHref.trim();
+  if (!/^https?:\/\//i.test(t)) return t;
+  try {
+    const u = new URL(t);
+    for (const k of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'] as const) {
+      u.searchParams.delete(k);
+    }
+    return u.toString();
+  } catch {
+    return t;
+  }
+}
+
+function normalizeHrefWithoutMarketing(rawHref: string): string {
+  return normalizeHref(stripMarketingParams(decodeHtmlEntities(rawHref)));
+}
+
 function classifyAnchor(
   hrefRaw: string,
   hasImg: boolean,
@@ -45,19 +64,20 @@ function classifyAnchor(
   }
 ): SignatureClickKind | null {
   const h = normalizeHref(hrefRaw);
+  const hNoMarketing = normalizeHrefWithoutMarketing(hrefRaw);
   if (!h) return null;
   if (hasImg) {
-    const sk = ctx.socialByHref.get(h);
+    const sk = ctx.socialByHref.get(h) ?? ctx.socialByHref.get(hNoMarketing);
     if (sk) return sk;
-    if (ctx.logoHrefNorm && h === ctx.logoHrefNorm) return 'logo';
+    if (ctx.logoHrefNorm && (h === ctx.logoHrefNorm || hNoMarketing === ctx.logoHrefNorm)) return 'logo';
     return null;
   }
   if (ctx.mailtoNorm && h === ctx.mailtoNorm) return 'email';
   if (ctx.officeTelNorm && h === ctx.officeTelNorm) return 'office_phone';
   if (ctx.mobileTelNorm && h === ctx.mobileTelNorm) return 'mobile_phone';
-  if (ctx.websiteNorm && h === ctx.websiteNorm) return 'website';
-  
-  const cbKind = ctx.contentBlockUrlMap.get(h);
+  if (ctx.websiteNorm && (h === ctx.websiteNorm || hNoMarketing === ctx.websiteNorm)) return 'website';
+
+  const cbKind = ctx.contentBlockUrlMap.get(h) ?? ctx.contentBlockUrlMap.get(hNoMarketing);
   if (cbKind) return cbKind;
 
   return null;

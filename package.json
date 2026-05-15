@@ -12,7 +12,8 @@
     "lint": "next lint",
     "seed": "npx tsx scripts/seed.ts",
     "migrate:legacy": "npx tsx scripts/migrate-legacy.ts",
-    "verify:signature": "npm run email-client-smoke --workspace=emailsignature-engine"
+    "verify:signature": "npm run email-client-smoke --workspace=emailsignature-engine",
+    "verify:list-tracking": "npx tsx scripts/signature-tracking-list-smoke.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

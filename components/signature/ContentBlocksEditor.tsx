@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ContentBlockData, ContentBlockListItem } from 'emailsignature-engine';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,9 @@ type Props = {
 
 const SLOT_COUNT = 2;
 
+/** Must match List editor slots so migrated docs persist four rows. */
+const MAX_LIST_ITEMS = 4;
+
 function ensureSlots(blocks: ContentBlockData[]): ContentBlockData[] {
   const out = [...blocks];
   while (out.length < SLOT_COUNT) {
@@ -23,9 +26,79 @@ function ensureSlots(blocks: ContentBlockData[]): ContentBlockData[] {
   return out.slice(0, SLOT_COUNT);
 }
 
+/** Promote legacy `custom` (no image) to `list` with padded items; keeps multi-row editing + renderer parity. */
+function migrateCustomToListFields(
+  block: ContentBlockData,
+  listTitleOverride?: string
+): Partial<ContentBlockData> {
+  const listTitle =
+    listTitleOverride !== undefined
+      ? listTitleOverride.trim()
+      : (block.listTitle ?? block.customTitle ?? '').trim();
+
+  let listItems: ContentBlockListItem[] = (block.listItems ?? [])
+    .filter(Boolean)
+    .map((it) => ({
+      title: typeof it?.title === 'string' ? it.title : '',
+      description: typeof it?.description === 'string' ? it.description : undefined,
+      url: typeof it?.url === 'string' ? it.url : undefined,
+    }));
+
+  if (
+    listItems.length === 0 &&
+    ((block.customTitle || '').trim() ||
+      (block.customText || '').trim() ||
+      (block.customUrl || '').trim())
+  ) {
+    listItems = [
+      {
+        title: (block.customTitle || '').trim() || 'Item 1',
+        description: block.customText || undefined,
+        url: block.customUrl || undefined,
+      },
+    ];
+  }
+
+  while (listItems.length < MAX_LIST_ITEMS) listItems.push({ title: '' });
+  listItems = listItems.slice(0, MAX_LIST_ITEMS);
+
+  return {
+    type: 'list',
+    listTitle,
+    listItems,
+    customTitle: undefined,
+    customText: undefined,
+    customUrl: undefined,
+    customImageUrl: undefined,
+  };
+}
+
 export function ContentBlocksEditor({ value, onChange }: Props) {
   const blocks = ensureSlots(value);
   const [activeSlot, setActiveSlot] = useState<number>(0);
+  const migratedCustomSlotRef = useRef<Set<number>>(new Set());
+
+  /** Persist legacy `custom` blocks as real `list` rows so the renderer uses listItems (multi-row + per-item links). */
+  useEffect(() => {
+    const slots = ensureSlots(value);
+    let changed = false;
+    const next = [...slots];
+    for (let i = 0; i < next.length; i += 1) {
+      const b = next[i];
+      if (!b.enabled || b.type !== 'custom') continue;
+      if (b.customImageUrl?.trim()) continue;
+      if (migratedCustomSlotRef.current.has(i)) continue;
+      migratedCustomSlotRef.current.add(i);
+
+      next[i] = {
+        ...b,
+        ...migrateCustomToListFields(b),
+      } as ContentBlockData;
+      changed = true;
+    }
+    if (changed) onChange(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-wave migration when persisted `value` still uses custom
+  }, [value]);
 
   const updateBlock = (index: number, next: Partial<ContentBlockData>) => {
     const newBlocks = [...blocks];
@@ -217,8 +290,6 @@ function LatestBlogsEditor({
   );
 }
 
-const MAX_LIST_ITEMS = 4;
-
 function ListEditor({
   block,
   onChange,
@@ -254,7 +325,9 @@ function ListEditor({
       padded[i] = items[i] ?? { title: '' };
     }
     padded[index] = { ...padded[index], ...next } as ContentBlockListItem;
-    onChange({ listItems: padded.slice(0, MAX_LIST_ITEMS) });
+    const base =
+      block.type === 'custom' && !block.customImageUrl?.trim() ? migrateCustomToListFields(block) : {};
+    onChange({ ...base, listItems: padded.slice(0, MAX_LIST_ITEMS) });
   };
 
   const clearItem = (index: number) => {
@@ -263,7 +336,9 @@ function ListEditor({
     for (let i = 0; i < maxLen; i += 1) {
       padded[i] = i === index ? { title: '' } : items[i] ?? { title: '' };
     }
-    onChange({ listItems: padded.slice(0, MAX_LIST_ITEMS) });
+    const base =
+      block.type === 'custom' && !block.customImageUrl?.trim() ? migrateCustomToListFields(block) : {};
+    onChange({ ...base, listItems: padded.slice(0, MAX_LIST_ITEMS) });
   };
 
   return (
@@ -272,7 +347,14 @@ function ListEditor({
         <Label>List title</Label>
         <Input
           value={title}
-          onChange={(e) => onChange({ listTitle: e.target.value })}
+          onChange={(e) => {
+            const v = e.target.value;
+            if (block.type === 'custom' && !block.customImageUrl?.trim()) {
+              onChange(migrateCustomToListFields(block, v));
+            } else {
+              onChange({ listTitle: v });
+            }
+          }}
           placeholder="Special Offers"
         />
       </div>
