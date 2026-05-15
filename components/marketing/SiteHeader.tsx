@@ -1,31 +1,20 @@
 import Link from 'next/link';
 import { TailnoteLogo } from '@/components/brand/TailnoteLogo';
-import { Button } from '@/components/ui/button';
+import { SiteHeaderNav } from '@/components/marketing/SiteHeaderNav';
 
 export function SiteHeader() {
   return (
-    <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50 overflow-visible">
-      <div className="mx-auto flex items-center justify-between gap-4 px-4 py-1 max-w-5xl overflow-visible">
+    <header className="sticky top-0 z-50 overflow-visible border-b border-border bg-background/80 backdrop-blur-sm">
+      <div className="mx-auto flex min-w-0 max-w-5xl items-center justify-between gap-3 overflow-visible px-4 py-1">
         <Link
           href="/"
-          className="flex shrink-0 items-center leading-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm -my-10 sm:-my-11 md:-my-12"
+          className="-my-6 flex min-w-0 max-w-[min(100%,14rem)] shrink-0 items-center leading-none rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:max-w-none sm:-my-10 md:-my-11 lg:-my-12"
         >
-          <TailnoteLogo heightClass="h-28 sm:h-32 md:h-36" priority />
+          <TailnoteLogo heightClass="h-20 sm:h-28 md:h-32 lg:h-36" priority />
         </Link>
-        <nav className="flex items-center gap-6 text-sm text-muted-foreground">
-          <Link href="/pricing" className="hover:text-foreground transition-colors">
-            Pricing
-          </Link>
-          <Link href="/templates" className="hover:text-foreground transition-colors">
-            Templates
-          </Link>
-          <Link href="/login" className="hover:text-foreground transition-colors">
-            Log in
-          </Link>
-          <Button asChild size="sm">
-            <Link href="/signup">Sign up</Link>
-          </Button>
-        </nav>
+        <div className="flex shrink-0 items-center gap-2">
+          <SiteHeaderNav />
+        </div>
       </div>
     </header>
   );

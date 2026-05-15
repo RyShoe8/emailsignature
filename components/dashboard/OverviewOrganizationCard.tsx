@@ -60,7 +60,7 @@ export function OverviewOrganizationCard({
           </div>
           <div className="space-y-2">
             <Label htmlFor="org-id">Organization ID</Label>
-            <Input id="org-id" value={organizationId} disabled className="font-mono text-xs" readOnly />
+            <Input id="org-id" value={organizationId} disabled readOnly className="min-w-0 break-all font-mono text-xs" />
             <p className="text-xs text-muted-foreground">Internal reference for support and billing.</p>
           </div>
           <div className="flex items-start gap-3 rounded-md border p-3">

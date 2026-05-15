@@ -16,13 +16,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <header className="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:px-6">
         <h1 className="text-lg font-semibold tracking-tight">Platform admin</h1>
-        <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4">
+        <Link
+          href="/dashboard"
+          className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
+        >
           Back to dashboard
         </Link>
       </header>
-      <div className="p-6 lg:p-8 max-w-5xl">{children}</div>
+      <div className="mx-auto max-w-5xl p-4 sm:p-6 lg:p-8">{children}</div>
     </div>
   );
 }

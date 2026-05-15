@@ -59,10 +59,12 @@ export default async function DashboardHomePage() {
   const emailClicks = byKind.email ?? 0;
 
   return (
-    <div className="space-y-8 max-w-3xl">
+    <div className="mx-auto min-w-0 max-w-3xl space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
-        <p className="text-muted-foreground mt-1">Manage signatures and billing from the sidebar.</p>
+        <p className="mt-1 text-muted-foreground">
+          Manage signatures and billing from the navigation (sidebar on desktop, menu on mobile).
+        </p>
       </div>
 
       <OverviewOrganizationCard

@@ -46,8 +46,8 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-muted/30">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4 py-10 sm:py-12">
+      <Card className="w-full min-w-0 max-w-md">
         <CardHeader>
           <CardTitle>Create your organization</CardTitle>
           <CardDescription>You can invite employees and pick templates after this step.</CardDescription>

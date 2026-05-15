@@ -30,8 +30,8 @@ export default async function PublicSignaturePage({ params }: { params: Promise<
   });
 
   return (
-    <div className="min-h-screen bg-muted/30 p-6">
-      <div className="mx-auto max-w-3xl rounded-lg border bg-white p-6 shadow-sm">
+    <div className="min-h-screen bg-muted/30 p-4 sm:p-6">
+      <div className="mx-auto max-w-3xl overflow-x-auto rounded-lg border bg-white p-4 shadow-sm sm:p-6">
         <div className="signature-email-preview" dangerouslySetInnerHTML={{ __html: html }} />
       </div>
     </div>

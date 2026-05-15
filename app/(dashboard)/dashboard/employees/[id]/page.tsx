@@ -307,7 +307,7 @@ export default function EmployeeDetailPage() {
   }
 
   return (
-    <div className="max-w-7xl space-y-8 w-full min-w-0">
+    <div className="max-w-7xl min-w-0 space-y-8 w-full">
       <Link href="/dashboard/employees" className="text-sm text-muted-foreground hover:text-foreground">
         ← Employees
       </Link>
@@ -332,7 +332,7 @@ export default function EmployeeDetailPage() {
                 ))}
               </select>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>First name</Label>
                 <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} />

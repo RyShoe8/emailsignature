@@ -4,7 +4,11 @@ import { authClient } from '@/lib/auth/client';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 
-export function SignOutButton() {
+type SignOutButtonProps = {
+  onSignedOut?: () => void;
+};
+
+export function SignOutButton({ onSignedOut }: SignOutButtonProps) {
   const router = useRouter();
   return (
     <Button
@@ -13,6 +17,7 @@ export function SignOutButton() {
       className="w-full justify-start px-2"
       onClick={async () => {
         await authClient.signOut();
+        onSignedOut?.();
         router.push('/');
         router.refresh();
       }}

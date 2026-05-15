@@ -75,7 +75,7 @@ export function AdminOrgUsersPanel({ organizationId, organizationName, initialPl
     <div className="space-y-8">
       <div>
         <h2 className="text-xl font-semibold tracking-tight">{organizationName}</h2>
-        <p className="text-xs text-muted-foreground font-mono mt-1">{organizationId}</p>
+        <p className="mt-1 break-all text-xs text-muted-foreground font-mono">{organizationId}</p>
       </div>
 
       <Card>
@@ -172,7 +172,7 @@ function UserRow({
         <div>
           <p className="font-medium">{row.email}</p>
           {row.name ? <p className="text-sm text-muted-foreground">{row.name}</p> : null}
-          <p className="text-xs text-muted-foreground font-mono mt-1">{row.id}</p>
+          <p className="mt-1 break-all text-xs text-muted-foreground font-mono">{row.id}</p>
         </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 max-w-xl">

@@ -12,8 +12,8 @@ export default async function AdminOrganizationsPage() {
         <h2 className="text-xl font-semibold tracking-tight">Organizations</h2>
         <p className="text-sm text-muted-foreground mt-1">Open an organization to view users, roles, and plans.</p>
       </div>
-      <div className="rounded-md border overflow-x-auto">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-md border">
+        <table className="w-full min-w-[36rem] text-sm">
           <thead>
             <tr className="border-b bg-muted/40 text-left">
               <th className="p-3 font-medium">Name</th>

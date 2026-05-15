@@ -16,13 +16,13 @@ export default async function EmployeesPage() {
     .lean();
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="flex items-center justify-between gap-4">
-        <div>
+    <div className="mx-auto max-w-4xl space-y-6 min-w-0">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h1 className="text-2xl font-semibold tracking-tight">Employees</h1>
-          <p className="text-muted-foreground text-sm mt-1">Create and edit team members and assign templates.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Create and edit team members and assign templates.</p>
         </div>
-        <Button asChild>
+        <Button asChild className="shrink-0 self-start sm:self-auto">
           <Link href="/dashboard/employees/new">Add employee</Link>
         </Button>
       </div>

@@ -1,8 +1,6 @@
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getServerSession } from '@/lib/auth/session';
-import { TailnoteLogo } from '@/components/brand/TailnoteLogo';
-import { SignOutButton } from '@/components/dashboard/SignOutButton';
+import { DashboardShell } from '@/components/dashboard/DashboardShell';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,33 +20,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const user = session.user as { email?: string; organizationId?: string; id?: string };
   const { isPlatformAdmin } = await import('@/lib/auth/platformAdmin');
   const showPlatformAdmin = user.id ? await isPlatformAdmin(user.id) : false;
-  const navLinks = showPlatformAdmin ? [...links, { href: '/admin', label: 'Platform admin' }] : links;
 
   return (
-    <div className="min-h-screen flex">
-      <aside className="w-56 shrink-0 border-r bg-muted/20 p-4 flex flex-col gap-6">
-        <div>
-          <Link href="/dashboard" className="block shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm">
-            <TailnoteLogo heightClass="h-12 md:h-14" />
-          </Link>
-          {user.email && <p className="text-xs text-muted-foreground mt-1 truncate">{user.email}</p>}
-        </div>
-        <nav className="flex flex-col gap-1 text-sm">
-          {navLinks.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className="rounded-md px-2 py-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-            >
-              {l.label}
-            </Link>
-          ))}
-        </nav>
-        <div className="mt-auto">
-          <SignOutButton />
-        </div>
-      </aside>
-      <main className="flex-1 overflow-auto p-6 lg:p-10">{children}</main>
-    </div>
+    <DashboardShell email={user.email} navLinks={links} showPlatformAdmin={showPlatformAdmin}>
+      {children}
+    </DashboardShell>
   );
 }

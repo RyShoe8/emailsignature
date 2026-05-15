@@ -61,7 +61,7 @@ export default function NewEmployeePage() {
   }
 
   return (
-    <div className="max-w-lg">
+    <div className="mx-auto max-w-lg min-w-0">
       <Link href="/dashboard/employees" className="text-sm text-muted-foreground hover:text-foreground mb-6 inline-block">
         ← Back
       </Link>
@@ -86,7 +86,7 @@ export default function NewEmployeePage() {
                 ))}
               </select>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>First name</Label>
                 <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} required />

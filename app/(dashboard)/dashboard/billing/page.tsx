@@ -30,7 +30,7 @@ export default function BillingPage() {
   }
 
   return (
-    <div className="max-w-xl space-y-6">
+    <div className="max-w-xl min-w-0 space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Billing</h1>
         <p className="text-muted-foreground text-sm mt-1">Flat organization subscription. Change prices in Stripe.</p>

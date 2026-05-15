@@ -434,8 +434,8 @@ export function SignatureWorkspace() {
   }
 
   return (
-    <div className="space-y-8 max-w-full">
-      <div className="grid gap-8 lg:grid-cols-2 max-w-full">
+    <div className="min-w-0 space-y-8 max-w-full">
+      <div className="grid max-w-full min-w-0 gap-8 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Organization brand</CardTitle>
@@ -517,8 +517,14 @@ export function SignatureWorkspace() {
             </div>
             <div className="space-y-2">
               <Label>Logo</Label>
-              <div className="flex flex-wrap items-center gap-3">
-                <Input type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="max-w-xs" onChange={handleLogoFile} disabled={uploadingLogo} />
+              <div className="flex min-w-0 flex-wrap items-center gap-3">
+                <Input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  className="w-full min-w-0 max-w-full sm:max-w-xs"
+                  onChange={handleLogoFile}
+                  disabled={uploadingLogo}
+                />
                 {uploadingLogo ? <span className="text-xs text-muted-foreground">Uploading…</span> : null}
                 {org.logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element

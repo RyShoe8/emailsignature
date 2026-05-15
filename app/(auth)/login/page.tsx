@@ -72,15 +72,17 @@ function LoginForm() {
             {loading ? 'Signing in…' : 'Continue'}
           </Button>
         </form>
-        <p className="mt-4 text-center text-sm text-muted-foreground">
+        <div className="mt-4 flex min-w-0 flex-col gap-2 text-center text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-1">
           <Link href="/forgot-password" className="underline underline-offset-4">
             Forgot password
           </Link>
-          {' · '}
+          <span className="hidden sm:inline" aria-hidden>
+            ·
+          </span>
           <Link href="/signup" className="underline underline-offset-4">
             Sign up
           </Link>
-        </p>
+        </div>
       </CardContent>
     </Card>
   );

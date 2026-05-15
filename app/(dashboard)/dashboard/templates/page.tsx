@@ -49,7 +49,7 @@ export default function TemplatesDashboardPage() {
   }
 
   return (
-    <div className="max-w-3xl space-y-8">
+    <div className="max-w-3xl min-w-0 space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Templates</h1>
         <p className="text-muted-foreground text-sm mt-1">Presets map to controlled layouts — no raw HTML.</p>
@@ -88,15 +88,18 @@ export default function TemplatesDashboardPage() {
       </Card>
       <div className="border rounded-lg divide-y">
         {rows.map((r) => (
-          <div key={r._id} className="flex items-center justify-between p-4 gap-4">
-            <div>
+          <div
+            key={r._id}
+            className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+          >
+            <div className="min-w-0">
               <p className="font-medium">{r.name}</p>
               <p className="text-xs text-muted-foreground">
                 {r.presetId}
                 {r.includeAnimationSlot ? ' · animation' : ''}
               </p>
             </div>
-            <Button variant="outline" size="sm" type="button" onClick={() => void removeRow(r._id)}>
+            <Button variant="outline" size="sm" type="button" className="shrink-0 self-start sm:self-auto" onClick={() => void removeRow(r._id)}>
               Delete
             </Button>
           </div>
