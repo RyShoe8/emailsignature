@@ -1,5 +1,6 @@
 import { Inter } from 'next/font/google';
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import './globals.css';
 import Providers from '@/components/Providers';
 
@@ -19,6 +20,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.variable}>
+      <head>
+        <Script
+          src="https://analytics.ahrefs.com/analytics.js"
+          data-key="84d4ltvZgmF7PeBybMQ5+g"
+          strategy="afterInteractive"
+        />
+      </head>
       <body className="min-h-screen font-sans antialiased">
         <Providers>{children}</Providers>
       </body>
