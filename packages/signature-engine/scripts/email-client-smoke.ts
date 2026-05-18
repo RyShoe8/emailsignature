@@ -52,7 +52,7 @@ assert.ok(
   'standard: Instagram icon resolves to publicSiteOrigin /email-assets/ with cache-bust query'
 );
 assert.ok(
-  htmlStandard.includes(`${iconBase}icon-reddit.png?v=3`),
+  htmlStandard.includes(`${iconBase}icon-reddit.png?v=4`),
   'standard: Reddit icon resolves to publicSiteOrigin /email-assets/ with cache-bust query'
 );
 

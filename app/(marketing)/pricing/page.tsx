@@ -33,13 +33,31 @@ function primaryPriceLine(plan: PublicPricingPlan): string {
   return `${formatUsd(plan.basePriceCents)}${intervalSuffix(plan.interval)}`;
 }
 
-function seatLine(plan: PublicPricingPlan): string | null {
-  if (plan.interval === 'lifetime') return null;
-  if (plan.additionalUserPriceCents > 0) {
-    return `+ ${formatUsd(plan.additionalUserPriceCents)} per additional user${intervalSuffix(plan.interval)} (beyond ${plan.includedUsers} included)`;
-  }
+function includedUsersLine(plan: PublicPricingPlan): string {
   const n = Math.max(1, plan.includedUsers);
-  return `Includes ${n} user${n === 1 ? '' : 's'} — no additional users`;
+  return `${n} user${n === 1 ? '' : 's'} included`;
+}
+
+function additionalUsersLine(plan: PublicPricingPlan): string | null {
+  if (plan.interval === 'lifetime' || plan.additionalUserPriceCents <= 0) return null;
+  return `+ ${formatUsd(plan.additionalUserPriceCents)} per additional user${intervalSuffix(plan.interval)}`;
+}
+
+function noAdditionalUsersLine(plan: PublicPricingPlan): string | null {
+  if (plan.additionalUserPriceCents > 0) return null;
+  const n = Math.max(1, plan.includedUsers);
+  if (n <= 1) return null;
+  return 'No additional users beyond included seats';
+}
+
+function subscriptionAvailabilityLine(plan: PublicPricingPlan): string | null {
+  const max = plan.maxSubscriptionSlots;
+  if (max <= 0) return null;
+  const remaining = Math.max(0, max - plan.subscriptionCount);
+  if (plan.soldOut) {
+    return `No subscriptions available (${max} total, all claimed)`;
+  }
+  return `${remaining} of ${max} subscription${max === 1 ? '' : 's'} available`;
 }
 
 export default async function PricingPage() {
@@ -59,8 +77,10 @@ export default async function PricingPage() {
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(16rem,1fr))]">
           {plans.map((plan) => {
-            const seats = seatLine(plan);
             const description = plan.description.trim();
+            const additionalUsers = additionalUsersLine(plan);
+            const noAdditionalUsers = noAdditionalUsersLine(plan);
+            const subscriptionAvailability = subscriptionAvailabilityLine(plan);
 
             return (
               <Card key={plan.slug} className="flex flex-col">
@@ -85,7 +105,16 @@ export default async function PricingPage() {
                 </CardHeader>
                 <CardContent className="flex flex-1 flex-col gap-2">
                   <p className="text-3xl font-semibold">{primaryPriceLine(plan)}</p>
-                  {seats ? <p className="text-sm text-muted-foreground">{seats}</p> : null}
+                  <ul className="space-y-1 text-sm text-muted-foreground">
+                    <li>{includedUsersLine(plan)}</li>
+                    {additionalUsers ? <li>{additionalUsers}</li> : null}
+                    {noAdditionalUsers ? <li>{noAdditionalUsers}</li> : null}
+                    {subscriptionAvailability ? (
+                      <li className={plan.soldOut ? 'text-destructive' : undefined}>
+                        {subscriptionAvailability}
+                      </li>
+                    ) : null}
+                  </ul>
                   <p className="text-sm text-muted-foreground mt-auto pt-2">Per organization</p>
                 </CardContent>
                 <CardFooter>

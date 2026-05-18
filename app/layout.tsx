@@ -1,5 +1,5 @@
 import { Inter } from 'next/font/google';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import './globals.css';
 import Providers from '@/components/Providers';
@@ -15,6 +15,11 @@ export const metadata: Metadata = {
     template: '%s — Tailnote',
   },
   description: 'Professional email signatures for modern teams.',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

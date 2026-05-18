@@ -117,7 +117,8 @@ export function AdminPlansTable({
   return (
     <div className="space-y-4">
       {msg ? <p className="text-sm text-muted-foreground">{msg}</p> : null}
-      <div className="overflow-x-auto rounded-md border">
+      <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+        <div className="overflow-x-auto rounded-md border min-w-0">
         <table className="w-full min-w-[52rem] text-sm">
           <thead>
             <tr className="border-b bg-muted/40 text-left">
@@ -195,6 +196,7 @@ export function AdminPlansTable({
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

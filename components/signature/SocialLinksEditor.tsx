@@ -27,7 +27,7 @@ const PLATFORM_META: Record<Platform, { name: string; bg: string; iconUrl: strin
   linkedin: { name: 'LinkedIn', bg: '#0A66C2', iconUrl: '/email-assets/icon-linkedin.png?v=2' },
   facebook: { name: 'Facebook', bg: '#1877F2', iconUrl: '/email-assets/icon-facebook.png?v=2' },
   instagram: { name: 'Instagram', bg: '#E1306C', iconUrl: '/email-assets/icon-instagram.png?v=2' },
-  reddit: { name: 'Reddit', bg: '#FF4500', iconUrl: '/email-assets/icon-reddit.png?v=3' },
+  reddit: { name: 'Reddit', bg: '#FF4500', iconUrl: '/email-assets/icon-reddit.png?v=4' },
   discord: { name: 'Discord', bg: '#5865F2', iconUrl: '/email-assets/icon-discord.png?v=2' },
 };
 

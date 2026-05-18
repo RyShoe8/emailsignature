@@ -12,7 +12,8 @@ export default async function AdminOrganizationsPage() {
         <h2 className="text-xl font-semibold tracking-tight">Organizations</h2>
         <p className="text-sm text-muted-foreground mt-1">Open an organization to view users, roles, and plans.</p>
       </div>
-      <div className="overflow-x-auto rounded-md border">
+      <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+        <div className="overflow-x-auto rounded-md border min-w-0">
         <table className="w-full min-w-[36rem] text-sm">
           <thead>
             <tr className="border-b bg-muted/40 text-left">
@@ -51,6 +52,7 @@ export default async function AdminOrganizationsPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

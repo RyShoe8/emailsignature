@@ -54,13 +54,13 @@ export default async function EmployeesPage() {
               href={`/dashboard/employees/${e._id}`}
               className="flex items-center justify-between p-4 hover:bg-muted/40 transition-colors"
             >
-              <div>
-                <p className="font-medium">
+              <div className="min-w-0 flex-1 pr-3">
+                <p className="truncate font-medium">
                   {e.firstName} {e.lastName}
                 </p>
-                <p className="text-sm text-muted-foreground">{e.email}</p>
+                <p className="truncate text-sm text-muted-foreground">{e.email}</p>
               </div>
-              <span className="text-xs text-muted-foreground">Edit</span>
+              <span className="shrink-0 text-xs text-muted-foreground">Edit</span>
             </Link>
           ))
         )}

@@ -111,7 +111,7 @@ function MobileSignaturePreviewFrame({
     <div
       ref={frameRef}
       className="signature-email-preview signature-email-preview--mobile sig-mobile-preview-container rounded-md border bg-white p-4 text-left"
-      style={{ width: mobileFrameWidth, maxWidth: '100%', minHeight: 200 }}
+      style={{ width: '100%', maxWidth: mobileFrameWidth, minHeight: 200 }}
     >
       <div
         style={{

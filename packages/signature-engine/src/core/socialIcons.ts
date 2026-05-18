@@ -6,5 +6,5 @@
 export const SOCIAL_ICON_LINKEDIN = '/email-assets/icon-linkedin.png?v=2';
 export const SOCIAL_ICON_FACEBOOK = '/email-assets/icon-facebook.png?v=2';
 export const SOCIAL_ICON_INSTAGRAM = '/email-assets/icon-instagram.png?v=2';
-export const SOCIAL_ICON_REDDIT = '/email-assets/icon-reddit.png?v=3';
+export const SOCIAL_ICON_REDDIT = '/email-assets/icon-reddit.png?v=4';
 export const SOCIAL_ICON_DISCORD = '/email-assets/icon-discord.png?v=2';

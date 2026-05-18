@@ -780,7 +780,7 @@ export function SignatureWorkspace() {
           <CardTitle>Live preview</CardTitle>
           <CardDescription>See your changes in real-time across Desktop and Mobile.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-8 max-w-full min-w-0 max-h-[calc(100dvh-3rem)] overflow-y-auto overscroll-contain">
+        <CardContent className="space-y-8 max-w-full min-w-0 lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto lg:overscroll-contain">
           <div className="grid grid-cols-1 gap-10 min-w-0">
             <div className="min-w-0 space-y-2">
               <p className="text-xs text-muted-foreground font-medium">Desktop</p>

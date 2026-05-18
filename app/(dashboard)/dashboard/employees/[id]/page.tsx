@@ -522,7 +522,7 @@ export default function EmployeeDetailPage() {
           <CardTitle>Preview & export</CardTitle>
           <CardDescription>Desktop and mobile frames; hosted page matches saved data.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-8 max-w-full min-w-0 max-h-[calc(100dvh-3rem)] overflow-y-auto overscroll-contain">
+        <CardContent className="space-y-8 max-w-full min-w-0 lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto lg:overscroll-contain">
           <SignatureForm value={profile} onChange={setProfile} />
           <div className="grid grid-cols-1 gap-10 min-w-0">
             <div className="min-w-0 space-y-2">
