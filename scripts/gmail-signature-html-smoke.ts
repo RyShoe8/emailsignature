@@ -193,6 +193,14 @@ assert.ok(!/<style/i.test(profPrepared.html), 'professional: strips style blocks
 assert.ok(!/sig-blocks-desktop/i.test(profPrepared.html), 'professional: removes desktop promo column');
 assert.ok(/sig-blocks-stacked-row/i.test(profPrepared.html), 'professional: keeps stacked promo row');
 assert.ok(profPrepared.html.includes('Recent Wins'), 'professional: keeps promo content');
+assert.ok(
+  /text-decoration:\s*none/i.test(profPrepared.html),
+  'professional: preserves link underline suppression'
+);
+assert.ok(
+  /vertical-align:\s*top/i.test(profPrepared.html) || /valign="top"/i.test(profPrepared.html),
+  'professional: preserves logo column top alignment'
+);
 assert.strictEqual(
   profPrepared.stackedPromosRemoved,
   false,
@@ -223,6 +231,14 @@ const trackedProfPrepared = prepareSignatureHtmlForGmailDetailed(trackedProfessi
 assert.ok(
   trackedProfPrepared.html.includes('Recent Wins'),
   'tracked professional: keeps promo content'
+);
+assert.ok(
+  /text-decoration:\s*none/i.test(trackedProfPrepared.html),
+  'tracked professional: preserves link underline suppression'
+);
+assert.ok(
+  /vertical-align:\s*top/i.test(trackedProfPrepared.html) || /valign="top"/i.test(trackedProfPrepared.html),
+  'tracked professional: preserves logo column top alignment'
 );
 assert.strictEqual(
   trackedProfPrepared.stackedPromosRemoved,

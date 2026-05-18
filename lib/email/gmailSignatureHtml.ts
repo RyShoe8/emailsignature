@@ -205,17 +205,18 @@ function trimProfessionalInlineStyles(html: string): string {
     .replace(/background-color:#f0f4ff;border-radius:10px;padding:10px/g, 'background-color:#f0f4ff;padding:8px')
     .replace(/background-color:#f3f4f6;border-radius:8px;padding:8px 12px/g, 'background-color:#f3f4f6;padding:6px 10px')
     .replace(/border-radius:16px;overflow:hidden;/g, 'border-radius:12px;')
-    .replace(/border-collapse:separate;border-spacing:0;max-width:660px;width:100%;border:2px solid/g, 'border-collapse:collapse;width:100%;border:2px solid');
+    .replace(/border-collapse:separate;border-spacing:0;max-width:660px;width:100%;border:2px solid/g, 'border-collapse:collapse;width:100%;border:2px solid')
+    .replace(/padding:8px 10px 0 10px/g, 'padding:8px 10px 0')
+    .replace(/padding:10px 10px 0 10px/g, 'padding:10px 0')
+    .replace(/padding:8px 10px 10px 10px/g, 'padding:8px 10px')
+    .replace(/display:inline-block;/gi, '');
 }
 
 /** Additional minification when Professional + tracking is still over the Gmail limit. */
 function aggressiveMinifyForGmail(html: string): string {
   return html
     .replace(/<div style="height:[^"]*">&nbsp;<\/div>/gi, '')
-    .replace(/vertical-align:top;/gi, '')
-    .replace(/line-height:0;font-size:0;/gi, '')
     .replace(/border-collapse:collapse;/gi, '')
-    .replace(/text-decoration:none;/gi, '')
     .replace(/\swidth="100%"/gi, '')
     .replace(/alt=""/gi, '');
 }

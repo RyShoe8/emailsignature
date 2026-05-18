@@ -95,7 +95,7 @@ export const PROFESSIONAL_SIGNATURE_TEMPLATE = `<style type="text/css">
       <table class="sig-corp-header-layout-table" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;">
         <tr>
           <!-- Logo column -->
-          <td class="sig-corp-logo-stack" width="{{logoWidth}}" style="vertical-align:top;line-height:0;font-size:0;padding-right:14px;width:{{logoWidth}}px;">
+          <td class="sig-corp-logo-stack" valign="top" width="{{logoWidth}}" style="vertical-align:top;line-height:0;font-size:0;padding-right:14px;width:{{logoWidth}}px;">
             {{#if hasLogo}}
             <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr>
               <td bgcolor="#f0f4ff" style="background-color:#f0f4ff;border-radius:12px;padding:6px;line-height:0;font-size:0;">
