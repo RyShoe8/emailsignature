@@ -9,4 +9,9 @@ export { UserSignatureProfileModel, type UserSignatureProfileDoc } from './UserS
 export { GmailIntegrationModel, type GmailIntegrationDoc } from './GmailIntegration';
 export { EmployeeModel, type EmployeeDoc } from './Employee';
 export { SignatureTemplateModel, type SignatureTemplateDoc } from './SignatureTemplate';
+export {
+  SignaturePresetCatalogModel,
+  type SignaturePresetCatalogDoc,
+  type CatalogPresetId,
+} from './SignaturePresetCatalog';
 export { StripeWebhookEventModel, type StripeWebhookEventDoc } from './StripeWebhookEvent';

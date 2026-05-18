@@ -74,7 +74,7 @@ export function DashboardShell({ email, navLinks, showPlatformAdmin, children }:
   const closeMobile = () => setMobileOpen(false);
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
+    <div className="flex min-h-screen flex-col md:h-dvh md:max-h-dvh md:flex-row md:overflow-hidden">
       <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between gap-3 border-b bg-background/95 px-4 backdrop-blur md:hidden">
         <Link
           href="/dashboard"
@@ -110,7 +110,7 @@ export function DashboardShell({ email, navLinks, showPlatformAdmin, children }:
         </Sheet>
       </header>
 
-      <aside className="hidden min-h-screen w-56 shrink-0 flex-col gap-6 border-r bg-muted/20 p-4 md:flex">
+      <aside className="hidden h-full min-h-0 w-56 shrink-0 flex-col gap-4 overflow-hidden border-r bg-muted/20 p-4 md:flex">
         <div className="min-w-0 shrink-0">
           <Link
             href="/dashboard"
@@ -120,10 +120,10 @@ export function DashboardShell({ email, navLinks, showPlatformAdmin, children }:
           </Link>
           {email ? <p className="mt-1 truncate text-xs text-muted-foreground">{email}</p> : null}
         </div>
-        <div className="flex min-h-0 flex-1 flex-col gap-4">
+        <div className="min-h-0 flex-1 overflow-y-auto">
           <DashboardNavLinks navLinks={navLinks} />
-          <DashboardSidebarFooter showPlatformAdmin={showPlatformAdmin} className="mt-auto" />
         </div>
+        <DashboardSidebarFooter showPlatformAdmin={showPlatformAdmin} />
       </aside>
 
       <main className="min-h-0 min-w-0 flex-1 overflow-auto p-4 md:p-6 lg:p-10">{children}</main>

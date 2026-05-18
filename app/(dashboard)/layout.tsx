@@ -7,7 +7,6 @@ export const dynamic = 'force-dynamic';
 const links = [
   { href: '/dashboard', label: 'Overview' },
   { href: '/dashboard/employees', label: 'Employees' },
-  { href: '/dashboard/templates', label: 'Templates' },
   { href: '/dashboard/signature', label: 'Signature' },
   { href: '/dashboard/billing', label: 'Billing' },
 ];

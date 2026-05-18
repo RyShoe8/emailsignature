@@ -8,7 +8,13 @@ import { EmployeeModel } from '@/models/Employee';
 import { SignatureTemplateModel } from '@/models/SignatureTemplate';
 import { canUsePaidFeatures } from '@/lib/orgAccess';
 import { getDefaultTemplateForOrg } from '@/lib/seedOrgTemplates';
+import { findOrgTemplateWithAvailablePreset } from '@/lib/templates/validateOrgTemplate';
 import { syncStripeSubscriptionSeatsForOrganization } from '@/lib/stripe/syncSubscriptionSeats';
+import {
+  assertCanAddEmployee,
+  EmployeeLimitReachedError,
+  getEmployeeLimitsForOrganization,
+} from '@/lib/billing/employeeLimits';
 
 type SessionUser = { organizationId?: string };
 
@@ -38,10 +44,13 @@ export async function GET() {
     return NextResponse.json({ employees: [] });
   }
   await connectMongoose();
-  const employees = await EmployeeModel.find({ organizationId: user.organizationId })
-    .sort({ createdAt: -1 })
-    .lean();
-  return NextResponse.json({ employees });
+  const [employees, limits] = await Promise.all([
+    EmployeeModel.find({ organizationId: user.organizationId })
+      .sort({ createdAt: -1 })
+      .lean(),
+    getEmployeeLimitsForOrganization(user.organizationId),
+  ]);
+  return NextResponse.json({ employees, limits });
 }
 
 const CreateSchema = z.object({
@@ -73,6 +82,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
+  try {
+    await assertCanAddEmployee(org._id);
+  } catch (e) {
+    if (e instanceof EmployeeLimitReachedError) {
+      return NextResponse.json(
+        {
+          error: e.message,
+          code: e.code,
+          maxEmployees: e.maxEmployees,
+          currentCount: e.currentCount,
+        },
+        { status: 403 }
+      );
+    }
+    throw e;
+  }
+
   let templateId = parsed.data.templateId;
   if (!templateId) {
     const def = await getDefaultTemplateForOrg(org._id);
@@ -81,12 +107,9 @@ export async function POST(request: Request) {
     }
     templateId = def._id.toString();
   } else {
-    const t = await SignatureTemplateModel.findOne({
-      _id: templateId,
-      organizationId: org._id,
-    });
+    const t = await findOrgTemplateWithAvailablePreset(templateId, org._id);
     if (!t) {
-      return NextResponse.json({ error: 'Invalid template' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid or unavailable template' }, { status: 400 });
     }
   }
 

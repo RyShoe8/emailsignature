@@ -114,6 +114,9 @@ export function AdminPlanForm({
               value={form.additionalUserPriceCents}
               onChange={(e) => setForm((f) => ({ ...f, additionalUserPriceCents: Number(e.target.value) }))}
             />
+            <p className="text-xs text-muted-foreground">
+              Set to 0 to disallow employees beyond included users (no seat add-ons).
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="inc">Included users</Label>

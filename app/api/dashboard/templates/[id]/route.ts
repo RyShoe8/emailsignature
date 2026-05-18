@@ -4,8 +4,8 @@ import { connectMongoose } from '@/lib/mongoose';
 import { getServerSession } from '@/lib/auth/session';
 import { OrganizationModel } from '@/models/Organization';
 import { SignatureTemplateModel } from '@/models/SignatureTemplate';
-import { EmployeeModel } from '@/models/Employee';
 import { getBillingEntitlements } from '@/lib/billing/entitlements';
+import { findOrgTemplateWithAvailablePreset } from '@/lib/templates/validateOrgTemplate';
 
 type SessionUser = { organizationId?: string };
 
@@ -38,6 +38,11 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
+  const available = await findOrgTemplateWithAvailablePreset(id, org._id);
+  if (!available) {
+    return NextResponse.json({ error: 'Template preset is not available' }, { status: 400 });
+  }
+
   let json: unknown;
   try {
     json = await request.json();
@@ -57,22 +62,4 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
   await template.save();
   return NextResponse.json({ template: template.toObject() });
-}
-
-export async function DELETE(_request: Request, context: { params: Promise<{ id: string }> }) {
-  const ctx = await requireOrgMember();
-  if ('error' in ctx) return ctx.error;
-  const { org } = ctx;
-  const { id } = await context.params;
-
-  const inUse = await EmployeeModel.exists({ organizationId: org._id, templateId: id });
-  if (inUse) {
-    return NextResponse.json({ error: 'Template is assigned to employees' }, { status: 400 });
-  }
-
-  const res = await SignatureTemplateModel.deleteOne({ _id: id, organizationId: org._id });
-  if (res.deletedCount === 0) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  }
-  return NextResponse.json({ ok: true });
 }

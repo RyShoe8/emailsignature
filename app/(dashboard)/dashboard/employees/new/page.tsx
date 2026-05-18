@@ -21,8 +21,23 @@ export default function NewEmployeePage() {
   const [phone, setPhone] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [canAddMore, setCanAddMore] = useState(true);
+  const [limitMessage, setLimitMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    fetch('/api/dashboard/employees', { credentials: 'include' })
+      .then((r) => r.json())
+      .then((d) => {
+        const limits = d.limits as { canAddMore?: boolean; maxEmployees?: number | null } | undefined;
+        if (limits && limits.canAddMore === false && limits.maxEmployees != null) {
+          setCanAddMore(false);
+          setLimitMessage(
+            `Your plan includes ${limits.maxEmployees} user${limits.maxEmployees === 1 ? '' : 's'}. Choose a plan with additional users on Billing to add more.`
+          );
+        }
+      })
+      .catch(() => {});
+
     fetch('/api/dashboard/templates')
       .then((r) => r.json())
       .then((d) => {
@@ -71,6 +86,9 @@ export default function NewEmployeePage() {
           <CardDescription>Stored fields map into the signature engine.</CardDescription>
         </CardHeader>
         <CardContent>
+          {limitMessage ? (
+            <p className="mb-4 text-sm text-muted-foreground rounded-md border border-dashed p-3">{limitMessage}</p>
+          ) : null}
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label>Template</Label>
@@ -109,7 +127,7 @@ export default function NewEmployeePage() {
               <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || !canAddMore}>
               {loading ? 'Saving…' : 'Create'}
             </Button>
           </form>

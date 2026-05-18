@@ -9,6 +9,8 @@ import { SignatureClickEventModel } from '@/models/SignatureClickEvent';
 import { OrganizationModel } from '@/models/Organization';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { OverviewOrganizationCard } from '@/components/dashboard/OverviewOrganizationCard';
+import { getOrgEnabledPromoBlockSlots } from '@/lib/signatureContentBlockAnalytics';
+import { getEnabledPresetIds } from '@/lib/templates/getEnabledPresets';
 
 function sumKinds(byKind: Record<string, number>, keys: string[]) {
   return keys.reduce((acc, k) => acc + (byKind[k] ?? 0), 0);
@@ -25,14 +27,21 @@ export default async function DashboardHomePage() {
   const oid = new mongoose.Types.ObjectId(user.organizationId);
   const since30 = new Date(Date.now() - 30 * 86400000);
 
-  const [employees, templates, clickAgg, orgDoc] = await Promise.all([
+  const enabledPresetIds = await getEnabledPresetIds();
+  const enabledPresetList = [...enabledPresetIds];
+
+  const [employees, templates, clickAgg, orgDoc, promoSlots] = await Promise.all([
     EmployeeModel.countDocuments({ organizationId: user.organizationId }),
-    SignatureTemplateModel.countDocuments({ organizationId: user.organizationId }),
+    SignatureTemplateModel.countDocuments({
+      organizationId: user.organizationId,
+      presetId: { $in: enabledPresetList },
+    }),
     SignatureClickEventModel.aggregate<{ _id: string; count: number }>([
       { $match: { organizationId: oid, createdAt: { $gte: since30 } } },
       { $group: { _id: '$kind', count: { $sum: 1 } } },
     ]),
     OrganizationModel.findById(user.organizationId),
+    getOrgEnabledPromoBlockSlots(user.organizationId),
   ]);
 
   if (!orgDoc) {
@@ -83,13 +92,13 @@ export default async function DashboardHomePage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Templates</CardTitle>
-            <CardDescription>Minimal, Stacked, and Corporate presets.</CardDescription>
+            <CardTitle>Layout presets</CardTitle>
+            <CardDescription>Signature layouts available for employees.</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold">{templates}</p>
-            <Link href="/dashboard/templates" className="text-sm text-muted-foreground underline underline-offset-4 mt-2 inline-block">
-              View
+            <Link href="/dashboard/signature" className="text-sm text-muted-foreground underline underline-offset-4 mt-2 inline-block">
+              Signature settings
             </Link>
           </CardContent>
         </Card>
@@ -147,6 +156,17 @@ export default async function DashboardHomePage() {
               <p className="text-3xl font-semibold">{socialClicks}</p>
             </CardContent>
           </Card>
+          {promoSlots.map((slot) => (
+            <Card key={slot.kind}>
+              <CardHeader>
+                <CardTitle>{slot.label}</CardTitle>
+                <CardDescription>{slot.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-semibold">{byKind[slot.kind] ?? 0}</p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
 

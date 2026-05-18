@@ -4,7 +4,7 @@ import { connectMongoose } from '@/lib/mongoose';
 import { getServerSession } from '@/lib/auth/session';
 import { OrganizationModel } from '@/models/Organization';
 import { EmployeeModel } from '@/models/Employee';
-import { SignatureTemplateModel } from '@/models/SignatureTemplate';
+import { findOrgTemplateWithAvailablePreset } from '@/lib/templates/validateOrgTemplate';
 import { canUsePaidFeatures } from '@/lib/orgAccess';
 import { syncStripeSubscriptionSeatsForOrganization } from '@/lib/stripe/syncSubscriptionSeats';
 
@@ -115,14 +115,11 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   }
 
   if (parsed.data.templateId) {
-    const t = await SignatureTemplateModel.findOne({
-      _id: parsed.data.templateId,
-      organizationId: org._id,
-    });
+    const t = await findOrgTemplateWithAvailablePreset(parsed.data.templateId, org._id);
     if (!t) {
-      return NextResponse.json({ error: 'Invalid template' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid or unavailable template' }, { status: 400 });
     }
-    employee.templateId = t._id;
+    employee.templateId = t._id as typeof employee.templateId;
   }
 
   const data = parsed.data;

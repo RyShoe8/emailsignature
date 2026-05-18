@@ -52,7 +52,7 @@ assert.ok(
   'standard: Instagram icon resolves to publicSiteOrigin /email-assets/ with cache-bust query'
 );
 assert.ok(
-  htmlStandard.includes(`${iconBase}icon-reddit.png?v=2`),
+  htmlStandard.includes(`${iconBase}icon-reddit.png?v=3`),
   'standard: Reddit icon resolves to publicSiteOrigin /email-assets/ with cache-bust query'
 );
 
@@ -68,7 +68,7 @@ const htmlDiscord = renderSignature({
   publicSiteOrigin: origin,
 });
 assert.ok(
-  htmlDiscord.includes(`${iconBase}icon-discord.png?v=1`),
+  htmlDiscord.includes(`${iconBase}icon-discord.png?v=2`),
   'standard: Discord icon resolves to publicSiteOrigin /email-assets/ with cache-bust query'
 );
 assert.match(

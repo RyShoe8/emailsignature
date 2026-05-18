@@ -38,10 +38,8 @@ function seatLine(plan: PublicPricingPlan): string | null {
   if (plan.additionalUserPriceCents > 0) {
     return `+ ${formatUsd(plan.additionalUserPriceCents)} per additional user${intervalSuffix(plan.interval)} (beyond ${plan.includedUsers} included)`;
   }
-  if (plan.includedUsers > 1) {
-    return `Includes ${plan.includedUsers} users`;
-  }
-  return null;
+  const n = Math.max(1, plan.includedUsers);
+  return `Includes ${n} user${n === 1 ? '' : 's'} — no additional users`;
 }
 
 export default async function PricingPage() {
