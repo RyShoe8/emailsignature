@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { getPublicPricingPlans, type PublicPricingPlan } from '@/lib/billing/getPublicPricingPlans';
+import { CORE_PRODUCT_FEATURE_BULLETS } from '@/lib/marketing/productFeatures';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,18 +50,8 @@ function subscriptionCap(plan: PublicPricingPlan): { max: number; remaining: num
 }
 
 function planFeatureBullets(plan: PublicPricingPlan): string[] {
-  const bullets = [
-    'Every professional signature template — Standard, Corporate, Professional, and more',
-    'One brand look across your whole team',
-    'Install to Gmail in a click, plus copy-ready HTML for Outlook',
-    'Promotional content blocks on premium layouts',
-    'Optional click analytics on signature links',
-  ];
-
   const seats = seatPolicyLine(plan);
-  if (seats) bullets.push(seats);
-
-  return bullets;
+  return [...CORE_PRODUCT_FEATURE_BULLETS, ...(seats ? [seats] : [])];
 }
 
 function SubscriptionAvailabilityCallout({ plan }: { plan: PublicPricingPlan }) {

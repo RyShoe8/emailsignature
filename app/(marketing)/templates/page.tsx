@@ -1,6 +1,9 @@
 import { connectMongoose } from '@/lib/mongoose';
 import { getActiveCatalogPresets } from '@/lib/templates/getEnabledPresets';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { MarketingSignaturePreview } from '@/components/marketing/MarketingSignaturePreview';
+import type { TemplatePresetId } from '@/lib/email/templatePresets';
+import { renderMarketingSample } from '@/lib/marketing/renderMarketingSample';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,16 +25,21 @@ export default async function TemplatesMarketingPage() {
       {presets.length === 0 ? (
         <p className="text-sm text-muted-foreground">No templates are currently available.</p>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {presets.map((t) => (
-            <Card key={t.presetId}>
-              <CardHeader>
-                <CardTitle>{t.name}</CardTitle>
-                <CardDescription>{t.description}</CardDescription>
-              </CardHeader>
-              <CardContent />
-            </Card>
-          ))}
+        <div className="grid gap-6 md:grid-cols-2">
+          {presets.map((t) => {
+            const html = renderMarketingSample(t.presetId as TemplatePresetId);
+            return (
+              <Card key={t.presetId} className="min-w-0 overflow-hidden">
+                <CardHeader>
+                  <CardTitle>{t.name}</CardTitle>
+                  <CardDescription>{t.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="min-w-0">
+                  <MarketingSignaturePreview html={html} />
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

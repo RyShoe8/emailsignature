@@ -1,24 +1,61 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { HomeFeatures } from '@/components/marketing/HomeFeatures';
+import { HomePricingTeaser } from '@/components/marketing/HomePricingTeaser';
+import { HomeTemplateShowcase } from '@/components/marketing/HomeTemplateShowcase';
+import { getPublicPricingPlans } from '@/lib/billing/getPublicPricingPlans';
+import { getActiveCatalogPresets } from '@/lib/templates/getEnabledPresets';
 
-export default function HomePage() {
+export const dynamic = 'force-dynamic';
+
+export const metadata = {
+  title: 'Tailnote — Professional email signatures for teams',
+  description:
+    'Create, manage, and deploy on-brand email signatures with built-in UTM tracking, Gmail install, and polished templates.',
+};
+
+export default async function HomePage() {
+  const [plans, presets] = await Promise.all([getPublicPricingPlans(), getActiveCatalogPresets()]);
+
   return (
-    <div className="mx-auto min-w-0 max-w-3xl px-4 py-12 text-center sm:py-24">
-      <p className="mb-4 text-sm font-medium text-muted-foreground">Tailnote</p>
-      <h1 className="mb-6 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl">
-        Professional email signatures for modern teams.
-      </h1>
-      <p className="mx-auto mb-10 max-w-2xl text-base text-muted-foreground sm:text-lg">
-        Create, manage, and deploy consistent company signatures in minutes.
-      </p>
-      <div className="flex flex-wrap items-center justify-center gap-3">
-        <Button asChild size="lg">
-          <Link href="/signup">Get started</Link>
+    <div className="mx-auto min-w-0 max-w-6xl space-y-20 px-4 py-12 sm:py-16 lg:space-y-24 lg:py-20">
+      <section className="mx-auto max-w-3xl text-center">
+        <p className="mb-4 text-sm font-medium text-muted-foreground">Tailnote</p>
+        <h1 className="mb-6 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl">
+          Professional signatures your whole team can ship today
+        </h1>
+        <p className="mx-auto mb-10 max-w-2xl text-base text-muted-foreground sm:text-lg">
+          On-brand email signatures for every employee — with built-in UTM tracking, one-click Gmail install,
+          and layouts that look great in real inboxes.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Button asChild size="lg">
+            <Link href="/signup">Get started free</Link>
+          </Button>
+          <Button asChild variant="outline" size="lg">
+            <Link href="/pricing">View pricing</Link>
+          </Button>
+        </div>
+      </section>
+
+      <HomeFeatures />
+
+      <HomePricingTeaser plans={plans} />
+
+      <HomeTemplateShowcase presets={presets} />
+
+      <section className="rounded-2xl border border-primary/20 bg-primary/5 px-6 py-12 text-center sm:px-10">
+        <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+          Ready to upgrade every email your team sends?
+        </h2>
+        <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
+          Join teams using Tailnote for consistent branding, measurable link traffic, and signatures that
+          actually render correctly.
+        </p>
+        <Button asChild size="lg" className="mt-8">
+          <Link href="/signup">Create your account</Link>
         </Button>
-        <Button asChild variant="outline" size="lg">
-          <Link href="/pricing">View pricing</Link>
-        </Button>
-      </div>
+      </section>
     </div>
   );
 }
