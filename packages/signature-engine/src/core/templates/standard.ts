@@ -1,22 +1,17 @@
 /**
  * Table-based standard layout (logo left, contact right).
- * Content blocks sit in a third column on desktop; on narrow viewports a duplicate
- * copy renders in a full-width row below (same HTML twice — only one visible via @media).
+ * Content blocks sit in a third column on desktop; on narrow viewports a stacked-style
+ * full-width row after divider/address (same HTML twice — only one visible via @media).
  * Uses {{variables}} and {{#if key}}...{{/if}} (non-nested).
  */
 export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
 @media only screen and (min-width:601px),
   only screen and (min-device-width:601px) {
-  table.sig-blocks-mobile-sibling {
+  tr.sig-blocks-stacked-row {
     display: none !important;
     max-height: 0 !important;
     overflow: hidden !important;
     mso-hide: all;
-  }
-  tr.sig-blocks-mobile-host td {
-    padding: 0 !important;
-    line-height: 0 !important;
-    font-size: 0 !important;
   }
   td.sig-blocks-desktop {
     display: table-cell !important;
@@ -44,21 +39,8 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
     overflow: hidden !important;
     mso-hide: all;
   }
-  table.sig-blocks-mobile-sibling {
-    display: table !important;
-    width: 100% !important;
-    max-height: none !important;
-  }
-  tr.sig-blocks-mobile-host td {
-    line-height: normal !important;
-    font-size: 14px !important;
-    padding: 0 !important;
-  }
-  td.sig-blocks-mobile {
-    padding-left: 14px !important;
-    padding-right: 14px !important;
-    padding-top: 12px !important;
-    box-sizing: border-box !important;
+  tr.sig-blocks-stacked-row {
+    display: table-row !important;
   }
   td.sig-content-block-cell {
     display: block !important;
@@ -178,24 +160,6 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
     </td>
     {{/if}}
   </tr>
-  {{#if sideColumnContentBlocks}}
-  <tr class="sig-blocks-mobile-host">
-    <td colspan="{{signatureRootColspan}}" style="padding:0;line-height:0;font-size:0;mso-line-height-rule:exactly;">
-      <table class="sig-blocks-mobile-sibling" cellpadding="0" cellspacing="0" border="0" width="100%" role="presentation" style="width:100%;max-width:660px;border-collapse:collapse;">
-        <tr>
-          <td style="padding:14px 14px 0 14px;font-size:0;line-height:0;mso-line-height-rule:exactly;">
-            <table cellpadding="0" cellspacing="0" border="0" width="100%" role="presentation" style="border-collapse:collapse;width:100%;">
-              <tr>
-                <td bgcolor="#e5e5e5" height="1" style="font-size:0;line-height:0;mso-line-height-rule:exactly;padding:0;height:1px;background-color:#e5e5e5;border:0;">&nbsp;</td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-        <tr><td class="sig-blocks-mobile" style="padding:12px 14px 14px 14px;box-sizing:border-box;">{{contentBlocksHtml}}</td></tr>
-      </table>
-    </td>
-  </tr>
-  {{/if}}
 
   {{#if hasDivider}}
   <tr>
@@ -213,6 +177,14 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
   <tr>
     <td colspan="{{signatureRootColspan}}" style="padding-top:10px; font-size:12px; color:#555;">
       {{addressBlockHtml}}
+    </td>
+  </tr>
+  {{/if}}
+
+  {{#if sideColumnContentBlocks}}
+  <tr class="sig-blocks-stacked-row">
+    <td colspan="{{signatureRootColspan}}" style="padding-top:12px;">
+      {{contentBlocksHtml}}
     </td>
   </tr>
   {{/if}}

@@ -235,14 +235,18 @@ assert.ok(
   'corporate: promotional block title rows prefer a single line with ellipsis overflow'
 );
 assert.ok(
-  htmlListImage.includes('sig-blocks-mobile-sibling') &&
-    htmlListImage.includes('sig-blocks-mobile-host'),
-  'corporate: nested mobile blocks table for narrow viewports is present'
+  htmlListImage.includes('sig-blocks-stacked-row'),
+  'corporate: stacked-style mobile blocks row is present'
+);
+assert.doesNotMatch(
+  htmlListImage,
+  /sig-blocks-mobile-sibling/,
+  'corporate: no nested mobile sibling blocks table'
 );
 assert.match(
   htmlListImage,
-  /@media only screen and \(min-width:601px\)[\s\S]*?table\.sig-blocks-mobile-sibling[\s\S]*?display:\s*none\s*!important/,
-  'corporate: wide viewport @media hides the mobile-only nested blocks table'
+  /@media only screen and \(min-width:601px\)[\s\S]*?tr\.sig-blocks-stacked-row[\s\S]*?display:\s*none\s*!important/,
+  'corporate: wide viewport @media hides the mobile-only stacked blocks row'
 );
 assert.match(
   htmlListImage,
@@ -321,8 +325,13 @@ assert.match(
 );
 assert.match(
   htmlListImage,
-  /sig-blocks-mobile-sibling[\s\S]*?bgcolor="#e5e5e5"[\s\S]*?class="sig-blocks-mobile"/,
-  'corporate: mobile blocks table includes inline divider before promo content'
+  /sig-blocks-stacked-row[\s\S]*?Recent Wins/,
+  'corporate: promo blocks render in stacked mobile row'
+);
+assert.match(
+  htmlListImage,
+  /sig-blocks-stacked-row[\s\S]*?padding-top:12px/,
+  'corporate: stacked row uses stacked-style spacing'
 );
 assert.match(
   htmlListImage,
@@ -455,14 +464,28 @@ assert.ok(
   'minimal: root and mobile blocks table share 660px max width'
 );
 assert.ok(
-  htmlMinimalBlocks.includes('sig-blocks-mobile-sibling') &&
-    htmlMinimalBlocks.includes('sig-blocks-mobile-host'),
-  'minimal: nested mobile blocks table for narrow viewports is present'
+  htmlMinimalBlocks.includes('sig-blocks-stacked-row'),
+  'minimal: stacked-style mobile blocks row is present'
+);
+assert.doesNotMatch(
+  htmlMinimalBlocks,
+  /sig-blocks-mobile-sibling/,
+  'minimal: no nested mobile sibling blocks table'
 );
 assert.match(
   htmlMinimalBlocks,
-  /@media only screen and \(min-width:601px\)[\s\S]*?table\.sig-blocks-mobile-sibling[\s\S]*?display:\s*none\s*!important/,
-  'minimal: wide viewport @media hides the mobile-only nested blocks table'
+  /@media only screen and \(min-width:601px\)[\s\S]*?tr\.sig-blocks-stacked-row[\s\S]*?display:\s*none\s*!important/,
+  'minimal: wide viewport @media hides the mobile-only stacked blocks row'
+);
+assert.match(
+  htmlMinimalBlocks,
+  /sig-blocks-stacked-row[\s\S]*?Resources/,
+  'minimal: promo blocks render in stacked mobile row'
+);
+assert.match(
+  htmlMinimalBlocks,
+  /123 Main St[\s\S]*?sig-blocks-stacked-row[\s\S]*?Resources/,
+  'minimal: stacked row appears after address'
 );
 assert.match(
   htmlMinimalBlocks,
@@ -556,10 +579,9 @@ assert.match(
   /@media only screen and \(min-width:601px\)[\s\S]*?td\.sig-content-block-cell-left[\s\S]*?padding-right:\s*12px/,
   'minimal: desktop @media adds gutter before promo block divider'
 );
-assert.match(
-  htmlMinimalTwoBlocks,
-  /sig-blocks-mobile-sibling[\s\S]*?bgcolor="#e5e5e5"[\s\S]*?class="sig-blocks-mobile"/,
-  'minimal: mobile blocks table includes inline divider before promo content'
+assert.ok(
+  htmlMinimalTwoBlocks.includes('sig-blocks-stacked-row'),
+  'minimal: two-block fixture includes stacked mobile row'
 );
 assert.match(
   htmlMinimalTwoBlocks,
