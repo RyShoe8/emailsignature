@@ -14,9 +14,19 @@ type Props = {
 export const DEFAULT_MOBILE_FRAME_WIDTH = 404;
 export const STACKED_MOBILE_FRAME_WIDTH = 420;
 
+const CLIP_PADDING_PX = 2;
+const PROF_CARD_SHELL_BLEED_PX = 8;
+
 export function mobileFrameWidthForLayout(layout?: SignatureLayout): number {
   if (layout === 'stacked') return STACKED_MOBILE_FRAME_WIDTH;
   return DEFAULT_MOBILE_FRAME_WIDTH;
+}
+
+function measureContentSize(content: HTMLElement): { width: number; height: number } {
+  const rect = content.getBoundingClientRect();
+  const width = Math.max(1, Math.ceil(rect.width), content.scrollWidth);
+  const height = Math.max(1, Math.ceil(rect.height), content.scrollHeight);
+  return { width, height };
 }
 
 /**
@@ -79,8 +89,7 @@ function MobileSignaturePreviewFrame({
     const measure = () => {
       if (!frameRef.current || !contentRef.current) return;
       const frameW = frameRef.current.clientWidth || mobileFrameWidth;
-      const nw = Math.max(1, contentRef.current.scrollWidth);
-      const nh = Math.max(1, contentRef.current.scrollHeight);
+      const { width: nw, height: nh } = measureContentSize(contentRef.current);
       const nextScale = nw > 0 ? Math.min(1, frameW / nw) : 1;
       setNaturalW(nw);
       setNaturalH(nh);
@@ -105,14 +114,15 @@ function MobileSignaturePreviewFrame({
   }, [html, animationKey, mobileFrameWidth]);
 
   const hasProfCardShell = html.includes('sig-prof-card-shell');
-  const borderBleed = hasProfCardShell ? 4 : 0;
-  const scaledW = Math.ceil(naturalW * scale) + borderBleed;
-  const scaledH = Math.ceil(naturalH * scale) + borderBleed;
+  const borderBleed = hasProfCardShell ? PROF_CARD_SHELL_BLEED_PX : 0;
+  const clipPad = hasProfCardShell ? CLIP_PADDING_PX : 0;
+  const scaledW = Math.ceil(naturalW * scale) + borderBleed + clipPad * 2;
+  const scaledH = Math.ceil(naturalH * scale) + borderBleed + clipPad * 2;
 
   return (
     <div
       ref={frameRef}
-      className="signature-email-preview signature-email-preview--mobile sig-mobile-preview-container rounded-md border bg-white p-4 text-left"
+      className="signature-email-preview signature-email-preview--mobile sig-mobile-preview-container rounded-md border bg-white p-4 text-left overflow-x-auto"
       style={{ width: '100%', maxWidth: mobileFrameWidth, minHeight: 200 }}
     >
       <div
@@ -120,7 +130,9 @@ function MobileSignaturePreviewFrame({
           width: scaledW,
           maxWidth: '100%',
           height: scaledH,
-          overflow: 'hidden',
+          overflow: hasProfCardShell ? 'visible' : 'hidden',
+          boxSizing: 'border-box',
+          padding: clipPad,
           marginLeft: 'auto',
           marginRight: 'auto',
         }}

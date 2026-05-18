@@ -444,6 +444,15 @@ assert.match(
 );
 assert.match(
   htmlProfessional,
+  /tr\.sig-prof-accent-row[\s\S]*display:\s*none\s*!important/,
+  'professional: mobile @media hides inner accent bar (card shell border replaces it)'
+);
+assert.ok(
+  htmlProfessional.includes('class="sig-prof-accent-row"'),
+  'professional: accent bar row has sig-prof-accent-row class'
+);
+assert.match(
+  htmlProfessional,
   /class="sig-corp-logo-stack"[^>]*style="[^"]*padding-right:14px/,
   'professional: tighter logo gutter than corporate'
 );

@@ -68,14 +68,20 @@ export const PROFESSIONAL_SIGNATURE_TEMPLATE = `<style type="text/css">
     box-sizing: border-box !important;
     overflow: visible !important;
   }
+  tr.sig-prof-accent-row {
+    display: none !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    mso-hide: all;
+  }
 }
 </style>
 <table class="sig-prof-card-shell" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:separate;border-spacing:0;max-width:660px;width:100%;border:2px solid {{primaryColor}};border-radius:16px;overflow:hidden;background-color:#ffffff;">
   <tr>
     <td style="padding:0;">
 <table class="sig-root-layout-table" cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family: {{fontFamily}}, Arial, Helvetica, sans-serif; font-size:14px; color:#444; line-height:1.35; max-width:660px;width:100%;">
-  <!-- Accent bar -->
-  <tr>
+  <!-- Accent bar (hidden on narrow viewports; card shell top border replaces it) -->
+  <tr class="sig-prof-accent-row">
     <td colspan="3" style="padding:0;">
       <table cellpadding="0" cellspacing="0" border="0" width="100%" role="presentation" style="border-collapse:collapse;width:100%;">
         <tr>
