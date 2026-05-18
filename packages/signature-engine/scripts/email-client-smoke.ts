@@ -328,10 +328,20 @@ assert.match(
   /sig-blocks-stacked-row[\s\S]*?Recent Wins/,
   'corporate: promo blocks render in stacked mobile row'
 );
+assert.doesNotMatch(
+  htmlListImage,
+  /<tr class="sig-blocks-stacked-row"[\s\S]*?sig-content-blocks-grid/,
+  'corporate: stacked row uses vertical promo markup without side-by-side grid'
+);
 assert.match(
   htmlListImage,
   /sig-blocks-stacked-row[\s\S]*?padding-top:12px/,
   'corporate: stacked row uses stacked-style spacing'
+);
+assert.match(
+  htmlListImage,
+  /bgcolor="#e5e5e5"[^>]*height:1px/,
+  'corporate: divider uses solid grey rule (Gmail-safe)'
 );
 assert.match(
   htmlListImage,
@@ -434,8 +444,18 @@ assert.match(
 );
 assert.match(
   htmlProfessional,
-  /bgcolor="#2563eb"[^>]*border-radius:10px 10px 0 0/,
-  'professional: hero name band on brand color'
+  /bgcolor="#f0f4ff"[^>]*border-radius:10px[\s\S]*color:#2563eb/,
+  'professional: hero grey panel with name in brand color'
+);
+const profGreyPanelCount = (htmlProfessional.match(/bgcolor="#f0f4ff"/g) ?? []).length;
+assert.ok(
+  profGreyPanelCount >= 3,
+  `professional: multiple grey panels (logo, hero, contact/social); got ${profGreyPanelCount}`
+);
+assert.match(
+  htmlProfessional,
+  /bgcolor="#f3f4f6"[\s\S]*color:#2563eb[\s\S]*Acme Corp/,
+  'professional: footer grey panel with brand-colored company name'
 );
 assert.ok(
   htmlProfessionalBlocks.includes('sig-blocks-stacked-row') &&
@@ -540,6 +560,11 @@ assert.match(
   htmlMinimalBlocks,
   /sig-blocks-stacked-row[\s\S]*?Resources/,
   'minimal: promo blocks render in stacked mobile row'
+);
+assert.doesNotMatch(
+  htmlMinimalBlocks,
+  /<tr class="sig-blocks-stacked-row"[\s\S]*?sig-content-blocks-grid/,
+  'minimal: stacked row uses vertical promo markup without side-by-side grid'
 );
 assert.match(
   htmlMinimalBlocks,
@@ -687,6 +712,36 @@ assert.match(
   htmlStackedBlocks,
   /src="https:\/\/example\.com\/images\/stacked\.png[^"]*"/,
   'stacked: image block renders inside the new bottom row'
+);
+
+const htmlStackedTwoBlocks = renderSignature({
+  profile,
+  brand: {
+    ...mockSignatureBrand,
+    contentBlocks: [
+      {
+        type: 'list',
+        enabled: true,
+        listTitle: 'Resources',
+        listItems: [{ title: 'Guide', url: 'https://example.com/guide' }],
+      },
+      {
+        type: 'image',
+        enabled: true,
+        imageUrl: 'https://example.com/images/stacked-two.png',
+      },
+    ],
+  },
+  template: stackedTemplate,
+  publicSiteOrigin: origin,
+});
+assert.ok(
+  !htmlStackedTwoBlocks.includes('sig-content-blocks-grid'),
+  'stacked: two promo blocks render vertically without desktop grid'
+);
+assert.ok(
+  !htmlStackedTwoBlocks.includes('sig-content-block-cell-right'),
+  'stacked: no border-top line above second promo block title'
 );
 
 // Legacy custom block still renders for back-compat reads — but without "Learn more".

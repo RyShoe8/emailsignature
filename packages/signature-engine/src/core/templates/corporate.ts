@@ -230,7 +230,7 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
     <td colspan="3" style="padding-top:16px;">
       <table cellpadding="0" cellspacing="0" border="0" width="100%" role="presentation" style="border-collapse:collapse;width:100%;">
         <tr>
-          <td bgcolor="{{primaryColor}}" height="1" style="font-size:0;line-height:0;mso-line-height-rule:exactly;padding:0;height:1px;background-color:{{primaryColor}};border:0;opacity:0.25;">&nbsp;</td>
+          <td bgcolor="#e5e5e5" height="1" style="font-size:0;line-height:0;mso-line-height-rule:exactly;padding:0;height:1px;background-color:#e5e5e5;border:0;">&nbsp;</td>
         </tr>
       </table>
     </td>
@@ -248,7 +248,7 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
   {{#if sideColumnContentBlocks}}
   <tr class="sig-blocks-stacked-row">
     <td colspan="3" style="padding-top:12px;">
-      {{contentBlocksHtml}}
+      {{contentBlocksHtmlStacked}}
     </td>
   </tr>
   {{/if}}

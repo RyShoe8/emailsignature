@@ -114,7 +114,7 @@ export const STACKED_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing="0
   {{#if hasContentBlocks}}
   <tr>
     <td colspan="2" style="padding-top:12px;">
-      {{contentBlocksHtml}}
+      {{contentBlocksHtmlStacked}}
     </td>
   </tr>
   {{/if}}

@@ -198,16 +198,9 @@ function substituteVariables(html: string, strings: Record<string, string>): str
   });
 }
 
-/**
- * Render content blocks HTML for side-column layouts (standard / corporate).
- * Produces email-safe table markup for up to 2 blocks; two blocks become a 50/50 row on desktop.
- */
-function renderContentBlocksHtml(
-  blocks: ContentBlockData[],
-  origin: string
-): string {
+function buildContentBlockParts(blocks: ContentBlockData[], origin: string): string[] {
   const enabled = blocks.filter((b) => b.enabled).slice(0, 2);
-  if (enabled.length === 0) return '';
+  if (enabled.length === 0) return [];
 
   const parts: string[] = [];
 
@@ -318,16 +311,30 @@ function renderContentBlocksHtml(
     }
   }
 
-  if (parts.length === 0) return '';
-  if (parts.length === 1) return parts[0]!;
+  return parts;
+}
+
+/**
+ * Render content blocks for side-column (desktop) and stacked (mobile/Gmail) layouts.
+ */
+function renderContentBlocksHtml(
+  blocks: ContentBlockData[],
+  origin: string
+): { desktop: string; stacked: string } {
+  const parts = buildContentBlockParts(blocks, origin);
+  if (parts.length === 0) return { desktop: '', stacked: '' };
+
+  const stacked = parts.join('');
+  if (parts.length === 1) return { desktop: parts[0]!, stacked };
 
   const [left, right] = parts;
-  return `<table class="sig-content-blocks-grid" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;">
+  const desktop = `<table class="sig-content-blocks-grid" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;">
 <tr>
 <td class="sig-content-block-cell sig-content-block-cell-left" valign="top" width="50%" style="vertical-align:top;width:50%;">${left}</td>
 <td class="sig-content-block-cell sig-content-block-cell-right" valign="top" width="50%" style="vertical-align:top;width:50%;border-top:1px solid #e5e5e5;">${right}</td>
 </tr>
 </table>`;
+  return { desktop, stacked };
 }
 
 /**
@@ -484,9 +491,14 @@ export function mergeRenderContext(
   // Content blocks
   const contentBlocks = brand.contentBlocks?.filter((b) => b.enabled) ?? [];
   const hasContentBlocks = hasContentBlocksEl && contentBlocks.length > 0;
-  const contentBlocksHtml = hasContentBlocks
+  const contentBlocksRendered = hasContentBlocks
     ? renderContentBlocksHtml(contentBlocks, origin)
-    : '';
+    : { desktop: '', stacked: '' };
+  const useVerticalBlocksOnly = template.layout === 'stacked';
+  const contentBlocksHtml = useVerticalBlocksOnly
+    ? contentBlocksRendered.stacked
+    : contentBlocksRendered.desktop;
+  const contentBlocksHtmlStacked = contentBlocksRendered.stacked;
 
   /** Standard layout: optional third column for blocks (stacked keeps blocks below). */
   const sideColumnContentBlocks =
@@ -551,6 +563,7 @@ export function mergeRenderContext(
     socialTdRedditStyle,
     socialTdDiscordStyle,
     contentBlocksHtml,
+    contentBlocksHtmlStacked,
     signatureRootColspan,
   };
 

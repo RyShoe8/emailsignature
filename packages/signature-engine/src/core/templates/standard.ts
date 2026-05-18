@@ -184,7 +184,7 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
   {{#if sideColumnContentBlocks}}
   <tr class="sig-blocks-stacked-row">
     <td colspan="{{signatureRootColspan}}" style="padding-top:12px;">
-      {{contentBlocksHtml}}
+      {{contentBlocksHtmlStacked}}
     </td>
   </tr>
   {{/if}}
