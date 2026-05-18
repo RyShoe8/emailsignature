@@ -6,4 +6,5 @@ export const stripePriceIds = {
   pro: process.env.STRIPE_PRO_PRICE_ID ?? '',
 } as const;
 
-export const MAX_TEMPLATES_BASIC = 3;
+/** Matches the four built-in presets (minimal, stacked, corporate, professional). */
+export const MAX_TEMPLATES_BASIC = 4;

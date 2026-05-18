@@ -57,7 +57,9 @@ export default function TemplatesDashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle>Add template</CardTitle>
-          <CardDescription>Choose a preset. Pro plans can enable animation slot for GIF logos.</CardDescription>
+          <CardDescription>
+            All four layouts are available on every plan. Pro plans can enable the animation slot for GIF logos.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={create} className="space-y-4">

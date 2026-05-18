@@ -5,12 +5,11 @@ import { getServerSession } from '@/lib/auth/session';
 import { OrganizationModel } from '@/models/Organization';
 import { SignatureTemplateModel } from '@/models/SignatureTemplate';
 import { EmployeeModel } from '@/models/Employee';
-import { canUsePaidFeatures } from '@/lib/orgAccess';
 import { getBillingEntitlements } from '@/lib/billing/entitlements';
 
 type SessionUser = { organizationId?: string };
 
-async function requireOrg() {
+async function requireOrgMember() {
   const session = await getServerSession();
   if (!session?.user) return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
   const user = session.user as SessionUser;
@@ -20,9 +19,6 @@ async function requireOrg() {
   await connectMongoose();
   const org = await OrganizationModel.findById(user.organizationId);
   if (!org) return { error: NextResponse.json({ error: 'Organization not found' }, { status: 404 }) };
-  if (!canUsePaidFeatures(org)) {
-    return { error: NextResponse.json({ error: 'Subscription required' }, { status: 402 }) };
-  }
   return { org, user };
 }
 
@@ -32,7 +28,7 @@ const PatchSchema = z.object({
 });
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
-  const ctx = await requireOrg();
+  const ctx = await requireOrgMember();
   if ('error' in ctx) return ctx.error;
   const { org } = ctx;
   const { id } = await context.params;
@@ -64,7 +60,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 }
 
 export async function DELETE(_request: Request, context: { params: Promise<{ id: string }> }) {
-  const ctx = await requireOrg();
+  const ctx = await requireOrgMember();
   if ('error' in ctx) return ctx.error;
   const { org } = ctx;
   const { id } = await context.params;

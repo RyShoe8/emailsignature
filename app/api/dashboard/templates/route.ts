@@ -4,9 +4,9 @@ import { connectMongoose } from '@/lib/mongoose';
 import { getServerSession } from '@/lib/auth/session';
 import { OrganizationModel, type OrganizationDoc } from '@/models/Organization';
 import { SignatureTemplateModel } from '@/models/SignatureTemplate';
-import { canUsePaidFeatures } from '@/lib/orgAccess';
 import { getBillingEntitlements } from '@/lib/billing/entitlements';
 import { renameModernTemplatesToStacked } from '@/lib/email/renameModernTemplates';
+import { ensureOrgPresetTemplates } from '@/lib/seedOrgTemplates';
 
 type SessionUser = { organizationId?: string };
 
@@ -14,7 +14,7 @@ function maxTemplates(org: OrganizationDoc) {
   return getBillingEntitlements(org).maxTemplates;
 }
 
-async function requireOrg() {
+async function requireOrgMember() {
   const session = await getServerSession();
   if (!session?.user) return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
   const user = session.user as SessionUser;
@@ -24,9 +24,6 @@ async function requireOrg() {
   await connectMongoose();
   const org = await OrganizationModel.findById(user.organizationId);
   if (!org) return { error: NextResponse.json({ error: 'Organization not found' }, { status: 404 }) };
-  if (!canUsePaidFeatures(org)) {
-    return { error: NextResponse.json({ error: 'Subscription required' }, { status: 402 }) };
-  }
   return { org, user };
 }
 
@@ -41,6 +38,7 @@ export async function GET() {
   }
   await connectMongoose();
   await renameModernTemplatesToStacked(user.organizationId);
+  await ensureOrgPresetTemplates(user.organizationId);
   const templates = await SignatureTemplateModel.find({ organizationId: user.organizationId })
     .sort({ createdAt: 1 })
     .lean();
@@ -54,7 +52,7 @@ const PostSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const ctx = await requireOrg();
+  const ctx = await requireOrgMember();
   if ('error' in ctx) return ctx.error;
   const { org } = ctx;
 
