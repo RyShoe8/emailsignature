@@ -3,7 +3,7 @@ import { getActiveCatalogPresets } from '@/lib/templates/getEnabledPresets';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MarketingSignaturePreview } from '@/components/marketing/MarketingSignaturePreview';
 import type { TemplatePresetId } from '@/lib/email/templatePresets';
-import { renderMarketingSample } from '@/lib/marketing/renderMarketingSample';
+import { marketingTemplateScreenshotPath } from '@/lib/marketing/marketingTemplateScreenshots';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +28,7 @@ export default async function TemplatesMarketingPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
           {presets.map((t) => {
-            const html = renderMarketingSample(t.presetId as TemplatePresetId);
+            const presetId = t.presetId as TemplatePresetId;
             return (
               <Card key={t.presetId} className="min-w-0 overflow-hidden">
                 <CardHeader>
@@ -36,7 +36,10 @@ export default async function TemplatesMarketingPage() {
                   <CardDescription>{t.description}</CardDescription>
                 </CardHeader>
                 <CardContent className="min-w-0">
-                  <MarketingSignaturePreview html={html} />
+                  <MarketingSignaturePreview
+                    imageSrc={marketingTemplateScreenshotPath(presetId)}
+                    alt={`${t.name} signature example`}
+                  />
                 </CardContent>
               </Card>
             );

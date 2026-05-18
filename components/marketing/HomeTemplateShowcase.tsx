@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MarketingSignaturePreview } from '@/components/marketing/MarketingSignaturePreview';
 import type { TemplatePresetId } from '@/lib/email/templatePresets';
-import { renderMarketingSample } from '@/lib/marketing/renderMarketingSample';
+import { marketingTemplateScreenshotPath } from '@/lib/marketing/marketingTemplateScreenshots';
 import type { CatalogPresetRow } from '@/lib/templates/getEnabledPresets';
 
 type Props = {
@@ -21,8 +21,8 @@ export function HomeTemplateShowcase({ presets }: Props) {
             Templates built for signatures and promotional blocks
           </h2>
           <p className="mt-2 max-w-2xl text-muted-foreground">
-            Each layout ships with live promo examples — book-a-call buttons, offer lists, blog feeds, and
-            image banners — so you can see how Tailnote turns email into a marketing channel.
+            Real customer-style examples with promotional blocks — so you can see how Tailnote turns email
+            into a marketing channel.
           </p>
         </div>
         <Button asChild variant="outline" className="shrink-0 self-start sm:self-auto">
@@ -31,7 +31,7 @@ export function HomeTemplateShowcase({ presets }: Props) {
       </div>
       <div className="grid gap-6 sm:grid-cols-2">
         {presets.map((preset) => {
-          const html = renderMarketingSample(preset.presetId as TemplatePresetId);
+          const presetId = preset.presetId as TemplatePresetId;
           return (
             <Card key={preset.presetId} className="min-w-0 overflow-hidden">
               <CardHeader className="pb-3">
@@ -41,7 +41,10 @@ export function HomeTemplateShowcase({ presets }: Props) {
                 ) : null}
               </CardHeader>
               <CardContent className="min-w-0 pt-0">
-                <MarketingSignaturePreview html={html} />
+                <MarketingSignaturePreview
+                  imageSrc={marketingTemplateScreenshotPath(presetId)}
+                  alt={`${preset.name} signature example`}
+                />
               </CardContent>
             </Card>
           );

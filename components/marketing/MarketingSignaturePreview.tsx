@@ -1,10 +1,29 @@
 type Props = {
-  html: string;
+  html?: string;
+  imageSrc?: string;
+  alt?: string;
   className?: string;
 };
 
-/** Full signature HTML preview for marketing pages (no clipped scroll regions). */
-export function MarketingSignaturePreview({ html, className }: Props) {
+/** Marketing preview: static screenshot or live HTML fallback. */
+export function MarketingSignaturePreview({ html, imageSrc, alt, className }: Props) {
+  if (imageSrc) {
+    return (
+      <div className={className ?? 'min-w-0 rounded-md bg-muted/20 p-1'}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={imageSrc}
+          alt={alt ?? 'Signature template example'}
+          className="block h-auto w-full"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+    );
+  }
+
+  if (!html) return null;
+
   return (
     <div
       className={
