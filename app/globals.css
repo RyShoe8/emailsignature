@@ -124,7 +124,7 @@
       & td.sig-blocks-mobile {
         padding-left: 14px !important;
         padding-right: 14px !important;
-        padding-top: 14px !important;
+        padding-top: 12px !important;
         box-sizing: border-box !important;
       }
       & td.sig-content-block-cell {
@@ -138,6 +138,15 @@
         padding-left: 0 !important;
         padding-right: 0 !important;
         padding-bottom: 12px !important;
+      }
+      & td.sig-content-block-cell-left {
+        padding-bottom: 14px !important;
+      }
+      & td.sig-content-block-cell-right {
+        border-left: none !important;
+        border-top: 1px solid #e5e5e5 !important;
+        padding-top: 14px !important;
+        padding-left: 0 !important;
       }
     }
   }

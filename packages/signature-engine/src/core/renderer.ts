@@ -324,7 +324,7 @@ function renderContentBlocksHtml(
   return `<table class="sig-content-blocks-grid" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;">
 <tr>
 <td class="sig-content-block-cell sig-content-block-cell-left" valign="top" width="50%" style="vertical-align:top;width:50%;">${left}</td>
-<td class="sig-content-block-cell sig-content-block-cell-right" valign="top" width="50%" style="vertical-align:top;width:50%;">${right}</td>
+<td class="sig-content-block-cell sig-content-block-cell-right" valign="top" width="50%" style="vertical-align:top;width:50%;border-top:1px solid #e5e5e5;">${right}</td>
 </tr>
 </table>`;
 }

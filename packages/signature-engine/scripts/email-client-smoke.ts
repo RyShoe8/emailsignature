@@ -321,13 +321,18 @@ assert.match(
 );
 assert.match(
   htmlListImage,
-  /@media only screen and \(max-width:600px\)[\s\S]*?td\.sig-blocks-mobile[\s\S]*?border-top:\s*1px solid #e5e5e5/,
-  'corporate: mobile @media adds separator above promotional blocks'
+  /sig-blocks-mobile-sibling[\s\S]*?bgcolor="#e5e5e5"[\s\S]*?class="sig-blocks-mobile"/,
+  'corporate: mobile blocks table includes inline divider before promo content'
 );
 assert.match(
   htmlListImage,
   /@media only screen and \(max-width:600px\)[\s\S]*?td\.sig-content-block-cell-right[\s\S]*?border-top:\s*1px solid #e5e5e5/,
   'corporate: mobile @media adds separator between stacked promo blocks'
+);
+assert.match(
+  htmlListImage,
+  /sig-content-block-cell-right[^>]*border-top:1px solid #e5e5e5/,
+  'corporate: dual promo right cell includes inline border for stacked mobile separator'
 );
 
 // Corporate template should not show redundant Phone/Email/Web labels — the values
@@ -553,8 +558,13 @@ assert.match(
 );
 assert.match(
   htmlMinimalTwoBlocks,
-  /@media only screen and \(max-width:600px\)[\s\S]*?td\.sig-blocks-mobile[\s\S]*?border-top:\s*1px solid #e5e5e5/,
-  'minimal: mobile @media adds separator above promotional blocks'
+  /sig-blocks-mobile-sibling[\s\S]*?bgcolor="#e5e5e5"[\s\S]*?class="sig-blocks-mobile"/,
+  'minimal: mobile blocks table includes inline divider before promo content'
+);
+assert.match(
+  htmlMinimalTwoBlocks,
+  /sig-content-block-cell-right[^>]*border-top:1px solid #e5e5e5/,
+  'minimal: dual promo right cell includes inline border for stacked mobile separator'
 );
 assert.match(
   htmlMinimalTwoBlocks,

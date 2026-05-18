@@ -57,8 +57,7 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
   td.sig-blocks-mobile {
     padding-left: 14px !important;
     padding-right: 14px !important;
-    padding-top: 16px !important;
-    border-top: 1px solid #e5e5e5 !important;
+    padding-top: 12px !important;
     box-sizing: border-box !important;
   }
   td.sig-content-block-cell {
@@ -183,7 +182,16 @@ export const STANDARD_SIGNATURE_TEMPLATE = `<style type="text/css">
   <tr class="sig-blocks-mobile-host">
     <td colspan="{{signatureRootColspan}}" style="padding:0;line-height:0;font-size:0;mso-line-height-rule:exactly;">
       <table class="sig-blocks-mobile-sibling" cellpadding="0" cellspacing="0" border="0" width="100%" role="presentation" style="width:100%;max-width:660px;border-collapse:collapse;">
-        <tr><td class="sig-blocks-mobile">{{contentBlocksHtml}}</td></tr>
+        <tr>
+          <td style="padding:14px 14px 0 14px;font-size:0;line-height:0;mso-line-height-rule:exactly;">
+            <table cellpadding="0" cellspacing="0" border="0" width="100%" role="presentation" style="border-collapse:collapse;width:100%;">
+              <tr>
+                <td bgcolor="#e5e5e5" height="1" style="font-size:0;line-height:0;mso-line-height-rule:exactly;padding:0;height:1px;background-color:#e5e5e5;border:0;">&nbsp;</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr><td class="sig-blocks-mobile" style="padding:12px 14px 14px 14px;box-sizing:border-box;">{{contentBlocksHtml}}</td></tr>
       </table>
     </td>
   </tr>
