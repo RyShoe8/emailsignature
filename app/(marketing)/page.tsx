@@ -20,13 +20,12 @@ export default async function HomePage() {
   return (
     <div className="mx-auto min-w-0 max-w-6xl space-y-20 px-4 py-12 sm:py-16 lg:space-y-24 lg:py-20">
       <section className="mx-auto max-w-3xl text-center">
-        <p className="mb-4 text-sm font-medium text-muted-foreground">Tailnote</p>
         <h1 className="mb-6 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl">
           Turn every email into a mini marketing campaign
         </h1>
         <p className="mx-auto mb-10 max-w-2xl text-base text-muted-foreground sm:text-lg">
-          Tailnote is more than a signature tool — pair your brand with promotional content blocks, built-in
-          UTM tracking, and layouts that look great in Gmail and Outlook.
+          Tailnote is more than a signature tool — pair your brand with promotional content blocks, click
+          through analytics, built-in UTM tracking, and layouts that look great in Gmail and Outlook.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Button asChild size="lg">

@@ -135,11 +135,20 @@
         padding-top: 14px !important;
         padding-left: 0 !important;
       }
+      & table.sig-prof-card-shell {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
+      }
     }
   }
 
   /* Mobile preview: only the outer-most signature table flexes; nested block tables keep intrinsic width for measurement. */
-  .signature-email-preview--mobile .mobile-signature-scale-root > table:first-of-type {
+  .signature-email-preview--mobile .mobile-signature-scale-root > table:first-of-type,
+  .signature-email-preview--mobile .mobile-signature-scale-root > table.sig-prof-card-shell {
     max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 }

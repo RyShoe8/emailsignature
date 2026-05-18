@@ -439,6 +439,11 @@ assert.match(
 );
 assert.match(
   htmlProfessional,
+  /table\.sig-prof-card-shell[\s\S]*box-sizing:\s*border-box\s*!important/,
+  'professional: mobile @media includes card shell box-sizing for narrow viewports'
+);
+assert.match(
+  htmlProfessional,
   /class="sig-corp-logo-stack"[^>]*style="[^"]*padding-right:14px/,
   'professional: tighter logo gutter than corporate'
 );

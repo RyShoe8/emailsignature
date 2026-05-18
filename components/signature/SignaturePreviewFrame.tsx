@@ -104,8 +104,10 @@ function MobileSignaturePreviewFrame({
     };
   }, [html, animationKey, mobileFrameWidth]);
 
-  const scaledW = Math.ceil(naturalW * scale);
-  const scaledH = Math.ceil(naturalH * scale);
+  const hasProfCardShell = html.includes('sig-prof-card-shell');
+  const borderBleed = hasProfCardShell ? 4 : 0;
+  const scaledW = Math.ceil(naturalW * scale) + borderBleed;
+  const scaledH = Math.ceil(naturalH * scale) + borderBleed;
 
   return (
     <div

@@ -62,6 +62,12 @@ export const PROFESSIONAL_SIGNATURE_TEMPLATE = `<style type="text/css">
     padding-top: 14px !important;
     padding-left: 0 !important;
   }
+  table.sig-prof-card-shell {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+  }
 }
 </style>
 <table class="sig-prof-card-shell" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:separate;border-spacing:0;max-width:660px;width:100%;border:2px solid {{primaryColor}};border-radius:16px;overflow:hidden;background-color:#ffffff;">
