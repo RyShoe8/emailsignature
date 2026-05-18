@@ -1,6 +1,7 @@
 'use client';
 
 import { useLayoutEffect, useRef, useState } from 'react';
+import type { SignatureLayout } from 'emailsignature-engine';
 
 type Props = {
   html: string;
@@ -10,13 +11,18 @@ type Props = {
   mobileFrameWidth?: number;
 };
 
-export const DEFAULT_MOBILE_FRAME_WIDTH = 360;
-export const STACKED_MOBILE_FRAME_WIDTH = 385;
+export const DEFAULT_MOBILE_FRAME_WIDTH = 404;
+export const STACKED_MOBILE_FRAME_WIDTH = 420;
+
+export function mobileFrameWidthForLayout(layout?: SignatureLayout): number {
+  if (layout === 'stacked') return STACKED_MOBILE_FRAME_WIDTH;
+  return DEFAULT_MOBILE_FRAME_WIDTH;
+}
 
 /**
  * Renders signature HTML in either a flexible desktop card or a phone-sized
  * mobile frame. The mobile variant:
- *   - constrains width (default 360px; wider when `mobileFrameWidth` is set for stacked)
+ *   - constrains width (default 404px; wider when `mobileFrameWidth` is set for stacked)
  *   - measures intrinsic content width/height, scales down if needed
  *   - clips using an outer box sized to the scaled footprint so transforms do not
  *     spill past overflow:hidden (avoids right-edge clipping)

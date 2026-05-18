@@ -17,11 +17,16 @@ import { ContentBlocksEditor } from '@/components/signature/ContentBlocksEditor'
 import { SocialLinksEditor } from '@/components/signature/SocialLinksEditor';
 import type { ContentBlockData } from 'emailsignature-engine';
 import { SignatureForm } from '@/components/signature/SignatureForm';
-import { SignaturePreviewFrame, STACKED_MOBILE_FRAME_WIDTH } from '@/components/signature/SignaturePreviewFrame';
+import {
+  SignaturePreviewFrame,
+  mobileFrameWidthForLayout,
+} from '@/components/signature/SignaturePreviewFrame';
+import { LivePreviewStickyColumn } from '@/components/signature/LivePreviewStickyColumn';
 import { CopySignatureButton } from '@/components/signature/CopySignatureButton';
 import { CopyRichTextButton } from '@/components/signature/CopyRichTextButton';
 import { OutlookInstallHelp } from '@/components/signature/OutlookInstallHelp';
 import { downloadHtml } from '@/lib/clipboard';
+import { GMAIL_SIGNATURE_MAX_CHARS, prepareSignatureHtmlForGmail } from '@/lib/email/gmailSignatureHtml';
 import { getSignatureAssetOrigin } from '@/lib/siteOrigin';
 import { shouldIncludeSignatureAnimation } from '@/lib/billing/entitlements';
 
@@ -102,6 +107,7 @@ export function SignatureWorkspace() {
   const [gmailConnected, setGmailConnected] = useState(false);
   const [gmailEmail, setGmailEmail] = useState('');
   const [gmailBusy, setGmailBusy] = useState(false);
+  const [gmailMessage, setGmailMessage] = useState<string | null>(null);
   /** Server-rendered HTML with signed tracking URLs when org flag is on. */
   const [trackedHtml, setTrackedHtml] = useState<string | null>(null);
   /** Bumps after mount so signature HTML re-renders with real `window` origin (SSR memo used localhost). */
@@ -311,6 +317,10 @@ export function SignatureWorkspace() {
 
   const previewHtml = trackedHtml ?? html;
 
+  const gmailPreparedHtml = useMemo(() => prepareSignatureHtmlForGmail(html), [html]);
+  const gmailCharCount = gmailPreparedHtml.length;
+  const gmailOverLimit = gmailCharCount > GMAIL_SIGNATURE_MAX_CHARS;
+
   const canCopy =
     Boolean(profile.firstName.trim() && profile.lastName.trim() && profile.email.trim() && engineTemplate);
 
@@ -425,22 +435,22 @@ export function SignatureWorkspace() {
   };
 
   const handleApplyGmail = async () => {
-    if (!previewHtml.trim()) return;
+    if (!html.trim() || gmailOverLimit) return;
     setGmailBusy(true);
-    setMessage(null);
+    setGmailMessage(null);
     try {
       const res = await fetch('/api/integrations/gmail/apply-signature', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ html: previewHtml }),
+        body: JSON.stringify({ html }),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setMessage(typeof j.error === 'string' ? j.error : 'Could not update Gmail signature');
+        setGmailMessage(typeof j.error === 'string' ? j.error : 'Could not update Gmail signature');
         return;
       }
-      setMessage(
+      setGmailMessage(
         `Gmail signature updated for ${typeof j.sendAsEmail === 'string' ? j.sendAsEmail : 'your send-as address'}. Gmail may simplify HTML.`
       );
     } finally {
@@ -450,16 +460,16 @@ export function SignatureWorkspace() {
 
   const handleDisconnectGmail = async () => {
     setGmailBusy(true);
-    setMessage(null);
+    setGmailMessage(null);
     try {
       const res = await fetch('/api/integrations/gmail/disconnect', { method: 'POST', credentials: 'include' });
       if (!res.ok) {
-        setMessage('Could not disconnect Gmail');
+        setGmailMessage('Could not disconnect Gmail');
         return;
       }
       setGmailConnected(false);
       setGmailEmail('');
-      setMessage('Gmail disconnected.');
+      setGmailMessage('Gmail disconnected.');
     } finally {
       setGmailBusy(false);
     }
@@ -505,7 +515,7 @@ export function SignatureWorkspace() {
             <div className="space-y-3">
               <p className="text-sm font-medium">Address</p>
               <p className="text-xs text-muted-foreground">
-                Optional. Shown on the Corporate template when filled in.
+                Optional. Shown on the Corporate and Professional templates when filled in.
               </p>
               <div className="space-y-2">
                 <Label htmlFor="org-address">Street address</Label>
@@ -679,13 +689,31 @@ export function SignatureWorkspace() {
           <CardContent className="space-y-4">
             <div className="rounded-md border p-4 space-y-3">
               <p className="text-sm font-medium">Gmail</p>
+              <p
+                className={
+                  gmailOverLimit
+                    ? 'text-xs text-destructive font-medium'
+                    : 'text-xs text-muted-foreground'
+                }
+              >
+                Gmail size: {gmailCharCount.toLocaleString()} / {GMAIL_SIGNATURE_MAX_CHARS.toLocaleString()}{' '}
+                characters
+                {gmailOverLimit
+                  ? ' — over limit. Remove promo blocks, use a simpler template, or shorten content. Tracking links are not sent to Gmail.'
+                  : '. Direct links are used (not click-tracking URLs).'}
+              </p>
+              {gmailMessage ? <p className="text-xs text-muted-foreground">{gmailMessage}</p> : null}
               {gmailConnected ? (
                 <>
                   <p className="text-xs text-muted-foreground">
                     Connected{gmailEmail ? ` as ${gmailEmail}` : ''}. Gmail may rewrite HTML when saving.
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    <Button type="button" disabled={gmailBusy || !canCopy} onClick={handleApplyGmail}>
+                    <Button
+                      type="button"
+                      disabled={gmailBusy || !canCopy || gmailOverLimit}
+                      onClick={handleApplyGmail}
+                    >
                       {gmailBusy ? 'Applying…' : 'Apply signature to Gmail'}
                     </Button>
                     <Button type="button" variant="outline" disabled={gmailBusy} onClick={handleDisconnectGmail}>
@@ -695,7 +723,7 @@ export function SignatureWorkspace() {
                 </>
               ) : (
                 <>
-                  <p className="text-xs text-muted-foreground">Connect once, then apply the preview HTML to your Gmail send-as signature.</p>
+                  <p className="text-xs text-muted-foreground">Connect once, then apply your signature to Gmail send-as.</p>
                   <Button type="button" variant="secondary" asChild>
                     <a href="/api/integrations/gmail/start">Connect Gmail</a>
                   </Button>
@@ -709,13 +737,13 @@ export function SignatureWorkspace() {
         </div>
       </div>
 
-      <div className="lg:col-span-7 xl:col-span-8 min-w-0 lg:sticky lg:top-6 lg:self-start lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto">
+      <LivePreviewStickyColumn className="lg:col-span-7 xl:col-span-8">
         <Card className="shadow-xl border-primary/10">
         <CardHeader>
           <CardTitle>Live preview</CardTitle>
           <CardDescription>See your changes in real-time across Desktop and Mobile.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-8 max-w-full min-w-0">
+        <CardContent className="space-y-8 max-w-full min-w-0 max-h-[calc(100dvh-3rem)] overflow-y-auto overscroll-contain">
           <div className="grid grid-cols-1 gap-10 min-w-0">
             <div className="min-w-0 space-y-2">
               <p className="text-xs text-muted-foreground font-medium">Desktop</p>
@@ -726,9 +754,7 @@ export function SignatureWorkspace() {
               <SignaturePreviewFrame
                 html={previewHtml}
                 variant="mobile"
-                mobileFrameWidth={
-                  engineTemplate?.layout === 'stacked' ? STACKED_MOBILE_FRAME_WIDTH : undefined
-                }
+                mobileFrameWidth={mobileFrameWidthForLayout(engineTemplate?.layout)}
               />
             </div>
           </div>
@@ -746,7 +772,7 @@ export function SignatureWorkspace() {
           </div>
         </CardContent>
       </Card>
-      </div>
+      </LivePreviewStickyColumn>
     </div>
   );
 }

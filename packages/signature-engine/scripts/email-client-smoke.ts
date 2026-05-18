@@ -389,6 +389,65 @@ assert.doesNotMatch(
   'corporate: blocks must not render in the old 220px right column'
 );
 
+// Professional layout — same structure as corporate, distinct card visuals
+const professionalTemplate: import('../src/core/types').SignatureTemplate = {
+  id: 'professional-smoke',
+  name: 'Professional',
+  layout: 'professional',
+  elements: corporateTemplate.elements,
+};
+
+const htmlProfessional = renderSignature({
+  profile,
+  brand: mockSignatureBrand,
+  template: professionalTemplate,
+  publicSiteOrigin: origin,
+});
+
+const htmlProfessionalBlocks = renderSignature({
+  profile,
+  brand: {
+    ...mockSignatureBrand,
+    contentBlocks: [
+      {
+        type: 'list',
+        enabled: true,
+        listTitle: 'Recent Wins',
+        listItems: [{ title: 'Quarterly Report', url: 'https://example.com/q4' }],
+      },
+    ],
+  },
+  template: professionalTemplate,
+  publicSiteOrigin: origin,
+});
+
+assert.ok(htmlProfessional.includes('sig-prof-card-shell'), 'professional: card shell wrapper');
+assert.match(
+  htmlProfessional,
+  /sig-prof-card-shell[^>]*border:2px solid #2563eb/,
+  'professional: card shell uses brand border'
+);
+assert.match(
+  htmlProfessional,
+  /class="sig-corp-logo-stack"[^>]*style="[^"]*padding-right:14px/,
+  'professional: tighter logo gutter than corporate'
+);
+assert.match(
+  htmlProfessional,
+  /bgcolor="#2563eb"[^>]*border-radius:10px 10px 0 0/,
+  'professional: hero name band on brand color'
+);
+assert.ok(
+  htmlProfessionalBlocks.includes('sig-blocks-stacked-row') &&
+    htmlProfessionalBlocks.includes('sig-corp-header-layout-table'),
+  'professional: shares corporate breakpoint structure'
+);
+assert.match(
+  htmlProfessionalBlocks,
+  /sig-corp-blocks-stack[\s\S]*Recent Wins/,
+  'professional: content blocks in header side column on desktop'
+);
+
 // Minimal (standard layout) should render content blocks in the desktop side column.
 const minimalTemplate: import('../src/core/types').SignatureTemplate = {
   id: 'minimal-smoke',

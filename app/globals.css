@@ -91,7 +91,7 @@
   /* Mobile preview: @media in email HTML uses viewport width; desktop browsers stay wide so stack rules never run.
      Mirror template @media stack rules via container queries on the phone-sized frame (scoped under
      .signature-email-preview--mobile.sig-mobile-preview-container so overrides beat injected <style>).
-     Keep in sync with packages/signature-engine/src/core/templates/standard.ts and corporate.ts */
+     Keep in sync with packages/signature-engine/src/core/templates/standard.ts, corporate.ts, and professional.ts */
   .sig-mobile-preview-container {
     container-type: inline-size;
     container-name: sig-mobile-preview;

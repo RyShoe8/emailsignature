@@ -9,6 +9,7 @@ import type {
 import { STANDARD_SIGNATURE_TEMPLATE } from './templates/standard';
 import { STACKED_SIGNATURE_TEMPLATE } from './templates/stacked';
 import { CORPORATE_SIGNATURE_TEMPLATE } from './templates/corporate';
+import { PROFESSIONAL_SIGNATURE_TEMPLATE } from './templates/professional';
 import {
   SOCIAL_ICON_DISCORD,
   SOCIAL_ICON_FACEBOOK,
@@ -559,6 +560,7 @@ export function mergeRenderContext(
 function pickTemplate(layout: SignatureTemplate['layout']): string {
   if (layout === 'stacked') return STACKED_SIGNATURE_TEMPLATE;
   if (layout === 'corporate') return CORPORATE_SIGNATURE_TEMPLATE;
+  if (layout === 'professional') return PROFESSIONAL_SIGNATURE_TEMPLATE;
   return STANDARD_SIGNATURE_TEMPLATE;
 }
 

@@ -14,11 +14,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SignatureForm } from '@/components/signature/SignatureForm';
-import { SignaturePreviewFrame, STACKED_MOBILE_FRAME_WIDTH } from '@/components/signature/SignaturePreviewFrame';
+import {
+  SignaturePreviewFrame,
+  mobileFrameWidthForLayout,
+} from '@/components/signature/SignaturePreviewFrame';
+import { LivePreviewStickyColumn } from '@/components/signature/LivePreviewStickyColumn';
 import { CopySignatureButton } from '@/components/signature/CopySignatureButton';
 import { CopyRichTextButton } from '@/components/signature/CopyRichTextButton';
 import { OutlookInstallHelp } from '@/components/signature/OutlookInstallHelp';
 import { downloadHtml } from '@/lib/clipboard';
+import { GMAIL_SIGNATURE_MAX_CHARS, prepareSignatureHtmlForGmail } from '@/lib/email/gmailSignatureHtml';
 import type { SignatureProfile, ContentBlockData } from 'emailsignature-engine';
 import { ContentBlocksEditor } from '@/components/signature/ContentBlocksEditor';
 
@@ -245,6 +250,10 @@ export default function EmployeeDetailPage() {
 
   const previewHtml = trackedHtml ?? html;
 
+  const gmailPreparedHtml = useMemo(() => prepareSignatureHtmlForGmail(html), [html]);
+  const gmailCharCount = gmailPreparedHtml.length;
+  const gmailOverLimit = gmailCharCount > GMAIL_SIGNATURE_MAX_CHARS;
+
   const previewUrl = useMemo(() => {
     if (!previewToken) return '';
     if (typeof window === 'undefined') return '';
@@ -289,7 +298,7 @@ export default function EmployeeDetailPage() {
     Boolean(profile.firstName.trim() && profile.lastName.trim() && profile.email.trim() && previewHtml.trim());
 
   async function handleApplyGmail() {
-    if (!previewHtml.trim()) return;
+    if (!html.trim() || gmailOverLimit) return;
     setGmailBusy(true);
     setInstallMessage(null);
     try {
@@ -297,7 +306,7 @@ export default function EmployeeDetailPage() {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ html: previewHtml }),
+        body: JSON.stringify({ html }),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -334,7 +343,8 @@ export default function EmployeeDetailPage() {
       <Link href="/dashboard/employees" className="text-sm text-muted-foreground hover:text-foreground">
         ← Employees
       </Link>
-      <div className="grid gap-8 lg:grid-cols-2 min-w-0">
+      <div className="grid gap-8 lg:grid-cols-12 items-start min-w-0">
+        <div className="lg:col-span-5 space-y-8 min-w-0">
         <Card>
           <CardHeader>
             <CardTitle>Edit employee</CardTitle>
@@ -389,7 +399,7 @@ export default function EmployeeDetailPage() {
             <div className="pt-4 border-t space-y-4">
               <div>
                 <h3 className="text-sm font-medium leading-none mb-1">Promotional Content Blocks</h3>
-                <p className="text-sm text-muted-foreground">Up to 2 blocks to the right of the signature in the Corporate template.</p>
+                <p className="text-sm text-muted-foreground">Up to 2 blocks to the right of the signature in the Corporate and Professional templates.</p>
               </div>
               <ContentBlocksEditor value={contentBlocks} onChange={setContentBlocks} />
             </div>
@@ -421,6 +431,19 @@ export default function EmployeeDetailPage() {
           <CardContent className="space-y-4">
             <div className="rounded-md border p-4 space-y-3">
               <p className="text-sm font-medium">Gmail</p>
+              <p
+                className={
+                  gmailOverLimit
+                    ? 'text-xs text-destructive font-medium'
+                    : 'text-xs text-muted-foreground'
+                }
+              >
+                Gmail size: {gmailCharCount.toLocaleString()} / {GMAIL_SIGNATURE_MAX_CHARS.toLocaleString()}{' '}
+                characters
+                {gmailOverLimit
+                  ? ' — over limit. Remove promo blocks, use a simpler template, or shorten content. Tracking links are not sent to Gmail.'
+                  : '. Direct links are used (not click-tracking URLs).'}
+              </p>
               {installMessage && <p className="text-xs text-muted-foreground">{installMessage}</p>}
               {gmailConnected ? (
                 <>
@@ -428,7 +451,11 @@ export default function EmployeeDetailPage() {
                     Connected{gmailEmail ? ` as ${gmailEmail}` : ''}.
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    <Button type="button" disabled={gmailBusy || !canCopy} onClick={() => void handleApplyGmail()}>
+                    <Button
+                      type="button"
+                      disabled={gmailBusy || !canCopy || gmailOverLimit}
+                      onClick={() => void handleApplyGmail()}
+                    >
                       {gmailBusy ? 'Applying…' : 'Apply signature to Gmail'}
                     </Button>
                     <Button type="button" variant="outline" disabled={gmailBusy} onClick={() => void handleDisconnectGmail()}>
@@ -450,14 +477,15 @@ export default function EmployeeDetailPage() {
             <OutlookInstallHelp />
           </CardContent>
         </Card>
-      </div>
+        </div>
 
-      <Card className="max-w-full min-w-0">
+        <LivePreviewStickyColumn className="lg:col-span-7">
+      <Card className="max-w-full min-w-0 shadow-xl border-primary/10">
         <CardHeader>
           <CardTitle>Preview & export</CardTitle>
           <CardDescription>Desktop and mobile frames; hosted page matches saved data.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-8 max-w-full min-w-0">
+        <CardContent className="space-y-8 max-w-full min-w-0 max-h-[calc(100dvh-3rem)] overflow-y-auto overscroll-contain">
           <SignatureForm value={profile} onChange={setProfile} />
           <div className="grid grid-cols-1 gap-10 min-w-0">
             <div className="min-w-0 space-y-2">
@@ -469,9 +497,7 @@ export default function EmployeeDetailPage() {
               <SignaturePreviewFrame
                 html={previewHtml}
                 variant="mobile"
-                mobileFrameWidth={
-                  engineTemplate?.layout === 'stacked' ? STACKED_MOBILE_FRAME_WIDTH : undefined
-                }
+                mobileFrameWidth={mobileFrameWidthForLayout(engineTemplate?.layout)}
               />
             </div>
           </div>
@@ -489,6 +515,8 @@ export default function EmployeeDetailPage() {
           </div>
         </CardContent>
       </Card>
+        </LivePreviewStickyColumn>
+      </div>
     </div>
   );
 }

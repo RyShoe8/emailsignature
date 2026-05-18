@@ -77,7 +77,7 @@ export type SignatureElement =
   | { type: 'animation' }
   | { type: 'contentBlocks' };
 
-export type SignatureLayout = 'standard' | 'stacked' | 'corporate';
+export type SignatureLayout = 'standard' | 'stacked' | 'corporate' | 'professional';
 
 export type SignatureTemplate = {
   id: string;

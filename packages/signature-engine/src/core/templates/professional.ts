@@ -1,0 +1,279 @@
+/**
+ * Professional layout — same structure/breakpoints as corporate, card-style visuals.
+ * Blinq-inspired: rounded card shell, hero name band, tighter spacing, richer brand color.
+ */
+export const PROFESSIONAL_SIGNATURE_TEMPLATE = `<style type="text/css">
+@media only screen and (min-width:601px),
+  only screen and (min-device-width:601px) {
+  tr.sig-blocks-stacked-row {
+    display: none !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    mso-hide: all;
+  }
+  td.sig-blocks-desktop {
+    display: table-cell !important;
+  }
+  td.sig-content-block-cell-left {
+    padding-right: 12px !important;
+  }
+  td.sig-content-block-cell-right {
+    padding-left: 12px !important;
+    border-left: 1px solid #e5e5e5 !important;
+    border-top: none !important;
+  }
+}
+@media only screen and (max-width:600px),
+  only screen and (max-width:768px),
+  only screen and (max-device-width:600px),
+  only screen and (max-device-width:812px) {
+  table.sig-root-layout-table,
+  table.sig-corp-header-layout-table {
+    table-layout: auto !important;
+    width: 100% !important;
+  }
+  td.sig-blocks-desktop {
+    display: none !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    mso-hide: all;
+  }
+  tr.sig-blocks-stacked-row {
+    display: table-row !important;
+  }
+  td.sig-content-block-cell {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    float: none !important;
+    clear: both !important;
+    box-sizing: border-box !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-bottom: 12px !important;
+  }
+  td.sig-content-block-cell-left {
+    padding-bottom: 14px !important;
+  }
+  td.sig-content-block-cell-right {
+    border-left: none !important;
+    border-top: 1px solid #e5e5e5 !important;
+    padding-top: 14px !important;
+    padding-left: 0 !important;
+  }
+}
+</style>
+<table class="sig-prof-card-shell" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:separate;border-spacing:0;max-width:660px;width:100%;border:2px solid {{primaryColor}};border-radius:16px;overflow:hidden;background-color:#ffffff;">
+  <tr>
+    <td style="padding:0;">
+<table class="sig-root-layout-table" cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family: {{fontFamily}}, Arial, Helvetica, sans-serif; font-size:14px; color:#1a1a1a; line-height:1.35; max-width:660px;width:100%;">
+  <!-- Accent bar -->
+  <tr>
+    <td colspan="3" style="padding:0;">
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" role="presentation" style="border-collapse:collapse;width:100%;">
+        <tr>
+          <td bgcolor="{{primaryColor}}" height="8" style="font-size:0;line-height:0;mso-line-height-rule:exactly;padding:0;height:8px;background-color:{{primaryColor}};border:0;">&nbsp;</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding:8px 10px 0 10px;" colspan="3">
+      <table class="sig-corp-header-layout-table" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;">
+        <tr>
+          <!-- Logo column -->
+          <td class="sig-corp-logo-stack" width="{{logoWidth}}" style="vertical-align:top;line-height:0;font-size:0;padding-right:14px;width:{{logoWidth}}px;">
+            {{#if hasLogo}}
+            <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr>
+              <td bgcolor="#f0f4ff" style="background-color:#f0f4ff;border-radius:12px;padding:6px;line-height:0;font-size:0;">
+            <a href="{{logoLink}}" style="text-decoration:none; border:0; outline:none; display:inline-block;">
+{{#if hasLogoSizedHeight}}
+              <img src="{{logoUrl}}" width="{{logoWidth}}" height="{{logoDisplayHeight}}" border="0" alt="" style="display:block;max-width:{{logoWidth}}px;width:{{logoWidth}}px;height:{{logoDisplayHeight}}px;border:0;outline:none;text-decoration:none;border-radius:8px;" />
+{{/if}}
+{{#if hasLogoAutoHeight}}
+              <img src="{{logoUrl}}" width="{{logoWidth}}" border="0" alt="" style="display:block;max-width:{{logoWidth}}px;width:{{logoWidth}}px;height:auto;border:0;outline:none;text-decoration:none;border-radius:8px;" />
+{{/if}}
+            </a>
+              </td>
+            </tr></table>
+            {{/if}}
+          </td>
+
+          <!-- Info column -->
+          <td class="sig-corp-main-stack" style="vertical-align:top;padding-left:0;padding-right:6px;">
+            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;">
+              <tr>
+                <td bgcolor="{{primaryColor}}" style="background-color:{{primaryColor}};border-radius:10px 10px 0 0;padding:10px 12px 8px 12px;">
+            {{#if hasName}}
+            <div style="font-size:18px; font-weight:700; color:#ffffff; letter-spacing:-0.2px;line-height:1.2;">
+              {{firstName}} {{lastName}}
+            </div>
+            {{/if}}
+
+            {{#if hasTitle}}
+            <div style="font-size:11px; color:#e8eeff; margin-top:2px; text-transform:uppercase; letter-spacing:0.6px; font-weight:600;line-height:1.3;">
+              {{title}}
+            </div>
+            {{/if}}
+                </td>
+              </tr>
+            </table>
+
+            <div style="height:6px;"></div>
+
+            {{#if hasContact}}
+            <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; font-size:12px;">
+              {{#if hasOfficePhone}}
+              <tr>
+                <td colspan="2" valign="top" style="padding:0 0 3px 0;">
+                  <a href="{{officePhoneTelHref}}" style="color:#333; text-decoration:none;">
+                    {{officePhone}}
+                  </a>
+                </td>
+              </tr>
+              {{/if}}
+              {{#if hasMobilePhone}}
+              <tr>
+                <td width="1%" valign="top" style="width:1%;white-space:nowrap;padding:0 6px 3px 0; color:{{primaryColor}}; font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:0.3px;">Mobile</td>
+                <td valign="top" style="padding:0 0 3px 0;">
+                  <a href="{{mobilePhoneTelHref}}" style="color:#333; text-decoration:none;">
+                    {{mobilePhone}}
+                  </a>
+                </td>
+              </tr>
+              {{/if}}
+              <tr>
+                <td colspan="2" valign="top" style="padding:0 0 3px 0;">
+                  <a href="mailto:{{email}}" style="color:{{primaryColor}}; text-decoration:none; font-weight:600;">
+                    {{email}}
+                  </a>
+                </td>
+              </tr>
+              {{#if hasWebsite}}
+              <tr>
+                <td colspan="2" valign="top" style="padding:0;">
+                  <a href="{{website}}" style="color:#333; text-decoration:none;">
+                    {{websiteDisplay}}
+                  </a>
+                </td>
+              </tr>
+              {{/if}}
+            </table>
+            {{/if}}
+
+            {{#if showSocialBlock}}
+            <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-top:6px;"><tr>
+              {{#if hasLinkedin}}
+              <td style="{{socialTdLiStyle}}">
+                <a href="{{linkedin}}" style="text-decoration:none;border:0;outline:none;display:inline-block;">
+                  <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr>
+                    <td width="26" height="26" align="center" valign="middle" bgcolor="{{primaryColor}}" style="width:26px;height:26px;border-radius:13px;text-align:center;vertical-align:middle;background-color:{{primaryColor}};padding:0;border:2px solid #ffffff;">
+                      <img src="{{iconLinkedin}}" width="13" height="13" border="0" alt="" style="display:block;margin:0 auto;border:0;outline:none;text-decoration:none;" />
+                    </td>
+                  </tr></table>
+                </a>
+              </td>
+              {{/if}}
+              {{#if hasFacebook}}
+              <td style="{{socialTdFbStyle}}">
+                <a href="{{facebook}}" style="text-decoration:none;border:0;outline:none;display:inline-block;">
+                  <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr>
+                    <td width="26" height="26" align="center" valign="middle" bgcolor="{{primaryColor}}" style="width:26px;height:26px;border-radius:13px;text-align:center;vertical-align:middle;background-color:{{primaryColor}};padding:0;border:2px solid #ffffff;">
+                      <img src="{{iconFacebook}}" width="13" height="13" border="0" alt="" style="display:block;margin:0 auto;border:0;outline:none;text-decoration:none;" />
+                    </td>
+                  </tr></table>
+                </a>
+              </td>
+              {{/if}}
+              {{#if hasInstagram}}
+              <td style="{{socialTdIgStyle}}">
+                <a href="{{instagram}}" style="text-decoration:none;border:0;outline:none;display:inline-block;">
+                  <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr>
+                    <td width="26" height="26" align="center" valign="middle" bgcolor="{{primaryColor}}" style="width:26px;height:26px;border-radius:13px;text-align:center;vertical-align:middle;background-color:{{primaryColor}};padding:0;border:2px solid #ffffff;">
+                      <img src="{{iconInstagram}}" width="13" height="13" border="0" alt="" style="display:block;margin:0 auto;border:0;outline:none;text-decoration:none;" />
+                    </td>
+                  </tr></table>
+                </a>
+              </td>
+              {{/if}}
+              {{#if hasReddit}}
+              <td style="{{socialTdRedditStyle}}">
+                <a href="{{reddit}}" style="text-decoration:none;border:0;outline:none;display:inline-block;">
+                  <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr>
+                    <td width="26" height="26" align="center" valign="middle" bgcolor="{{primaryColor}}" style="width:26px;height:26px;border-radius:13px;text-align:center;vertical-align:middle;background-color:{{primaryColor}};padding:0;border:2px solid #ffffff;">
+                      <img src="{{iconReddit}}" width="13" height="13" border="0" alt="" style="display:block;margin:0 auto;border:0;outline:none;text-decoration:none;" />
+                    </td>
+                  </tr></table>
+                </a>
+              </td>
+              {{/if}}
+              {{#if hasDiscord}}
+              <td style="{{socialTdDiscordStyle}}">
+                <a href="{{discord}}" style="text-decoration:none;border:0;outline:none;display:inline-block;">
+                  <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr>
+                    <td width="26" height="26" align="center" valign="middle" bgcolor="{{primaryColor}}" style="width:26px;height:26px;border-radius:13px;text-align:center;vertical-align:middle;background-color:{{primaryColor}};padding:0;border:2px solid #ffffff;">
+                      <img src="{{iconDiscord}}" width="13" height="13" border="0" alt="" style="display:block;margin:0 auto;border:0;outline:none;text-decoration:none;" />
+                    </td>
+                  </tr></table>
+                </a>
+              </td>
+              {{/if}}
+            </tr></table>
+            {{/if}}
+          </td>
+
+          {{#if sideColumnContentBlocks}}
+          <td class="sig-corp-blocks-stack sig-blocks-desktop" valign="top" style="vertical-align:top;padding:8px 8px 8px 10px;border-left:4px solid {{primaryColor}};background-color:#fafafa;width:54%;min-width:212px;">
+            {{contentBlocksHtml}}
+          </td>
+          {{/if}}
+
+        </tr>
+      </table>
+    </td>
+  </tr>
+  {{#if hasDivider}}
+  <tr>
+    <td colspan="3" style="padding:10px 10px 0 10px;">
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" role="presentation" style="border-collapse:collapse;width:100%;">
+        <tr>
+          <td bgcolor="{{primaryColor}}" height="1" style="font-size:0;line-height:0;mso-line-height-rule:exactly;padding:0;height:1px;background-color:{{primaryColor}};border:0;opacity:0.35;">&nbsp;</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  {{/if}}
+
+  {{#if showAddressBlock}}
+  <tr>
+    <td colspan="3" style="padding:8px 10px 0 10px; font-size:11px; color:#666; letter-spacing:0.2px;">
+      {{addressBlockHtml}}
+    </td>
+  </tr>
+  {{/if}}
+
+  {{#if sideColumnContentBlocks}}
+  <tr class="sig-blocks-stacked-row">
+    <td colspan="3" style="padding:10px 10px 0 10px;">
+      {{contentBlocksHtml}}
+    </td>
+  </tr>
+  {{/if}}
+
+  <!-- Footer bar -->
+  <tr>
+    <td colspan="3" style="padding:8px 0 0 0;">
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" role="presentation" style="border-collapse:collapse;width:100%;">
+        <tr>
+          <td bgcolor="{{primaryColor}}" height="30" style="font-size:11px;line-height:30px;mso-line-height-rule:exactly;padding:0 12px;height:30px;background-color:{{primaryColor}};border:0;border-radius:0 0 12px 12px;color:#ffffff;font-family:{{fontFamily}}, Arial, Helvetica, sans-serif;font-weight:600;letter-spacing:0.4px;text-transform:uppercase;">
+            {{companyName}}
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+    </td>
+  </tr>
+</table>`;

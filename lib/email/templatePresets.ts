@@ -1,6 +1,6 @@
 import type { SignatureElement, SignatureTemplate, SignatureLayout } from 'emailsignature-engine';
 
-export type TemplatePresetId = 'minimal' | 'modern' | 'corporate';
+export type TemplatePresetId = 'minimal' | 'modern' | 'corporate' | 'professional';
 
 export type TemplatePresetMeta = {
   id: TemplatePresetId;
@@ -23,6 +23,12 @@ export const TEMPLATE_PRESET_META: TemplatePresetMeta[] = [
     id: 'corporate',
     name: 'Corporate',
     description: 'Premium layout with accent bars, branded footer, circular social icons, and promotional content blocks.',
+  },
+  {
+    id: 'professional',
+    name: 'Professional',
+    description:
+      'Card-style layout with the same structure as Corporate — curved frame, hero name band, tighter spacing, and richer brand color.',
   },
 ];
 
@@ -62,6 +68,10 @@ function elementsCorporate(): SignatureElement[] {
   ];
 }
 
+function elementsProfessional(): SignatureElement[] {
+  return elementsCorporate();
+}
+
 /**
  * Resolves a named preset to engine `SignatureTemplate` (no HTML in DB).
  * `templateDocId` is the Mongo id string of the org template row when persisted.
@@ -87,6 +97,19 @@ export function presetToEngineTemplate(
         elements: elementsModern(),
       };
     case 'corporate':
+      return {
+        id: templateDocId,
+        name: displayName ?? 'Corporate',
+        layout: 'corporate',
+        elements: elementsCorporate(),
+      };
+    case 'professional':
+      return {
+        id: templateDocId,
+        name: displayName ?? 'Professional',
+        layout: 'professional',
+        elements: elementsProfessional(),
+      };
     default:
       return {
         id: templateDocId,

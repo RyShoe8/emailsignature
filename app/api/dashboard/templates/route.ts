@@ -49,7 +49,7 @@ export async function GET() {
 
 const PostSchema = z.object({
   name: z.string().min(1).max(80),
-  presetId: z.enum(['minimal', 'modern', 'corporate']),
+  presetId: z.enum(['minimal', 'modern', 'corporate', 'professional']),
   includeAnimationSlot: z.boolean().optional(),
 });
 

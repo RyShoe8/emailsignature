@@ -1,12 +1,13 @@
 import type { Types } from 'mongoose';
 import { SignatureTemplateModel } from '@/models/SignatureTemplate';
 
-const PRESETS = ['minimal', 'modern', 'corporate'] as const;
+const PRESETS = ['minimal', 'modern', 'corporate', 'professional'] as const;
 
 const PRESET_DISPLAY_NAMES: Record<(typeof PRESETS)[number], string> = {
   minimal: 'Minimal',
   modern: 'Stacked',
   corporate: 'Corporate',
+  professional: 'Professional',
 };
 
 export async function seedDefaultTemplates(organizationId: Types.ObjectId) {

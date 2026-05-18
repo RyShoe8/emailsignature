@@ -1,4 +1,18 @@
 import { google } from 'googleapis';
+import {
+  assertGmailSignatureWithinLimit,
+  prepareSignatureHtmlForGmail,
+} from '@/lib/email/gmailSignatureHtml';
+
+function gmailApiErrorMessage(err: unknown): string {
+  if (err && typeof err === 'object' && 'response' in err) {
+    const data = (err as { response?: { data?: { error?: { message?: string } } } }).response?.data;
+    const apiMsg = data?.error?.message;
+    if (typeof apiMsg === 'string' && apiMsg.trim()) return apiMsg.trim();
+  }
+  if (err instanceof Error && err.message.trim()) return err.message.trim();
+  return 'Could not update Gmail signature';
+}
 
 export function getGoogleRedirectUri(): string {
   if (process.env.GOOGLE_REDIRECT_URI?.trim()) {
@@ -64,11 +78,18 @@ export async function patchGmailSignature(refreshToken: string, html: string): P
     throw new Error('No send-as identity found for this Gmail account');
   }
 
-  await gmail.users.settings.sendAs.patch({
-    userId: 'me',
-    sendAsEmail: pick.sendAsEmail,
-    requestBody: { signature: html },
-  });
+  const prepared = prepareSignatureHtmlForGmail(html);
+  assertGmailSignatureWithinLimit(html);
+
+  try {
+    await gmail.users.settings.sendAs.patch({
+      userId: 'me',
+      sendAsEmail: pick.sendAsEmail,
+      requestBody: { signature: prepared },
+    });
+  } catch (err) {
+    throw new Error(gmailApiErrorMessage(err));
+  }
 
   return { sendAsEmail: pick.sendAsEmail };
 }

@@ -12,7 +12,7 @@ type Row = { _id: string; name: string; presetId: string; includeAnimationSlot?:
 export default function TemplatesDashboardPage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [name, setName] = useState('');
-  const [presetId, setPresetId] = useState<'minimal' | 'modern' | 'corporate'>('minimal');
+  const [presetId, setPresetId] = useState<'minimal' | 'modern' | 'corporate' | 'professional'>('minimal');
   const [includeAnimation, setIncludeAnimation] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -75,6 +75,7 @@ export default function TemplatesDashboardPage() {
                 <option value="minimal">Minimal</option>
                 <option value="modern">Stacked</option>
                 <option value="corporate">Corporate</option>
+                <option value="professional">Professional</option>
               </select>
             </div>
             <label className="flex items-center gap-2 text-sm">
