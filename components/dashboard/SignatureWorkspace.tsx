@@ -716,6 +716,10 @@ export function SignatureWorkspace() {
                     ? '. Tracked links included when under the size limit.'
                     : '. Direct links are used (enable click analytics on Overview to track Gmail link clicks).'}
               </p>
+              <p className="text-xs text-muted-foreground">
+                Gmail uses a stacked layout for promotional blocks (same as the mobile preview). Desktop
+                side-by-side layout applies in the dashboard preview and when copying HTML.
+              </p>
               {gmailMessage ? <p className="text-xs text-muted-foreground">{gmailMessage}</p> : null}
               {gmailConnected ? (
                 <>

@@ -92,32 +92,30 @@ function removeStackedPromoRows(html: string): string {
   return removeSignatureElementsByClass(html, 'sig-blocks-stacked-row', 'tr');
 }
 
-/** Base prep: keep responsive @media CSS and both promo rows; strip external links only. */
+/**
+ * Gmail prep: stacked promo layout only (Gmail ignores @media).
+ * Removes desktop side column; keeps stacked row with vertical promo markup.
+ */
 function prepareSignatureHtmlBase(html: string): string {
   let out = stripLinkTags(html);
+  out = stripStyleBlocks(out);
+  out = removeDesktopPromoColumns(out);
   out = collapseWhitespaceBetweenTags(out);
   return out.trim();
 }
 
-/** Progressive size reduction when over Gmail's 10k character limit. */
+/** Last-resort size reduction when still over 10k after base prep (drops stacked promos). */
 function applyGmailSizeFallbacks(html: string): string {
   let out = html;
   if (out.length <= GMAIL_SIGNATURE_MAX_CHARS) return out;
 
-  out = stripStyleBlocks(out);
-  if (out.length <= GMAIL_SIGNATURE_MAX_CHARS) return out;
-
   out = removeStackedPromoRows(out);
-  if (out.length <= GMAIL_SIGNATURE_MAX_CHARS) return out;
-
-  out = removeDesktopPromoColumns(out);
   return out;
 }
 
 /**
  * Prepare signature HTML for Gmail API upload.
- * Default: keeps embedded @media CSS and desktop + stacked promo rows (responsive).
- * If over 10k chars: strips style, then stacked row, then desktop column.
+ * Dashboard preview/copy keep full responsive HTML; Gmail gets stacked promos only.
  */
 export function prepareSignatureHtmlForGmail(html: string): string {
   const base = prepareSignatureHtmlBase(html);

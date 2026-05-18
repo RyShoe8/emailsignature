@@ -89,7 +89,7 @@ const fixture = withStyle + raw;
 
 const preparedMinimal = prepareSignatureHtmlForGmail(rawMinimal);
 
-assert.ok(/@media/i.test(preparedMinimal), 'keeps responsive @media CSS for Gmail when under size limit');
+assert.ok(!/<style/i.test(preparedMinimal), 'strips style blocks for Gmail');
 assert.ok(!/<link\b/i.test(preparedMinimal), 'strips link tags');
 assert.doesNotMatch(
   preparedMinimal,
@@ -99,21 +99,29 @@ assert.doesNotMatch(
 
 const prepared = prepareSignatureHtmlForGmail(fixture);
 
+assert.ok(!/<style/i.test(prepared), 'strips style blocks on full fixture');
 assert.ok(!/<link\b/i.test(prepared), 'strips link tags on full fixture');
-assert.ok(prepared.includes('Recent Wins'), 'keeps promo content');
-assert.ok(/sig-blocks-stacked-row/i.test(prepared), 'full fixture keeps stacked promo row');
-assert.ok(/sig-blocks-desktop/i.test(prepared), 'full fixture keeps desktop side-column');
+assert.ok(!/sig-blocks-desktop/i.test(prepared), 'removes desktop side-column promo cells');
+assert.ok(/sig-blocks-stacked-row/i.test(prepared), 'keeps stacked promo row for Gmail');
+assert.ok(prepared.includes('Recent Wins'), 'keeps promo content from stacked row');
+assert.strictEqual(
+  (prepared.match(/Recent Wins/g) ?? []).length,
+  1,
+  'promo title appears once (no duplicate desktop + stacked)'
+);
 assert.ok(
   /bgcolor="#e5e5e5"[^>]*height:1px/.test(prepared),
   'corporate divider uses solid grey rule visible in Gmail'
 );
 
-// Regression: depth-aware removal helper (used in 10k fallback)
+// Regression: depth-aware desktop removal must not break on nested tables
 const nestedTrFixture = `<table><tr class="sig-blocks-stacked-row"><td colspan="3"><table><tr><td>inner</td></tr><tr><td>Recent Wins</td></tr></table></td></tr></table>
 <table><tr><td class="sig-blocks-desktop sig-corp-blocks-stack"><table><tr><td>desktop only</td></tr></table></td></tr></table>`;
-const nestedPrepared = removeSignatureElementsByClass(nestedTrFixture, 'sig-blocks-stacked-row', 'tr');
-assert.ok(nestedPrepared.includes('desktop only'), 'helper: removing stacked row leaves desktop column');
-assert.ok(!nestedPrepared.includes('sig-blocks-stacked-row'), 'helper: stacked row removed');
+const nestedPrepared = prepareSignatureHtmlForGmail(nestedTrFixture);
+assert.ok(/sig-blocks-stacked-row/i.test(nestedPrepared), 'nested tr: stacked row intact');
+assert.ok(nestedPrepared.includes('Recent Wins'), 'nested tr: stacked promo content kept');
+assert.ok(!nestedPrepared.includes('desktop only'), 'nested tr: desktop column removed');
+assert.ok(!/sig-blocks-desktop/i.test(nestedPrepared), 'nested tr: no desktop class left');
 
 const tdRemoved = removeSignatureElementsByClass(
   '<table><tr><td class="sig-blocks-desktop"><table><tr><td>a</td></tr></table></td><td>keep</td></tr></table>',
