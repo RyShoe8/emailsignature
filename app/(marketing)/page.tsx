@@ -9,9 +9,9 @@ import { getActiveCatalogPresets } from '@/lib/templates/getEnabledPresets';
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: 'Tailnote — Professional email signatures for teams',
+  title: 'Tailnote — Email signatures that market your business',
   description:
-    'Create, manage, and deploy on-brand email signatures with built-in UTM tracking, Gmail install, and polished templates.',
+    'Turn every employee email into a marketing touchpoint with promotional content blocks, built-in UTM tracking, and polished signature templates.',
 };
 
 export default async function HomePage() {
@@ -22,11 +22,11 @@ export default async function HomePage() {
       <section className="mx-auto max-w-3xl text-center">
         <p className="mb-4 text-sm font-medium text-muted-foreground">Tailnote</p>
         <h1 className="mb-6 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl">
-          Professional signatures your whole team can ship today
+          Turn every email into a mini marketing campaign
         </h1>
         <p className="mx-auto mb-10 max-w-2xl text-base text-muted-foreground sm:text-lg">
-          On-brand email signatures for every employee — with built-in UTM tracking, one-click Gmail install,
-          and layouts that look great in real inboxes.
+          Tailnote is more than a signature tool — pair your brand with promotional content blocks, built-in
+          UTM tracking, and layouts that look great in Gmail and Outlook.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Button asChild size="lg">
@@ -46,11 +46,10 @@ export default async function HomePage() {
 
       <section className="rounded-2xl border border-primary/20 bg-primary/5 px-6 py-12 text-center sm:px-10">
         <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-          Ready to upgrade every email your team sends?
+          Ready to market in every email your team sends?
         </h2>
         <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-          Join teams using Tailnote for consistent branding, measurable link traffic, and signatures that
-          actually render correctly.
+          Join teams using Tailnote to promote offers, track clicks, and keep every outbound message on-brand.
         </p>
         <Button asChild size="lg" className="mt-8">
           <Link href="/signup">Create your account</Link>

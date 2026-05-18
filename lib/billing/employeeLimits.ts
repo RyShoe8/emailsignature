@@ -6,11 +6,19 @@ import { OrganizationSubscriptionModel } from '@/models/OrganizationSubscription
 import { SubscriptionPlanModel, type SubscriptionPlanDoc } from '@/models/SubscriptionPlan';
 
 export type EmployeeLimitInfo = {
+  /** Seats in use (employee documents, minimum 1 for the account owner). */
   currentCount: number;
   maxEmployees: number | null;
+  /** Included users on the plan, when a plan is resolved. */
+  includedUsers: number | null;
   canAddMore: boolean;
   canAddBeyondIncluded: boolean;
 };
+
+/** Owner always occupies at least one seat; never double-count beyond employee documents. */
+export function getEffectiveSeatCount(employeeDocumentCount: number): number {
+  return Math.max(employeeDocumentCount, 1);
+}
 
 export class EmployeeLimitReachedError extends Error {
   readonly code = 'employee_limit_reached' as const;
@@ -79,12 +87,14 @@ export async function getEmployeeLimitsForOrganization(
       ? new mongoose.Types.ObjectId(organizationId)
       : organizationId;
 
-  const currentCount = await EmployeeModel.countDocuments({ organizationId: orgId });
+  const employeeDocumentCount = await EmployeeModel.countDocuments({ organizationId: orgId });
+  const currentCount = getEffectiveSeatCount(employeeDocumentCount);
 
   if (!process.env.STRIPE_SECRET_KEY) {
     return {
       currentCount,
       maxEmployees: null,
+      includedUsers: null,
       canAddMore: true,
       canAddBeyondIncluded: true,
     };
@@ -95,11 +105,13 @@ export async function getEmployeeLimitsForOrganization(
     return {
       currentCount,
       maxEmployees: null,
+      includedUsers: null,
       canAddMore: true,
       canAddBeyondIncluded: true,
     };
   }
 
+  const includedUsers = Math.max(1, plan.includedUsers ?? 1);
   const { maxEmployees, canAddBeyondIncluded } = getEmployeeLimitForPlan(plan);
   const canAddMore =
     maxEmployees === null ? true : currentCount < maxEmployees;
@@ -107,6 +119,7 @@ export async function getEmployeeLimitsForOrganization(
   return {
     currentCount,
     maxEmployees,
+    includedUsers,
     canAddMore,
     canAddBeyondIncluded,
   };

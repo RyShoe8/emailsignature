@@ -34,13 +34,18 @@ function primaryPriceLine(plan: PublicPricingPlan): string {
   return `${formatUsd(plan.basePriceCents)}${intervalSuffix(plan.interval)}`;
 }
 
+function includedUsersSummary(plan: PublicPricingPlan): string {
+  const n = Math.max(1, plan.includedUsers);
+  return `${n} user${n === 1 ? '' : 's'} included`;
+}
+
 function seatPolicyLine(plan: PublicPricingPlan): string | null {
   if (plan.interval === 'lifetime') return null;
   const n = Math.max(1, plan.includedUsers);
   if (plan.additionalUserPriceCents > 0) {
-    return `Includes ${n} user${n === 1 ? '' : 's'} — add more anytime for ${formatUsd(plan.additionalUserPriceCents)} per user${intervalSuffix(plan.interval)}`;
+    return `Add more users anytime for ${formatUsd(plan.additionalUserPriceCents)} per user${intervalSuffix(plan.interval)}`;
   }
-  return `Includes ${n} user${n === 1 ? '' : 's'} — no additional seats available`;
+  return 'No additional seats available on this plan';
 }
 
 function subscriptionCap(plan: PublicPricingPlan): { max: number; remaining: number } | null {
@@ -87,8 +92,9 @@ export default async function PricingPage() {
     <div className="mx-auto min-w-0 max-w-5xl px-4 py-12 sm:py-16">
       <h1 className="mb-2 text-2xl font-semibold tracking-tight sm:text-3xl">Pricing</h1>
       <p className="text-muted-foreground mb-10 max-w-xl">
-        Billed per subscription. Each subscription covers one organization with every Tailnote signature
-        feature. Pick a plan, sign up, and subscribe from your dashboard.
+        Billed per subscription. Each plan includes a set number of users for your organization — signatures,
+        promotional blocks, UTM tracking, and analytics included. Pick a plan, sign up, and subscribe from your
+        dashboard.
       </p>
       {plans.length === 0 ? (
         <p className="text-sm text-muted-foreground">
@@ -123,7 +129,10 @@ export default async function PricingPage() {
                 <CardContent className="flex flex-1 flex-col gap-4">
                   <div>
                     <p className="text-3xl font-semibold">{primaryPriceLine(plan)}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">Per subscription</p>
+                    <p className="mt-2 text-base font-medium text-foreground">
+                      {includedUsersSummary(plan)}
+                    </p>
+                    <p className="mt-0.5 text-sm text-muted-foreground">Per subscription</p>
                   </div>
                   <ul className="list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
                     {features.map((line) => (

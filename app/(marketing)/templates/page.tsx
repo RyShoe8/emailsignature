@@ -17,10 +17,11 @@ export default async function TemplatesMarketingPage() {
 
   return (
     <div className="mx-auto min-w-0 max-w-5xl px-4 py-12 sm:py-16">
-      <h1 className="mb-2 text-2xl font-semibold tracking-tight sm:text-3xl">Signature templates</h1>
+      <h1 className="mb-2 text-2xl font-semibold tracking-tight sm:text-3xl">Signature + promo templates</h1>
       <p className="text-muted-foreground mb-10 max-w-2xl">
-        Curated layouts — no drag-and-drop chaos. You control brand colors, logo, and contact fields; we keep
-        the HTML reliable in real inboxes.
+        Curated layouts with promotional content blocks built in — book-a-call buttons, offer lists, blog
+        feeds, and image banners beside every signature. No drag-and-drop chaos; HTML that works in real
+        inboxes.
       </p>
       {presets.length === 0 ? (
         <p className="text-sm text-muted-foreground">No templates are currently available.</p>

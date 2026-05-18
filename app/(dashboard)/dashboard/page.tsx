@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import mongoose from 'mongoose';
 import { getServerSession } from '@/lib/auth/session';
 import { connectMongoose } from '@/lib/mongoose';
-import { EmployeeModel } from '@/models/Employee';
+import { getEmployeeLimitsForOrganization } from '@/lib/billing/employeeLimits';
 import { SignatureTemplateModel } from '@/models/SignatureTemplate';
 import { SignatureClickEventModel } from '@/models/SignatureClickEvent';
 import { OrganizationModel } from '@/models/Organization';
@@ -30,8 +30,8 @@ export default async function DashboardHomePage() {
   const enabledPresetIds = await getEnabledPresetIds();
   const enabledPresetList = [...enabledPresetIds];
 
-  const [employees, templates, clickAgg, orgDoc, promoSlots] = await Promise.all([
-    EmployeeModel.countDocuments({ organizationId: user.organizationId }),
+  const [seatLimits, templates, clickAgg, orgDoc, promoSlots] = await Promise.all([
+    getEmployeeLimitsForOrganization(user.organizationId),
     SignatureTemplateModel.countDocuments({
       organizationId: user.organizationId,
       presetId: { $in: enabledPresetList },
@@ -68,6 +68,18 @@ export default async function DashboardHomePage() {
   ]);
   const emailClicks = byKind.email ?? 0;
 
+  const seatsAvailable =
+    seatLimits.maxEmployees !== null
+      ? Math.max(0, seatLimits.maxEmployees - seatLimits.currentCount)
+      : null;
+
+  const employeesDescription =
+    seatLimits.maxEmployees !== null
+      ? 'Seats used on your plan.'
+      : seatLimits.includedUsers !== null && seatLimits.canAddBeyondIncluded
+        ? 'Team members with a hosted preview and exportable HTML.'
+        : 'People with a hosted preview and exportable HTML.';
+
   return (
     <div className="mx-auto min-w-0 max-w-3xl space-y-8">
       <div>
@@ -81,11 +93,43 @@ export default async function DashboardHomePage() {
         <Card>
           <CardHeader>
             <CardTitle>Employees</CardTitle>
-            <CardDescription>People with a hosted preview and exportable HTML.</CardDescription>
+            <CardDescription>{employeesDescription}</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{employees}</p>
-            <Link href="/dashboard/employees" className="text-sm text-muted-foreground underline underline-offset-4 mt-2 inline-block">
+            {seatLimits.maxEmployees !== null ? (
+              <p className="text-3xl font-semibold tabular-nums">
+                {seatLimits.currentCount}
+                <span className="text-xl font-normal text-muted-foreground">
+                  {' '}
+                  / {seatLimits.maxEmployees}
+                </span>
+              </p>
+            ) : (
+              <p className="text-3xl font-semibold tabular-nums">
+                {seatLimits.currentCount}
+                {seatLimits.includedUsers !== null && seatLimits.canAddBeyondIncluded ? (
+                  <span className="text-lg font-normal text-muted-foreground"> in use</span>
+                ) : null}
+              </p>
+            )}
+            {seatsAvailable !== null ? (
+              <p className="mt-1 text-sm text-muted-foreground">
+                {seatsAvailable > 0
+                  ? `${seatsAvailable} seat${seatsAvailable === 1 ? '' : 's'} available`
+                  : 'All seats in use'}
+              </p>
+            ) : seatLimits.includedUsers !== null && seatLimits.canAddBeyondIncluded ? (
+              <p className="mt-1 text-sm text-muted-foreground">
+                Includes {seatLimits.includedUsers} ·{' '}
+                <Link href="/dashboard/billing" className="underline underline-offset-4">
+                  add more on Billing
+                </Link>
+              </p>
+            ) : null}
+            <Link
+              href="/dashboard/employees"
+              className="mt-2 inline-block text-sm text-muted-foreground underline underline-offset-4"
+            >
               Manage
             </Link>
           </CardContent>

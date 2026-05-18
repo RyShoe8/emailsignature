@@ -10,6 +10,7 @@ import { OrganizationModel } from '@/models/Organization';
 import { OrganizationSubscriptionModel } from '@/models/OrganizationSubscription';
 import { SubscriptionPlanModel, type SubscriptionPlanDoc } from '@/models/SubscriptionPlan';
 import { StripeWebhookEventModel } from '@/models/StripeWebhookEvent';
+import { getEffectiveSeatCount } from '@/lib/billing/employeeLimits';
 import { EmployeeModel } from '@/models/Employee';
 import { isValidObjectIdString } from '@/lib/admin/data';
 import { persistOrganizationSubscriptionStripeItems } from '@/lib/stripe/subscriptionItemSync';
@@ -139,7 +140,9 @@ export async function POST(request: Request) {
             const planObjId = new mongoose.Types.ObjectId(planDocId);
             const plan = await SubscriptionPlanModel.findById(planObjId).lean();
             const sub = await stripe.subscriptions.retrieve(subId, { expand: ['items.data.price'] });
-            const count = await EmployeeModel.countDocuments({ organizationId: orgObjId });
+            const count = getEffectiveSeatCount(
+              await EmployeeModel.countDocuments({ organizationId: orgObjId })
+            );
             const renewsAt =
               typeof sub.current_period_end === 'number'
                 ? new Date(sub.current_period_end * 1000)
@@ -153,7 +156,7 @@ export async function POST(request: Request) {
                   stripeCustomerId: customerId,
                   stripeSubscriptionId: subId,
                   status: 'active',
-                  seats: Math.max(1, count),
+                  seats: count,
                   startedAt: new Date(),
                   renewsAt,
                 },
@@ -175,7 +178,9 @@ export async function POST(request: Request) {
           if (planDocId) {
             const orgObjId = new mongoose.Types.ObjectId(orgId);
             const planObjId = new mongoose.Types.ObjectId(planDocId);
-            const count = await EmployeeModel.countDocuments({ organizationId: orgObjId });
+            const count = getEffectiveSeatCount(
+              await EmployeeModel.countDocuments({ organizationId: orgObjId })
+            );
             await OrganizationSubscriptionModel.findOneAndUpdate(
               { organizationId: orgObjId },
               {
@@ -184,7 +189,7 @@ export async function POST(request: Request) {
                   stripeCustomerId: customerId,
                   stripeSubscriptionId: '',
                   status: 'active',
-                  seats: Math.max(1, count),
+                  seats: count,
                   stripeBaseItemId: '',
                   stripeSeatItemId: '',
                   startedAt: new Date(),

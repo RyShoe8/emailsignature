@@ -2,16 +2,28 @@ import { BarChart3, LayoutTemplate, Link2, Mail, Megaphone, Users } from 'lucide
 
 const FEATURES = [
   {
-    icon: LayoutTemplate,
-    title: 'Curated templates',
+    icon: Megaphone,
+    title: 'Promotional content blocks',
     description:
-      'Minimal, Stacked, Corporate, and Professional layouts — designed for real email clients, not just mockups.',
+      'Book-a-call buttons, offer lists, blog feeds, and image banners live next to every signature — turning routine emails into mini campaigns.',
   },
   {
     icon: Link2,
-    title: 'Built-in UTM codes',
+    title: 'Built-in UTM tracking',
     description:
-      'Every http link in your signature gets UTM parameters automatically so you can see email-driven traffic in Google Analytics.',
+      'Every link gets UTM parameters automatically so you can attribute site visits and conversions to email in Google Analytics.',
+  },
+  {
+    icon: LayoutTemplate,
+    title: 'Curated templates',
+    description:
+      'Minimal, Stacked, Corporate, and Professional layouts designed for real inboxes — signature plus promos, no broken HTML.',
+  },
+  {
+    icon: BarChart3,
+    title: 'Click analytics',
+    description:
+      'See which promos, logos, and CTAs get clicks so you can refine what you promote in every outbound email.',
   },
   {
     icon: Mail,
@@ -19,19 +31,9 @@ const FEATURES = [
     description: 'Install to Gmail in one click, or copy HTML that holds up in Outlook and other clients.',
   },
   {
-    icon: BarChart3,
-    title: 'Click analytics',
-    description: 'Optional link tracking shows which signature CTAs get clicks — logo, website, promos, and more.',
-  },
-  {
-    icon: Megaphone,
-    title: 'Promotional blocks',
-    description: 'Highlight offers, blog posts, or book-a-call buttons beside your signature on premium templates.',
-  },
-  {
     icon: Users,
     title: 'Team-wide control',
-    description: 'Set brand colors, logos, and social links once. Every employee signature stays on-brand.',
+    description: 'Set brand, offers, and social links once. Every employee sends the same on-brand marketing footprint.',
   },
 ] as const;
 
@@ -39,9 +41,12 @@ export function HomeFeatures() {
   return (
     <section className="space-y-8">
       <div className="max-w-2xl">
-        <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Everything you need in one platform</h2>
+        <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+          More than a signature — a marketing channel in every send
+        </h2>
         <p className="mt-2 text-muted-foreground">
-          Professional signatures, measurable results, and zero HTML headaches for your team.
+          Tailnote combines on-brand signatures with promotional blocks and measurable links, so every
+          employee email promotes your business without extra tools.
         </p>
       </div>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

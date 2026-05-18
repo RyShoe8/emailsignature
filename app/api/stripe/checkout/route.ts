@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getServerSession } from '@/lib/auth/session';
 import { connectMongoose } from '@/lib/mongoose';
+import { getEffectiveSeatCount } from '@/lib/billing/employeeLimits';
 import { OrganizationModel } from '@/models/Organization';
 import { EmployeeModel } from '@/models/Employee';
 import { SubscriptionPlanModel, type SubscriptionPlanDoc } from '@/models/SubscriptionPlan';
@@ -140,7 +141,9 @@ export async function POST(request: Request) {
     dbPlanForSeats?.stripeSeatPriceId &&
     dbPlanForSeats.additionalUserPriceCents > 0
   ) {
-    const cnt = await EmployeeModel.countDocuments({ organizationId: org._id });
+    const cnt = getEffectiveSeatCount(
+      await EmployeeModel.countDocuments({ organizationId: org._id })
+    );
     const extra = Math.max(0, cnt - (dbPlanForSeats.includedUsers ?? 1));
     if (extra > 0) {
       lineItems.push({ price: dbPlanForSeats.stripeSeatPriceId, quantity: extra });

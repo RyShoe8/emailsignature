@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { getEffectiveSeatCount } from '@/lib/billing/employeeLimits';
 import { connectMongoose } from '@/lib/mongoose';
 import { EmployeeModel } from '@/models/Employee';
 import { OrganizationSubscriptionModel } from '@/models/OrganizationSubscription';
@@ -34,7 +35,9 @@ export async function syncStripeSubscriptionSeatsForOrganization(
   const plan = orgSub.subscriptionPlanId;
   if (!plan?.stripeSeatPriceId || plan.interval === 'lifetime') return;
 
-  const count = await EmployeeModel.countDocuments({ organizationId: orgId });
+  const count = getEffectiveSeatCount(
+    await EmployeeModel.countDocuments({ organizationId: orgId })
+  );
   const additional = Math.max(0, count - (plan.includedUsers ?? 1));
   const stripe = getStripe();
   const subId = orgSub.stripeSubscriptionId;

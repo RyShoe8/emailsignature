@@ -17,10 +17,12 @@ export function HomeTemplateShowcase({ presets }: Props) {
     <section className="space-y-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Signature templates that look sharp in real inboxes</h2>
+          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            Templates built for signatures and promotional blocks
+          </h2>
           <p className="mt-2 max-w-2xl text-muted-foreground">
-            Pick a polished layout, add your brand, and deploy to the whole team — no drag-and-drop mess, no
-            broken HTML.
+            Each layout ships with live promo examples — book-a-call buttons, offer lists, blog feeds, and
+            image banners — so you can see how Tailnote turns email into a marketing channel.
           </p>
         </div>
         <Button asChild variant="outline" className="shrink-0 self-start sm:self-auto">

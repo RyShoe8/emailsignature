@@ -37,11 +37,11 @@ export function HomePricingTeaser({ plans }: Props) {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0 space-y-3">
           <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Enterprise polish without enterprise pricing
+            Enterprise marketing in every inbox — without enterprise pricing
           </h2>
           <p className="max-w-2xl text-muted-foreground">
-            Skip expensive agency rebuilds and one-off designer fees. Tailnote gives your whole team
-            on-brand signatures, built-in UTM tracking, and Gmail-ready installs — for a fraction of what
+            Skip expensive agency rebuilds. Tailnote gives your whole team on-brand signatures, promotional
+            content blocks, built-in UTM tracking, and Gmail-ready installs — for a fraction of what
             you&apos;d pay elsewhere.
           </p>
           {fallback ? (
