@@ -1,0 +1,122 @@
+import Link from 'next/link';
+
+const MEDIA_SHOP_URL = 'https://themediashop.co';
+
+const FOOTER_LINKS = {
+  product: [
+    { href: '/pricing', label: 'Pricing' },
+    { href: '/templates', label: 'Templates' },
+  ],
+  company: [{ href: '/about', label: 'About Us' }],
+  legal: [
+    { href: '/privacy', label: 'Privacy Policy' },
+    { href: '/terms', label: 'Terms and Conditions' },
+  ],
+} as const;
+
+const COMPACT_LINKS = [
+  ...FOOTER_LINKS.company,
+  ...FOOTER_LINKS.legal,
+] as const;
+
+type SiteFooterProps = {
+  variant?: 'full' | 'compact';
+};
+
+function FooterLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="transition-colors hover:text-foreground hover:underline underline-offset-4"
+    >
+      {label}
+    </Link>
+  );
+}
+
+function MediaShopCopyright() {
+  const year = new Date().getFullYear();
+  return (
+    <p className="text-sm text-muted-foreground">
+      © {year}{' '}
+      <a
+        href={MEDIA_SHOP_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline underline-offset-4 transition-colors hover:text-foreground"
+      >
+        The Media Shop
+      </a>
+    </p>
+  );
+}
+
+export function SiteFooter({ variant = 'full' }: SiteFooterProps) {
+  if (variant === 'compact') {
+    return (
+      <footer className="border-t border-border px-4 py-6">
+        <div className="mx-auto flex max-w-5xl flex-col items-center gap-3 text-center text-sm text-muted-foreground">
+          <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+            {COMPACT_LINKS.map((item) => (
+              <FooterLink key={item.href} href={item.href} label={item.label} />
+            ))}
+          </nav>
+          <MediaShopCopyright />
+        </div>
+      </footer>
+    );
+  }
+
+  return (
+    <footer className="border-t border-border px-4 py-10 sm:py-12">
+      <div className="mx-auto max-w-5xl">
+        <div className="grid gap-8 sm:grid-cols-3 sm:gap-10">
+          <div>
+            <p className="mb-3 text-sm font-medium text-foreground">Product</p>
+            <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
+              {FOOTER_LINKS.product.map((item) => (
+                <li key={item.href}>
+                  <FooterLink href={item.href} label={item.label} />
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="mb-3 text-sm font-medium text-foreground">Company</p>
+            <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
+              {FOOTER_LINKS.company.map((item) => (
+                <li key={item.href}>
+                  <FooterLink href={item.href} label={item.label} />
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="mb-3 text-sm font-medium text-foreground">Legal</p>
+            <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
+              {FOOTER_LINKS.legal.map((item) => (
+                <li key={item.href}>
+                  <FooterLink href={item.href} label={item.label} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <div className="mt-10 flex flex-col gap-2 border-t border-border pt-8 sm:flex-row sm:items-center sm:justify-between">
+          <MediaShopCopyright />
+          <p className="text-sm text-muted-foreground">
+            Tailnote is operated by{' '}
+            <a
+              href={MEDIA_SHOP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-4 transition-colors hover:text-foreground"
+            >
+              The Media Shop
+            </a>
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}

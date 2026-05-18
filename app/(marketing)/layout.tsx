@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { SiteFooter } from '@/components/marketing/SiteFooter';
 import { SiteHeader } from '@/components/marketing/SiteHeader';
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
@@ -6,14 +6,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen flex flex-col">
       <SiteHeader />
       <main className="flex-1">{children}</main>
-      <footer className="border-t py-8 text-center text-sm text-muted-foreground">
-        <p>
-          © {new Date().getFullYear()} Tailnote.{' '}
-          <Link href="/login" className="underline underline-offset-4">
-            Log in
-          </Link>
-        </p>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
