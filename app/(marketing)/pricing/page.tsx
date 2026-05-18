@@ -33,31 +33,60 @@ function primaryPriceLine(plan: PublicPricingPlan): string {
   return `${formatUsd(plan.basePriceCents)}${intervalSuffix(plan.interval)}`;
 }
 
-function includedUsersLine(plan: PublicPricingPlan): string {
+function seatPolicyLine(plan: PublicPricingPlan): string | null {
+  if (plan.interval === 'lifetime') return null;
   const n = Math.max(1, plan.includedUsers);
-  return `${n} user${n === 1 ? '' : 's'} included`;
+  if (plan.additionalUserPriceCents > 0) {
+    return `Includes ${n} user${n === 1 ? '' : 's'} — add more anytime for ${formatUsd(plan.additionalUserPriceCents)} per user${intervalSuffix(plan.interval)}`;
+  }
+  return `Includes ${n} user${n === 1 ? '' : 's'} — no additional seats available`;
 }
 
-function additionalUsersLine(plan: PublicPricingPlan): string | null {
-  if (plan.interval === 'lifetime' || plan.additionalUserPriceCents <= 0) return null;
-  return `+ ${formatUsd(plan.additionalUserPriceCents)} per additional user${intervalSuffix(plan.interval)}`;
-}
-
-function noAdditionalUsersLine(plan: PublicPricingPlan): string | null {
-  if (plan.additionalUserPriceCents > 0) return null;
-  const n = Math.max(1, plan.includedUsers);
-  if (n <= 1) return null;
-  return 'No additional users beyond included seats';
-}
-
-function subscriptionAvailabilityLine(plan: PublicPricingPlan): string | null {
+function subscriptionCap(plan: PublicPricingPlan): { max: number; remaining: number } | null {
   const max = plan.maxSubscriptionSlots;
   if (max <= 0) return null;
-  const remaining = Math.max(0, max - plan.subscriptionCount);
+  return { max, remaining: Math.max(0, max - plan.subscriptionCount) };
+}
+
+function planFeatureBullets(plan: PublicPricingPlan): string[] {
+  const bullets = [
+    'Every professional signature template — Standard, Corporate, Professional, and more',
+    'One brand look across your whole team',
+    'Install to Gmail in a click, plus copy-ready HTML for Outlook',
+    'Promotional content blocks on premium layouts',
+    'Optional click analytics on signature links',
+  ];
+
+  const seats = seatPolicyLine(plan);
+  if (seats) bullets.push(seats);
+
+  return bullets;
+}
+
+function SubscriptionAvailabilityCallout({ plan }: { plan: PublicPricingPlan }) {
+  const cap = subscriptionCap(plan);
+  if (!cap) return null;
+
   if (plan.soldOut) {
-    return `No subscriptions available (${max} total, all claimed)`;
+    return (
+      <div className="rounded-lg border-2 border-destructive/30 bg-destructive/10 px-4 py-3 text-center">
+        <p className="text-xs font-semibold uppercase tracking-wide text-destructive">Sold out</p>
+        <p className="mt-1 text-lg font-semibold text-destructive">All {cap.max} subscriptions claimed</p>
+        <p className="text-sm text-muted-foreground">Check back later or choose another plan</p>
+      </div>
+    );
   }
-  return `${remaining} of ${max} subscription${max === 1 ? '' : 's'} available`;
+
+  return (
+    <div className="rounded-lg border-2 border-primary/25 bg-primary/5 px-4 py-3 text-center">
+      <p className="text-xs font-semibold uppercase tracking-wide text-primary">Limited availability</p>
+      <p className="mt-1 text-3xl font-bold tabular-nums text-foreground">{cap.remaining}</p>
+      <p className="text-sm text-muted-foreground">
+        of {cap.max} subscription{cap.max === 1 ? '' : 's'} still available — claim yours before they&apos;re
+        gone
+      </p>
+    </div>
+  );
 }
 
 export default async function PricingPage() {
@@ -67,8 +96,8 @@ export default async function PricingPage() {
     <div className="mx-auto min-w-0 max-w-5xl px-4 py-12 sm:py-16">
       <h1 className="mb-2 text-2xl font-semibold tracking-tight sm:text-3xl">Pricing</h1>
       <p className="text-muted-foreground mb-10 max-w-xl">
-        Plans are billed per organization. Every plan includes all Tailnote signature features. Subscribe from
-        the dashboard after you sign up.
+        Billed per subscription. Each subscription covers one organization with every Tailnote signature
+        feature. Pick a plan, sign up, and subscribe from your dashboard.
       </p>
       {plans.length === 0 ? (
         <p className="text-sm text-muted-foreground">
@@ -78,13 +107,12 @@ export default async function PricingPage() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(16rem,1fr))]">
           {plans.map((plan) => {
             const description = plan.description.trim();
-            const additionalUsers = additionalUsersLine(plan);
-            const noAdditionalUsers = noAdditionalUsersLine(plan);
-            const subscriptionAvailability = subscriptionAvailabilityLine(plan);
+            const features = planFeatureBullets(plan);
+            const hasCap = subscriptionCap(plan) !== null;
 
             return (
               <Card key={plan.slug} className="flex flex-col">
-                <CardHeader>
+                <CardHeader className="space-y-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <CardTitle>{plan.name}</CardTitle>
                     {plan.badge.trim() ? (
@@ -99,25 +127,20 @@ export default async function PricingPage() {
                     ) : null}
                   </div>
                   {description ? <CardDescription>{description}</CardDescription> : null}
-                  <p className="text-muted-foreground mt-2 text-sm">
-                    All signature templates, animation slots, and team features included.
-                  </p>
+                  {hasCap ? <SubscriptionAvailabilityCallout plan={plan} /> : null}
                 </CardHeader>
-                <CardContent className="flex flex-1 flex-col gap-2">
-                  <p className="text-3xl font-semibold">{primaryPriceLine(plan)}</p>
-                  <ul className="space-y-1 text-sm text-muted-foreground">
-                    <li>{includedUsersLine(plan)}</li>
-                    {additionalUsers ? <li>{additionalUsers}</li> : null}
-                    {noAdditionalUsers ? <li>{noAdditionalUsers}</li> : null}
-                    {subscriptionAvailability ? (
-                      <li className={plan.soldOut ? 'text-destructive' : undefined}>
-                        {subscriptionAvailability}
-                      </li>
-                    ) : null}
+                <CardContent className="flex flex-1 flex-col gap-4">
+                  <div>
+                    <p className="text-3xl font-semibold">{primaryPriceLine(plan)}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Per subscription</p>
+                  </div>
+                  <ul className="list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
+                    {features.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
                   </ul>
-                  <p className="text-sm text-muted-foreground mt-auto pt-2">Per organization</p>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="mt-auto">
                   {plan.soldOut ? (
                     <Button className="w-full" disabled>
                       Sold out
