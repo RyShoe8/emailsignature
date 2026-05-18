@@ -19,5 +19,6 @@ export async function GET() {
   return NextResponse.json({
     connected: Boolean(row),
     googleEmail: row?.googleEmail || '',
+    applyToReplies: row?.applyToReplies !== false,
   });
 }

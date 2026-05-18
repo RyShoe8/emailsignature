@@ -108,6 +108,7 @@ export function SignatureWorkspace() {
   const [gmailEmail, setGmailEmail] = useState('');
   const [gmailBusy, setGmailBusy] = useState(false);
   const [gmailMessage, setGmailMessage] = useState<string | null>(null);
+  const [gmailApplyToReplies, setGmailApplyToReplies] = useState(true);
   /** Server-rendered HTML with signed tracking URLs when org flag is on. */
   const [trackedHtml, setTrackedHtml] = useState<string | null>(null);
   /** Bumps after mount so signature HTML re-renders with real `window` origin (SSR memo used localhost). */
@@ -137,9 +138,11 @@ export function SignatureWorkspace() {
       if (gJson.connected) {
         setGmailConnected(true);
         setGmailEmail(String(gJson.googleEmail || ''));
+        setGmailApplyToReplies(gJson.applyToReplies !== false);
       } else {
         setGmailConnected(false);
         setGmailEmail('');
+        setGmailApplyToReplies(true);
       }
       if (pJson.profile && typeof pJson.profile === 'object') {
         const sp = pJson.profile as Partial<SignatureProfile>;
@@ -317,7 +320,12 @@ export function SignatureWorkspace() {
 
   const previewHtml = trackedHtml ?? html;
 
-  const gmailPreparedHtml = useMemo(() => prepareSignatureHtmlForGmail(html), [html]);
+  const trackingForGmail = Boolean(org?.signatureClickTrackingEnabled && trackedHtml);
+  const gmailSourceHtml = trackingForGmail ? trackedHtml! : html;
+  const gmailPreparedHtml = useMemo(
+    () => prepareSignatureHtmlForGmail(gmailSourceHtml),
+    [gmailSourceHtml]
+  );
   const gmailCharCount = gmailPreparedHtml.length;
   const gmailOverLimit = gmailCharCount > GMAIL_SIGNATURE_MAX_CHARS;
 
@@ -435,7 +443,7 @@ export function SignatureWorkspace() {
   };
 
   const handleApplyGmail = async () => {
-    if (!html.trim() || gmailOverLimit) return;
+    if (!gmailSourceHtml.trim() || gmailOverLimit) return;
     setGmailBusy(true);
     setGmailMessage(null);
     try {
@@ -443,16 +451,20 @@ export function SignatureWorkspace() {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ html }),
+        body: JSON.stringify({ html: gmailSourceHtml, applyToReplies: gmailApplyToReplies }),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) {
         setGmailMessage(typeof j.error === 'string' ? j.error : 'Could not update Gmail signature');
         return;
       }
-      setGmailMessage(
-        `Gmail signature updated for ${typeof j.sendAsEmail === 'string' ? j.sendAsEmail : 'your send-as address'}. Gmail may simplify HTML.`
-      );
+      const who = typeof j.sendAsEmail === 'string' ? j.sendAsEmail : 'your send-as address';
+      let msg = `Gmail signature updated for ${who}. Gmail may simplify HTML.`;
+      if (gmailApplyToReplies) {
+        msg +=
+          ' For replies and forwards, open Gmail Settings → General → Signature defaults and choose this signature under “For replies and forwards” if it does not apply automatically. See https://support.google.com/mail/answer/8395';
+      }
+      setGmailMessage(msg);
     } finally {
       setGmailBusy(false);
     }
@@ -699,8 +711,10 @@ export function SignatureWorkspace() {
                 Gmail size: {gmailCharCount.toLocaleString()} / {GMAIL_SIGNATURE_MAX_CHARS.toLocaleString()}{' '}
                 characters
                 {gmailOverLimit
-                  ? ' — over limit. Remove promo blocks, use a simpler template, or shorten content. Tracking links are not sent to Gmail.'
-                  : '. Direct links are used (not click-tracking URLs).'}
+                  ? ' — over limit. Remove promo blocks, use a simpler template, or shorten content.'
+                  : trackingForGmail
+                    ? '. Tracked links included when under the size limit.'
+                    : '. Direct links are used (enable click analytics on Overview to track Gmail link clicks).'}
               </p>
               {gmailMessage ? <p className="text-xs text-muted-foreground">{gmailMessage}</p> : null}
               {gmailConnected ? (
@@ -708,6 +722,25 @@ export function SignatureWorkspace() {
                   <p className="text-xs text-muted-foreground">
                     Connected{gmailEmail ? ` as ${gmailEmail}` : ''}. Gmail may rewrite HTML when saving.
                   </p>
+                  <div className="flex items-start gap-3 rounded-md border border-dashed p-3">
+                    <input
+                      id="gmail-apply-replies"
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 rounded border-input"
+                      checked={gmailApplyToReplies}
+                      onChange={(e) => setGmailApplyToReplies(e.target.checked)}
+                      disabled={gmailBusy}
+                    />
+                    <div className="space-y-1">
+                      <Label htmlFor="gmail-apply-replies" className="cursor-pointer font-normal leading-snug">
+                        Use this signature for replies and forwards (where Gmail allows)
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Gmail&apos;s API sets the signature for new messages. Replies may need Signature defaults in
+                        Gmail Settings → General.
+                      </p>
+                    </div>
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     <Button
                       type="button"

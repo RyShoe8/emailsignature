@@ -9,6 +9,7 @@ import {
   assertGmailSignatureWithinLimit,
   removeSignatureElementsByClass,
 } from '../lib/email/gmailSignatureHtml';
+import { appendSignatureClickTracking } from '../lib/signatureTrackingHtml';
 
 const corporateTemplate: SignatureTemplate = {
   id: 'corp-gmail-smoke',
@@ -65,35 +66,55 @@ const withStyle = `<style type="text/css">@media (max-width:600px){ tr.x { displ
 <link href="https://fonts.googleapis.com/css2?family=Inter" rel="stylesheet" />
 <table><tr class="sig-blocks-stacked-row"><td>fixture stacked row</td></tr></table>`;
 
+const corporateMinimalTemplate: SignatureTemplate = {
+  ...corporateTemplate,
+  elements: [
+    { type: 'logo' },
+    { type: 'name' },
+    { type: 'title' },
+    { type: 'contact' },
+    { type: 'divider' },
+    { type: 'address' },
+  ],
+};
+
+const rawMinimal = renderSignature({
+  profile,
+  brand: mockSignatureBrand,
+  template: corporateMinimalTemplate,
+  publicSiteOrigin: 'https://tailnote.example',
+});
+
 const fixture = withStyle + raw;
+
+const preparedMinimal = prepareSignatureHtmlForGmail(rawMinimal);
+
+assert.ok(/@media/i.test(preparedMinimal), 'keeps responsive @media CSS for Gmail when under size limit');
+assert.ok(!/<link\b/i.test(preparedMinimal), 'strips link tags');
+assert.doesNotMatch(
+  preparedMinimal,
+  /<tr class="sig-blocks-stacked-row"/,
+  'minimal corporate has no stacked promo row in markup'
+);
 
 const prepared = prepareSignatureHtmlForGmail(fixture);
 
-assert.ok(!/<style/i.test(prepared), 'strips style blocks');
-assert.ok(!/<link\b/i.test(prepared), 'strips link tags');
-assert.ok(/sig-blocks-stacked-row/i.test(prepared), 'keeps stacked promo row for Gmail');
-assert.ok(!/sig-blocks-desktop/i.test(prepared), 'removes desktop side-column promo cells');
-assert.ok(prepared.includes('Recent Wins'), 'keeps promo content from stacked row');
-assert.strictEqual(
-  (prepared.match(/Recent Wins/g) ?? []).length,
-  1,
-  'promo title appears once (no duplicate desktop + orphan fragments)'
-);
+assert.ok(!/<link\b/i.test(prepared), 'strips link tags on full fixture');
+assert.ok(prepared.includes('Recent Wins'), 'keeps promo content');
+assert.ok(/sig-blocks-stacked-row/i.test(prepared), 'full fixture keeps stacked promo row');
+assert.ok(/sig-blocks-desktop/i.test(prepared), 'full fixture keeps desktop side-column');
 assert.ok(
   /bgcolor="#e5e5e5"[^>]*height:1px/.test(prepared),
   'corporate divider uses solid grey rule visible in Gmail'
 );
 
-// Regression: depth-aware removal must not break on nested <tr> inside stacked cell
+// Regression: depth-aware removal helper (used in 10k fallback)
 const nestedTrFixture = `<table><tr class="sig-blocks-stacked-row"><td colspan="3"><table><tr><td>inner</td></tr><tr><td>Recent Wins</td></tr></table></td></tr></table>
 <table><tr><td class="sig-blocks-desktop sig-corp-blocks-stack"><table><tr><td>desktop only</td></tr></table></td></tr></table>`;
-const nestedPrepared = prepareSignatureHtmlForGmail(nestedTrFixture);
-assert.ok(/sig-blocks-stacked-row/i.test(nestedPrepared), 'nested tr: stacked row intact');
-assert.ok(nestedPrepared.includes('Recent Wins'), 'nested tr: stacked promo content kept');
-assert.ok(!nestedPrepared.includes('desktop only'), 'nested tr: desktop column removed');
-assert.ok(!/sig-blocks-desktop/i.test(nestedPrepared), 'nested tr: no desktop class left');
+const nestedPrepared = removeSignatureElementsByClass(nestedTrFixture, 'sig-blocks-stacked-row', 'tr');
+assert.ok(nestedPrepared.includes('desktop only'), 'helper: removing stacked row leaves desktop column');
+assert.ok(!nestedPrepared.includes('sig-blocks-stacked-row'), 'helper: stacked row removed');
 
-// Unit: removeSignatureElementsByClass handles nested td
 const tdRemoved = removeSignatureElementsByClass(
   '<table><tr><td class="sig-blocks-desktop"><table><tr><td>a</td></tr></table></td><td>keep</td></tr></table>',
   'sig-blocks-desktop',
@@ -109,6 +130,26 @@ assert.ok(
 );
 
 assert.doesNotThrow(() => assertGmailSignatureWithinLimit(fixture), 'typical corporate passes limit check');
+
+// Tracked links survive Gmail prep when under limit
+process.env.BETTER_AUTH_SECRET = 'smoke-test-secret-key-minimum-length-32';
+const tracked = appendSignatureClickTracking({
+  html: raw,
+  organizationId: '507f1f77bcf86cd799439011',
+  employeeId: '507f1f77bcf86cd799439012',
+  input: {
+    profile,
+    brand: { ...mockSignatureBrand, contentBlocks: [] },
+    template: corporateTemplate,
+    publicSiteOrigin: 'https://tailnote.example',
+  },
+  baseUrl: 'https://tailnote.example',
+});
+const trackedPrepared = prepareSignatureHtmlForGmail(tracked);
+assert.ok(
+  trackedPrepared.includes('/api/track/signature?t='),
+  'Gmail prep keeps tracked redirect URLs when under size limit'
+);
 
 const huge = '<div>' + 'x'.repeat(GMAIL_SIGNATURE_MAX_CHARS + 1) + '</div>';
 assert.throws(

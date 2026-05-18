@@ -8,6 +8,7 @@ import { GmailIntegrationModel } from '@/models/GmailIntegration';
 
 const BodySchema = z.object({
   html: z.string().min(1).max(900_000),
+  applyToReplies: z.boolean().optional(),
 });
 
 type SessionUser = {
@@ -49,9 +50,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Stored credentials are invalid' }, { status: 500 });
   }
 
+  const applyToReplies = parsed.data.applyToReplies !== false;
+
   try {
     const { sendAsEmail } = await patchGmailSignature(refreshToken, parsed.data.html);
-    return NextResponse.json({ ok: true, sendAsEmail });
+    await GmailIntegrationModel.updateOne(
+      { userId: user.id },
+      { $set: { applyToReplies } }
+    );
+    return NextResponse.json({ ok: true, sendAsEmail, applyToReplies });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'apply_failed';
     return NextResponse.json({ error: message }, { status: 502 });

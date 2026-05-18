@@ -79,7 +79,7 @@ export async function patchGmailSignature(refreshToken: string, html: string): P
   }
 
   const prepared = prepareSignatureHtmlForGmail(html);
-  assertGmailSignatureWithinLimit(html);
+  assertGmailSignatureWithinLimit(prepared);
 
   try {
     await gmail.users.settings.sendAs.patch({

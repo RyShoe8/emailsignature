@@ -1,6 +1,8 @@
 /** Gmail send-as signature HTML limit (characters). */
 export const GMAIL_SIGNATURE_MAX_CHARS = 10_000;
 
+const GMAIL_DESKTOP_BLOCK_CLASSES = ['sig-blocks-desktop', 'sig-blocks-stack'] as const;
+
 /**
  * Remove outer elements whose opening tag includes `className` (word-boundary match).
  * Uses depth counting so nested tables inside the element are removed intact.
@@ -66,27 +68,60 @@ export function removeSignatureElementsByClass(
   return result;
 }
 
-/** Classes used for desktop-only promo columns (removed for Gmail). */
-const GMAIL_DESKTOP_BLOCK_CLASSES = ['sig-blocks-desktop', 'sig-blocks-stack'] as const;
+function stripStyleBlocks(html: string): string {
+  return html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+}
 
-/**
- * Slim signature HTML for Gmail API upload.
- * Strips markup Gmail ignores or that wastes the 10k character budget.
- * Keeps the mobile stacked promo row; removes desktop side columns.
- */
-export function prepareSignatureHtmlForGmail(html: string): string {
+function stripLinkTags(html: string): string {
+  return html.replace(/<link\b[^>]*\/?>/gi, '');
+}
+
+function collapseWhitespaceBetweenTags(html: string): string {
+  return html.replace(/>\s+</g, '><');
+}
+
+function removeDesktopPromoColumns(html: string): string {
   let out = html;
-
-  out = out.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
-  out = out.replace(/<link\b[^>]*\/?>/gi, '');
-
   for (const cls of GMAIL_DESKTOP_BLOCK_CLASSES) {
     out = removeSignatureElementsByClass(out, cls, 'td');
   }
+  return out;
+}
 
-  out = out.replace(/>\s+</g, '><');
+function removeStackedPromoRows(html: string): string {
+  return removeSignatureElementsByClass(html, 'sig-blocks-stacked-row', 'tr');
+}
 
+/** Base prep: keep responsive @media CSS and both promo rows; strip external links only. */
+function prepareSignatureHtmlBase(html: string): string {
+  let out = stripLinkTags(html);
+  out = collapseWhitespaceBetweenTags(out);
   return out.trim();
+}
+
+/** Progressive size reduction when over Gmail's 10k character limit. */
+function applyGmailSizeFallbacks(html: string): string {
+  let out = html;
+  if (out.length <= GMAIL_SIGNATURE_MAX_CHARS) return out;
+
+  out = stripStyleBlocks(out);
+  if (out.length <= GMAIL_SIGNATURE_MAX_CHARS) return out;
+
+  out = removeStackedPromoRows(out);
+  if (out.length <= GMAIL_SIGNATURE_MAX_CHARS) return out;
+
+  out = removeDesktopPromoColumns(out);
+  return out;
+}
+
+/**
+ * Prepare signature HTML for Gmail API upload.
+ * Default: keeps embedded @media CSS and desktop + stacked promo rows (responsive).
+ * If over 10k chars: strips style, then stacked row, then desktop column.
+ */
+export function prepareSignatureHtmlForGmail(html: string): string {
+  const base = prepareSignatureHtmlBase(html);
+  return applyGmailSizeFallbacks(base);
 }
 
 export function gmailSignatureCharCount(html: string): number {
