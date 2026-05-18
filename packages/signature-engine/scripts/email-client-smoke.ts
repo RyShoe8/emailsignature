@@ -304,6 +304,31 @@ assert.match(
   /td\.sig-content-block-cell\s*\{/,
   'corporate: responsive CSS stacks dual content-block cells on narrow viewports'
 );
+assert.ok(
+  htmlListImage.includes('sig-content-block-cell-left') &&
+    htmlListImage.includes('sig-content-block-cell-right'),
+  'corporate: dual promo blocks use left/right cell classes'
+);
+assert.match(
+  htmlListImage,
+  /@media only screen and \(min-width:601px\)[\s\S]*?td\.sig-content-block-cell-right[\s\S]*?border-left:\s*1px solid #e5e5e5/,
+  'corporate: desktop @media adds vertical separator between promo blocks'
+);
+assert.match(
+  htmlListImage,
+  /@media only screen and \(min-width:601px\)[\s\S]*?td\.sig-content-block-cell-left[\s\S]*?padding-right:\s*12px/,
+  'corporate: desktop @media adds gutter before promo block divider'
+);
+assert.match(
+  htmlListImage,
+  /@media only screen and \(max-width:600px\)[\s\S]*?td\.sig-blocks-mobile[\s\S]*?border-top:\s*1px solid #e5e5e5/,
+  'corporate: mobile @media adds separator above promotional blocks'
+);
+assert.match(
+  htmlListImage,
+  /@media only screen and \(max-width:600px\)[\s\S]*?td\.sig-content-block-cell-right[\s\S]*?border-top:\s*1px solid #e5e5e5/,
+  'corporate: mobile @media adds separator between stacked promo blocks'
+);
 
 // Corporate template should not show redundant Phone/Email/Web labels — the values
 // already look like phone numbers / emails / URLs. Mobile keeps its label so it can
@@ -510,6 +535,31 @@ assert.ok(
   htmlMinimalTwoBlocks.includes('class="sig-content-blocks-grid"') &&
     htmlMinimalTwoBlocks.includes('sig-content-block-cell'),
   'minimal: two enabled blocks render in a side-by-side grid inside the blocks column'
+);
+assert.ok(
+  htmlMinimalTwoBlocks.includes('sig-content-block-cell-left') &&
+    htmlMinimalTwoBlocks.includes('sig-content-block-cell-right'),
+  'minimal: dual promo blocks use left/right cell classes'
+);
+assert.match(
+  htmlMinimalTwoBlocks,
+  /@media only screen and \(min-width:601px\)[\s\S]*?td\.sig-content-block-cell-right[\s\S]*?border-left:\s*1px solid #e5e5e5/,
+  'minimal: desktop @media adds vertical separator between promo blocks'
+);
+assert.match(
+  htmlMinimalTwoBlocks,
+  /@media only screen and \(min-width:601px\)[\s\S]*?td\.sig-content-block-cell-left[\s\S]*?padding-right:\s*12px/,
+  'minimal: desktop @media adds gutter before promo block divider'
+);
+assert.match(
+  htmlMinimalTwoBlocks,
+  /@media only screen and \(max-width:600px\)[\s\S]*?td\.sig-blocks-mobile[\s\S]*?border-top:\s*1px solid #e5e5e5/,
+  'minimal: mobile @media adds separator above promotional blocks'
+);
+assert.match(
+  htmlMinimalTwoBlocks,
+  /@media only screen and \(max-width:600px\)[\s\S]*?td\.sig-content-block-cell-right[\s\S]*?border-top:\s*1px solid #e5e5e5/,
+  'minimal: mobile @media adds separator between stacked promo blocks'
 );
 
 // Stacked template should also support blocks.

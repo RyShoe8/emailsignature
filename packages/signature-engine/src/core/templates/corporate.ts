@@ -24,6 +24,14 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
   td.sig-blocks-desktop {
     display: table-cell !important;
   }
+  td.sig-content-block-cell-left {
+    padding-right: 12px !important;
+  }
+  td.sig-content-block-cell-right {
+    padding-left: 12px !important;
+    border-left: 1px solid #e5e5e5 !important;
+    border-top: none !important;
+  }
 }
 @media only screen and (max-width:600px),
   only screen and (max-width:768px),
@@ -53,7 +61,8 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
   td.sig-blocks-mobile {
     padding-left: 14px !important;
     padding-right: 14px !important;
-    padding-top: 14px !important;
+    padding-top: 16px !important;
+    border-top: 1px solid #e5e5e5 !important;
     box-sizing: border-box !important;
   }
   td.sig-content-block-cell {
@@ -67,6 +76,15 @@ export const CORPORATE_SIGNATURE_TEMPLATE = `<style type="text/css">
     padding-left: 0 !important;
     padding-right: 0 !important;
     padding-bottom: 12px !important;
+  }
+  td.sig-content-block-cell-left {
+    padding-bottom: 14px !important;
+  }
+  td.sig-content-block-cell-right {
+    border-left: none !important;
+    border-top: 1px solid #e5e5e5 !important;
+    padding-top: 14px !important;
+    padding-left: 0 !important;
   }
 }
 </style>

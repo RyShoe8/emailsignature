@@ -323,8 +323,8 @@ function renderContentBlocksHtml(
   const [left, right] = parts;
   return `<table class="sig-content-blocks-grid" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;width:100%;">
 <tr>
-<td class="sig-content-block-cell" valign="top" width="50%" style="vertical-align:top;width:50%;padding-right:2px;">${left}</td>
-<td class="sig-content-block-cell" valign="top" width="50%" style="vertical-align:top;width:50%;padding-left:2px;">${right}</td>
+<td class="sig-content-block-cell sig-content-block-cell-left" valign="top" width="50%" style="vertical-align:top;width:50%;">${left}</td>
+<td class="sig-content-block-cell sig-content-block-cell-right" valign="top" width="50%" style="vertical-align:top;width:50%;">${right}</td>
 </tr>
 </table>`;
 }
