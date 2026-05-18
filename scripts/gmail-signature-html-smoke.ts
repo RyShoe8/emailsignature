@@ -6,10 +6,29 @@ import { renderSignature, mockSignatureBrand, type SignatureTemplate } from 'ema
 import {
   GMAIL_SIGNATURE_MAX_CHARS,
   prepareSignatureHtmlForGmail,
+  prepareSignatureHtmlForGmailDetailed,
   assertGmailSignatureWithinLimit,
   removeSignatureElementsByClass,
 } from '../lib/email/gmailSignatureHtml';
 import { appendSignatureClickTracking } from '../lib/signatureTrackingHtml';
+
+const promoBlocks = [
+  {
+    type: 'list' as const,
+    enabled: true,
+    listTitle: 'Recent Wins',
+    listItems: [
+      { title: 'Quarterly Report', url: 'https://example.com/q4' },
+      { title: 'New Feature', url: 'https://example.com/feature' },
+    ],
+  },
+  {
+    type: 'image' as const,
+    enabled: true,
+    imageUrl: 'https://example.com/images/promo.png',
+    imageLinkUrl: 'https://example.com/promo',
+  },
+];
 
 const corporateTemplate: SignatureTemplate = {
   id: 'corp-gmail-smoke',
@@ -40,25 +59,26 @@ const raw = renderSignature({
   profile,
   brand: {
     ...mockSignatureBrand,
-    contentBlocks: [
-      {
-        type: 'list',
-        enabled: true,
-        listTitle: 'Recent Wins',
-        listItems: [
-          { title: 'Quarterly Report', url: 'https://example.com/q4' },
-          { title: 'New Feature', url: 'https://example.com/feature' },
-        ],
-      },
-      {
-        type: 'image',
-        enabled: true,
-        imageUrl: 'https://example.com/images/promo.png',
-        imageLinkUrl: 'https://example.com/promo',
-      },
-    ],
+    contentBlocks: promoBlocks,
   },
   template: corporateTemplate,
+  publicSiteOrigin: 'https://tailnote.example',
+});
+
+const professionalTemplate: SignatureTemplate = {
+  id: 'prof-gmail-smoke',
+  name: 'Professional',
+  layout: 'professional',
+  elements: corporateTemplate.elements,
+};
+
+const rawProfessional = renderSignature({
+  profile,
+  brand: {
+    ...mockSignatureBrand,
+    contentBlocks: promoBlocks,
+  },
+  template: professionalTemplate,
   publicSiteOrigin: 'https://tailnote.example',
 });
 
@@ -164,6 +184,50 @@ assert.throws(
   () => assertGmailSignatureWithinLimit(huge),
   /after Gmail preparation/,
   'over-limit throws clear error'
+);
+
+// Professional + promo blocks: stacked row must survive Gmail prep (regression for silent promo drop)
+const profFixture = withStyle + rawProfessional;
+const profPrepared = prepareSignatureHtmlForGmailDetailed(profFixture);
+assert.ok(!/<style/i.test(profPrepared.html), 'professional: strips style blocks');
+assert.ok(!/sig-blocks-desktop/i.test(profPrepared.html), 'professional: removes desktop promo column');
+assert.ok(/sig-blocks-stacked-row/i.test(profPrepared.html), 'professional: keeps stacked promo row');
+assert.ok(profPrepared.html.includes('Recent Wins'), 'professional: keeps promo content');
+assert.strictEqual(
+  profPrepared.stackedPromosRemoved,
+  false,
+  'professional: must not drop stacked promos to meet Gmail limit'
+);
+assert.ok(
+  profPrepared.charCount < GMAIL_SIGNATURE_MAX_CHARS,
+  `professional fixture under Gmail limit (got ${profPrepared.charCount})`
+);
+assert.doesNotThrow(
+  () => assertGmailSignatureWithinLimit(profFixture),
+  'professional with promos passes limit check'
+);
+
+const trackedProfessional = appendSignatureClickTracking({
+  html: rawProfessional,
+  organizationId: '507f1f77bcf86cd799439011',
+  employeeId: '507f1f77bcf86cd799439012',
+  input: {
+    profile,
+    brand: { ...mockSignatureBrand, contentBlocks: promoBlocks },
+    template: professionalTemplate,
+    publicSiteOrigin: 'https://tailnote.example',
+  },
+  baseUrl: 'https://tailnote.example',
+});
+const trackedProfPrepared = prepareSignatureHtmlForGmailDetailed(trackedProfessional);
+assert.ok(
+  trackedProfPrepared.html.includes('Recent Wins'),
+  'tracked professional: keeps promo content'
+);
+assert.strictEqual(
+  trackedProfPrepared.stackedPromosRemoved,
+  false,
+  'tracked professional: must not drop stacked promos'
 );
 
 console.log('gmail-signature-html-smoke: all checks passed.');

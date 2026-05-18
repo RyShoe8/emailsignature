@@ -23,7 +23,10 @@ import { CopySignatureButton } from '@/components/signature/CopySignatureButton'
 import { CopyRichTextButton } from '@/components/signature/CopyRichTextButton';
 import { OutlookInstallHelp } from '@/components/signature/OutlookInstallHelp';
 import { downloadHtml } from '@/lib/clipboard';
-import { GMAIL_SIGNATURE_MAX_CHARS, prepareSignatureHtmlForGmail } from '@/lib/email/gmailSignatureHtml';
+import {
+  GMAIL_SIGNATURE_MAX_CHARS,
+  prepareSignatureHtmlForGmailDetailed,
+} from '@/lib/email/gmailSignatureHtml';
 import type { SignatureProfile, ContentBlockData } from 'emailsignature-engine';
 import { ContentBlocksEditor } from '@/components/signature/ContentBlocksEditor';
 
@@ -255,12 +258,15 @@ export default function EmployeeDetailPage() {
 
   const trackingForGmail = Boolean(trackingEnabled && trackedHtml);
   const gmailSourceHtml = trackingForGmail ? trackedHtml! : html;
-  const gmailPreparedHtml = useMemo(
-    () => prepareSignatureHtmlForGmail(gmailSourceHtml),
+  const gmailPrep = useMemo(
+    () => prepareSignatureHtmlForGmailDetailed(gmailSourceHtml),
     [gmailSourceHtml]
   );
-  const gmailCharCount = gmailPreparedHtml.length;
+  const gmailCharCount = gmailPrep.charCount;
   const gmailOverLimit = gmailCharCount > GMAIL_SIGNATURE_MAX_CHARS;
+  const gmailPromosStripped = gmailPrep.stackedPromosRemoved;
+  const hasEnabledPromoBlocks = contentBlocks.some((b) => b.enabled);
+  const gmailPromosBlocked = gmailPromosStripped && hasEnabledPromoBlocks;
 
   const previewUrl = useMemo(() => {
     if (!previewToken) return '';
@@ -306,7 +312,7 @@ export default function EmployeeDetailPage() {
     Boolean(profile.firstName.trim() && profile.lastName.trim() && profile.email.trim() && previewHtml.trim());
 
   async function handleApplyGmail() {
-    if (!gmailSourceHtml.trim() || gmailOverLimit) return;
+    if (!gmailSourceHtml.trim() || gmailOverLimit || gmailPromosBlocked) return;
     setGmailBusy(true);
     setInstallMessage(null);
     try {
@@ -445,7 +451,7 @@ export default function EmployeeDetailPage() {
               <p className="text-sm font-medium">Gmail</p>
               <p
                 className={
-                  gmailOverLimit
+                  gmailOverLimit || gmailPromosBlocked
                     ? 'text-xs text-destructive font-medium'
                     : 'text-xs text-muted-foreground'
                 }
@@ -454,9 +460,11 @@ export default function EmployeeDetailPage() {
                 characters
                 {gmailOverLimit
                   ? ' — over limit. Remove promo blocks, use a simpler template, or shorten content.'
-                  : trackingForGmail
-                    ? '. Tracked links included when under the size limit.'
-                    : '. Direct links are used (enable click analytics on Overview to track Gmail link clicks).'}
+                  : gmailPromosBlocked
+                    ? ' — promotional blocks would be omitted to meet Gmail’s limit. Remove a promo block, shorten copy, switch template, or disable click tracking.'
+                    : trackingForGmail
+                      ? '. Tracked links included when under the size limit.'
+                      : '. Direct links are used (enable click analytics on Overview to track Gmail link clicks).'}
               </p>
               <p className="text-xs text-muted-foreground">
                 Gmail uses a stacked layout for promotional blocks (same as the mobile preview). Desktop
@@ -490,7 +498,7 @@ export default function EmployeeDetailPage() {
                   <div className="flex flex-wrap gap-2">
                     <Button
                       type="button"
-                      disabled={gmailBusy || !canCopy || gmailOverLimit}
+                      disabled={gmailBusy || !canCopy || gmailOverLimit || gmailPromosBlocked}
                       onClick={() => void handleApplyGmail()}
                     >
                       {gmailBusy ? 'Applying…' : 'Apply signature to Gmail'}

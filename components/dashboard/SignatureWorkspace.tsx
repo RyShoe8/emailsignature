@@ -26,7 +26,10 @@ import { CopySignatureButton } from '@/components/signature/CopySignatureButton'
 import { CopyRichTextButton } from '@/components/signature/CopyRichTextButton';
 import { OutlookInstallHelp } from '@/components/signature/OutlookInstallHelp';
 import { downloadHtml } from '@/lib/clipboard';
-import { GMAIL_SIGNATURE_MAX_CHARS, prepareSignatureHtmlForGmail } from '@/lib/email/gmailSignatureHtml';
+import {
+  GMAIL_SIGNATURE_MAX_CHARS,
+  prepareSignatureHtmlForGmailDetailed,
+} from '@/lib/email/gmailSignatureHtml';
 import { getSignatureAssetOrigin } from '@/lib/siteOrigin';
 import { shouldIncludeSignatureAnimation } from '@/lib/billing/entitlements';
 
@@ -322,12 +325,15 @@ export function SignatureWorkspace() {
 
   const trackingForGmail = Boolean(org?.signatureClickTrackingEnabled && trackedHtml);
   const gmailSourceHtml = trackingForGmail ? trackedHtml! : html;
-  const gmailPreparedHtml = useMemo(
-    () => prepareSignatureHtmlForGmail(gmailSourceHtml),
+  const gmailPrep = useMemo(
+    () => prepareSignatureHtmlForGmailDetailed(gmailSourceHtml),
     [gmailSourceHtml]
   );
-  const gmailCharCount = gmailPreparedHtml.length;
+  const gmailCharCount = gmailPrep.charCount;
   const gmailOverLimit = gmailCharCount > GMAIL_SIGNATURE_MAX_CHARS;
+  const gmailPromosStripped = gmailPrep.stackedPromosRemoved;
+  const hasEnabledPromoBlocks = contentBlocks.some((b) => b.enabled);
+  const gmailPromosBlocked = gmailPromosStripped && hasEnabledPromoBlocks;
 
   const canCopy =
     Boolean(profile.firstName.trim() && profile.lastName.trim() && profile.email.trim() && engineTemplate);
@@ -443,7 +449,7 @@ export function SignatureWorkspace() {
   };
 
   const handleApplyGmail = async () => {
-    if (!gmailSourceHtml.trim() || gmailOverLimit) return;
+    if (!gmailSourceHtml.trim() || gmailOverLimit || gmailPromosBlocked) return;
     setGmailBusy(true);
     setGmailMessage(null);
     try {
@@ -703,7 +709,7 @@ export function SignatureWorkspace() {
               <p className="text-sm font-medium">Gmail</p>
               <p
                 className={
-                  gmailOverLimit
+                  gmailOverLimit || gmailPromosBlocked
                     ? 'text-xs text-destructive font-medium'
                     : 'text-xs text-muted-foreground'
                 }
@@ -712,9 +718,11 @@ export function SignatureWorkspace() {
                 characters
                 {gmailOverLimit
                   ? ' — over limit. Remove promo blocks, use a simpler template, or shorten content.'
-                  : trackingForGmail
-                    ? '. Tracked links included when under the size limit.'
-                    : '. Direct links are used (enable click analytics on Overview to track Gmail link clicks).'}
+                  : gmailPromosBlocked
+                    ? ' — promotional blocks would be omitted to meet Gmail’s limit. Remove a promo block, shorten copy, switch template, or disable click tracking.'
+                    : trackingForGmail
+                      ? '. Tracked links included when under the size limit.'
+                      : '. Direct links are used (enable click analytics on Overview to track Gmail link clicks).'}
               </p>
               <p className="text-xs text-muted-foreground">
                 Gmail uses a stacked layout for promotional blocks (same as the mobile preview). Desktop
@@ -748,7 +756,7 @@ export function SignatureWorkspace() {
                   <div className="flex flex-wrap gap-2">
                     <Button
                       type="button"
-                      disabled={gmailBusy || !canCopy || gmailOverLimit}
+                      disabled={gmailBusy || !canCopy || gmailOverLimit || gmailPromosBlocked}
                       onClick={handleApplyGmail}
                     >
                       {gmailBusy ? 'Applying…' : 'Apply signature to Gmail'}
