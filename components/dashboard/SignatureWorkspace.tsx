@@ -85,10 +85,10 @@ function orgToBrand(org: OrgResponse, displayName: string): SignatureBrand {
 }
 
 const defaultProfile: SignatureProfile = {
-  firstName: 'Alex',
-  lastName: 'Rivera',
-  title: 'Head of Operations',
-  email: 'alex@example.com',
+  firstName: '',
+  lastName: '',
+  title: '',
+  email: '',
   officePhone: '',
   mobilePhone: '',
 };
@@ -151,10 +151,10 @@ export function SignatureWorkspace() {
         const sp = pJson.profile as Partial<SignatureProfile>;
         setProfile({
           ...defaultProfile,
-          firstName: typeof sp.firstName === 'string' ? sp.firstName : defaultProfile.firstName,
-          lastName: typeof sp.lastName === 'string' ? sp.lastName : defaultProfile.lastName,
-          title: typeof sp.title === 'string' ? sp.title : defaultProfile.title,
-          email: typeof sp.email === 'string' ? sp.email : defaultProfile.email,
+          firstName: typeof sp.firstName === 'string' ? sp.firstName : '',
+          lastName: typeof sp.lastName === 'string' ? sp.lastName : '',
+          title: typeof sp.title === 'string' ? sp.title : '',
+          email: typeof sp.email === 'string' ? sp.email : '',
           officePhone: typeof sp.officePhone === 'string' ? sp.officePhone : '',
           mobilePhone: typeof sp.mobilePhone === 'string' ? sp.mobilePhone : '',
         });
@@ -369,10 +369,10 @@ export function SignatureWorkspace() {
         const sp = j.profile as Partial<SignatureProfile>;
         setProfile({
           ...defaultProfile,
-          firstName: typeof sp.firstName === 'string' ? sp.firstName : profile.firstName,
-          lastName: typeof sp.lastName === 'string' ? sp.lastName : profile.lastName,
-          title: typeof sp.title === 'string' ? sp.title : profile.title,
-          email: typeof sp.email === 'string' ? sp.email : profile.email,
+          firstName: typeof sp.firstName === 'string' ? sp.firstName : '',
+          lastName: typeof sp.lastName === 'string' ? sp.lastName : '',
+          title: typeof sp.title === 'string' ? sp.title : '',
+          email: typeof sp.email === 'string' ? sp.email : '',
           officePhone: typeof sp.officePhone === 'string' ? sp.officePhone : '',
           mobilePhone: typeof sp.mobilePhone === 'string' ? sp.mobilePhone : '',
         });
