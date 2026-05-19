@@ -160,5 +160,6 @@ export async function POST(request: Request) {
     employee: employee.toObject(),
     inviteEmailSent: inviteResult.ok,
     inviteError: inviteResult.ok ? undefined : inviteResult.error,
+    inviteErrorCode: inviteResult.ok ? undefined : inviteResult.code,
   });
 }

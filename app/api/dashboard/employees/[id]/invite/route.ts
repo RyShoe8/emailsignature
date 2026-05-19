@@ -36,7 +36,11 @@ export async function POST(_request: Request, { params }: RouteParams) {
     org
   );
   if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: 502 });
+    const status = result.code === 'email_not_configured' ? 503 : 502;
+    return NextResponse.json(
+      { error: result.error, code: result.code },
+      { status }
+    );
   }
 
   const updated = await EmployeeModel.findById(employee._id)

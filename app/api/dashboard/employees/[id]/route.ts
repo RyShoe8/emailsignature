@@ -7,6 +7,7 @@ import { EmployeeModel } from '@/models/Employee';
 import { findOrgTemplateWithAvailablePreset } from '@/lib/templates/validateOrgTemplate';
 import { canUsePaidFeatures } from '@/lib/orgAccess';
 import { syncStripeSubscriptionSeatsForOrganization } from '@/lib/stripe/syncSubscriptionSeats';
+import { requireOrgAdmin } from '@/lib/dashboard/requireOrgAdmin';
 
 type SessionUser = { organizationId?: string };
 
@@ -141,12 +142,12 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 }
 
 export async function DELETE(_request: Request, context: { params: Promise<{ id: string }> }) {
-  const ctx = await requireOrg();
+  const ctx = await requireOrgAdmin();
   if ('error' in ctx) return ctx.error;
-  const { org } = ctx;
+  const { org, user } = ctx;
   const { id } = await context.params;
 
-  const res = await EmployeeModel.deleteOne({ _id: id, organizationId: org._id });
+  const res = await EmployeeModel.deleteOne({ _id: id, organizationId: user.organizationId });
   if (res.deletedCount === 0) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }

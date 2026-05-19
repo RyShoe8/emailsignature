@@ -8,7 +8,7 @@ import { generateInviteToken, inviteExpiresAtFromNow } from '@/lib/employees/inv
 
 export type SendEmployeeInviteResult =
   | { ok: true; inviteUrl: string; devLogged?: boolean }
-  | { ok: false; error: string };
+  | { ok: false; error: string; code?: 'email_not_configured' | 'send_failed' };
 
 type EmployeeInviteInput = {
   _id: Types.ObjectId;
@@ -59,7 +59,7 @@ export async function sendEmployeeInvite(
   });
 
   if (!result.ok) {
-    return { ok: false, error: result.error };
+    return { ok: false, error: result.error, code: result.code };
   }
 
   const inviteSentAt = new Date();

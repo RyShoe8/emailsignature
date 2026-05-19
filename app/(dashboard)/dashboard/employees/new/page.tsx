@@ -46,7 +46,20 @@ export default function NewEmployeePage() {
         setError(typeof data.error === 'string' ? data.error : 'Could not create employee');
         return;
       }
-      router.push(`/dashboard/employees/${data.employee._id}`);
+      const employeeId = data.employee?._id;
+      if (!employeeId) {
+        setError('Could not create employee');
+        return;
+      }
+      const params = new URLSearchParams();
+      if (data.inviteEmailSent === false) {
+        params.set('inviteWarning', '1');
+        if (typeof data.inviteErrorCode === 'string') {
+          params.set('inviteErrorCode', data.inviteErrorCode);
+        }
+      }
+      const qs = params.toString();
+      router.push(`/dashboard/employees/${employeeId}${qs ? `?${qs}` : ''}`);
     } finally {
       setLoading(false);
     }
@@ -62,7 +75,7 @@ export default function NewEmployeePage() {
           <CardTitle>New employee</CardTitle>
           <CardDescription>
             Enter their work email. They&apos;ll use your brand signature template; you can fill in their name and
-            details after creating them.
+            details after creating them. An invitation email is sent automatically when email is configured.
           </CardDescription>
         </CardHeader>
         <CardContent>

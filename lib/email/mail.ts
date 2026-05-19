@@ -7,9 +7,11 @@ export type SendEmailInput = {
   text: string;
 };
 
+export type SendEmailErrorCode = 'email_not_configured' | 'send_failed';
+
 export type SendEmailResult =
   | { ok: true; id?: string; devLogged?: boolean }
-  | { ok: false; error: string };
+  | { ok: false; error: string; code: SendEmailErrorCode };
 
 function getFromAddress(): string {
   return process.env.EMAIL_FROM || 'Tailnote <onboarding@resend.dev>';
@@ -27,7 +29,11 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
       });
       return { ok: true, devLogged: true };
     }
-    return { ok: false, error: 'Email is not configured (RESEND_API_KEY missing)' };
+    return {
+      ok: false,
+      error: 'Email is not configured (RESEND_API_KEY missing)',
+      code: 'email_not_configured',
+    };
   }
 
   const resend = new Resend(apiKey);
@@ -40,7 +46,7 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
   });
 
   if (error) {
-    return { ok: false, error: error.message || 'Failed to send email' };
+    return { ok: false, error: error.message || 'Failed to send email', code: 'send_failed' };
   }
 
   return { ok: true, id: data?.id };

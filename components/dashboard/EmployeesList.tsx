@@ -1,0 +1,95 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { EmployeeInviteBadge } from '@/components/dashboard/EmployeeInviteBadge';
+
+export type EmployeeListItem = {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  inviteSentAt?: Date | string | null;
+  inviteAcceptedAt?: Date | string | null;
+};
+
+type Props = {
+  employees: EmployeeListItem[];
+  canManage: boolean;
+};
+
+export function EmployeesList({ employees, canManage }: Props) {
+  const router = useRouter();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [listError, setListError] = useState<string | null>(null);
+
+  async function deleteEmployee(employeeId: string, label: string) {
+    if (!confirm(`Delete ${label}? This cannot be undone.`)) return;
+    setListError(null);
+    setDeletingId(employeeId);
+    try {
+      const res = await fetch(`/api/dashboard/employees/${employeeId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setListError(typeof data.error === 'string' ? data.error : 'Could not delete employee');
+        return;
+      }
+      router.refresh();
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  if (employees.length === 0) {
+    return <p className="p-6 text-sm text-muted-foreground">No employees yet.</p>;
+  }
+
+  return (
+    <div>
+      {listError ? (
+        <p className="border-b px-4 py-3 text-sm text-destructive">{listError}</p>
+      ) : null}
+      {employees.map((e) => {
+        const label = [e.firstName, e.lastName].filter(Boolean).join(' ') || e.email;
+        return (
+          <div
+            key={e._id}
+            className="flex items-center justify-between gap-3 p-4 border-b last:border-b-0 hover:bg-muted/40 transition-colors"
+          >
+            <Link href={`/dashboard/employees/${e._id}`} className="min-w-0 flex-1">
+              <p className="truncate font-medium">{label}</p>
+              <p className="truncate text-sm text-muted-foreground">{e.email}</p>
+            </Link>
+            <EmployeeInviteBadge
+              employee={{
+                inviteSentAt: e.inviteSentAt,
+                inviteAcceptedAt: e.inviteAcceptedAt,
+              }}
+            />
+            <div className="flex shrink-0 items-center gap-2">
+              <Button asChild variant="ghost" size="sm">
+                <Link href={`/dashboard/employees/${e._id}`}>Edit</Link>
+              </Button>
+              {canManage ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={deletingId === e._id}
+                  onClick={() => void deleteEmployee(e._id, label)}
+                >
+                  {deletingId === e._id ? 'Deleting…' : 'Delete'}
+                </Button>
+              ) : null}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}

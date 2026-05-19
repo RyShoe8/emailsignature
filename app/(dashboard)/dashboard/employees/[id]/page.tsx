@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { renderSignature } from 'emailsignature-engine';
 import { buildRenderInput } from '@/lib/email/toRenderInput';
 import { engineTemplateFromStoredConfig, type TemplatePresetId } from '@/lib/email/templatePresets';
@@ -31,15 +31,19 @@ import type { SignatureProfile, ContentBlockData } from 'emailsignature-engine';
 import { ContentBlocksEditor } from '@/components/signature/ContentBlocksEditor';
 import { EmployeeInviteBadge } from '@/components/dashboard/EmployeeInviteBadge';
 import { getEmployeeInviteStatus } from '@/lib/employees/inviteStatus';
+import { inviteErrorMessage } from '@/lib/employees/inviteErrorMessage';
 
 type TemplateOption = { _id: string; name: string; presetId: string; includeAnimationSlot?: boolean };
 type OrgJson = Record<string, unknown>;
 
-export default function EmployeeDetailPage() {
+function EmployeeDetailPageContent() {
   const params = useParams();
   const id = String(params.id);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [org, setOrg] = useState<OrgJson | null>(null);
+  const [canManage, setCanManage] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [templates, setTemplates] = useState<TemplateOption[]>([]);
   const [templateId, setTemplateId] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -114,6 +118,8 @@ export default function EmployeeDetailPage() {
       });
       setTemplates(tmplJson.templates || []);
       setOrg(orgJson.organization || null);
+      const role = orgJson.viewer?.role;
+      setCanManage(role === 'owner' || role === 'admin');
       const gJson = await gRes.json().catch(() => ({}));
       if (gJson.connected) {
         setGmailConnected(true);
@@ -308,9 +314,17 @@ export default function EmployeeDetailPage() {
   }
 
   async function remove() {
+    if (!canManage) return;
     if (!confirm('Delete this employee?')) return;
-    const res = await fetch(`/api/dashboard/employees/${id}`, { method: 'DELETE' });
-    if (res.ok) router.push('/dashboard/employees');
+    setDeleteError(null);
+    const res = await fetch(`/api/dashboard/employees/${id}`, { method: 'DELETE', credentials: 'include' });
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      setDeleteError(typeof j.error === 'string' ? j.error : 'Could not delete employee');
+      return;
+    }
+    router.push('/dashboard/employees');
+    router.refresh();
   }
 
   if (loading) return <p className="text-sm text-muted-foreground">Loading…</p>;
@@ -366,6 +380,11 @@ export default function EmployeeDetailPage() {
 
   const inviteFields = { inviteSentAt, inviteAcceptedAt };
   const inviteStatus = getEmployeeInviteStatus(inviteFields);
+  const showInviteWarning = searchParams.get('inviteWarning') === '1';
+  const inviteWarningText = inviteErrorMessage(
+    undefined,
+    searchParams.get('inviteErrorCode') ?? undefined
+  );
 
   async function sendInvite() {
     setInviteBusy(true);
@@ -377,7 +396,12 @@ export default function EmployeeDetailPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setInviteMessage(typeof data.error === 'string' ? data.error : 'Could not send invite');
+        setInviteMessage(
+          inviteErrorMessage(
+            typeof data.error === 'string' ? data.error : undefined,
+            typeof data.code === 'string' ? data.code : undefined
+          )
+        );
         return;
       }
       setInviteSentAt(data.inviteSentAt ? String(data.inviteSentAt) : new Date().toISOString());
@@ -392,6 +416,11 @@ export default function EmployeeDetailPage() {
       <Link href="/dashboard/employees" className="text-sm text-muted-foreground hover:text-foreground">
         ← Employees
       </Link>
+      {showInviteWarning && inviteStatus !== 'accepted' ? (
+        <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
+          {inviteWarningText}
+        </p>
+      ) : null}
       <div className="grid gap-8 lg:grid-cols-12 items-start min-w-0">
         <div className="lg:col-span-5 space-y-8 min-w-0">
         <Card>
@@ -411,8 +440,14 @@ export default function EmployeeDetailPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {inviteMessage ? <p className="text-sm text-muted-foreground">{inviteMessage}</p> : null}
-            {inviteStatus !== 'accepted' ? (
+            {inviteMessage ? (
+              <p
+                className={`text-sm ${inviteMessage.includes('not configured') ? 'text-amber-800 dark:text-amber-300' : 'text-muted-foreground'}`}
+              >
+                {inviteMessage}
+              </p>
+            ) : null}
+            {canManage && inviteStatus !== 'accepted' ? (
               <Button type="button" variant="secondary" disabled={inviteBusy} onClick={() => void sendInvite()}>
                 {inviteBusy ? 'Sending…' : inviteStatus === 'pending' ? 'Resend invite' : 'Send invite'}
               </Button>
@@ -479,13 +514,16 @@ export default function EmployeeDetailPage() {
             </div>
 
             {error && <p className="text-sm text-destructive">{error}</p>}
+            {deleteError && <p className="text-sm text-destructive">{deleteError}</p>}
             <div className="flex flex-wrap gap-2">
               <Button type="button" onClick={() => void save()}>
                 Save
               </Button>
-              <Button type="button" variant="outline" onClick={() => void remove()}>
-                Delete
-              </Button>
+              {canManage ? (
+                <Button type="button" variant="outline" onClick={() => void remove()}>
+                  Delete
+                </Button>
+              ) : null}
             </div>
             {previewUrl && (
               <p className="text-xs text-muted-foreground break-all">
@@ -619,5 +657,13 @@ export default function EmployeeDetailPage() {
         </LivePreviewStickyColumn>
       </div>
     </div>
+  );
+}
+
+export default function EmployeeDetailPage() {
+  return (
+    <Suspense fallback={<p className="text-sm text-muted-foreground">Loading…</p>}>
+      <EmployeeDetailPageContent />
+    </Suspense>
   );
 }

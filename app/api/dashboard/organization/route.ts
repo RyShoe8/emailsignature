@@ -45,7 +45,10 @@ export async function GET() {
   await connectMongoose();
   await unsetLegacyOrgAddressFields(user.organizationId);
   const organization = await OrganizationModel.findById(user.organizationId).lean();
-  return NextResponse.json({ organization });
+  return NextResponse.json({
+    organization,
+    viewer: { role: user.role ?? 'member' },
+  });
 }
 
 export async function PATCH(request: Request) {
