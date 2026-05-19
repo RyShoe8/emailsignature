@@ -6,7 +6,8 @@ const OrganizationSchema = new Schema(
     logoUrl: { type: String, default: '' },
     primaryColor: { type: String, default: '#0a0a0a' },
     website: { type: String, default: '' },
-    plan: { type: String, enum: ['basic', 'pro', 'none'], default: 'none' },
+    /** Legacy slug mirror of pinned SubscriptionPlan; use OrganizationSubscription for canonical plan. */
+    plan: { type: String, default: 'none', trim: true, lowercase: true },
     stripeCustomerId: { type: String, default: '' },
     stripeSubscriptionId: { type: String, default: '' },
     subscriptionStatus: {

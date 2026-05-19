@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import type { AdminUserRow } from '@/lib/admin/data';
+import type { AdminOrgPlanContext, AdminUserRow } from '@/lib/admin/data';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
@@ -12,17 +12,24 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
-const PLANS = ['none', 'basic', 'pro'] as const;
+const NONE_PLAN_VALUE = '';
 
 type Props = {
   organizationId: string;
   organizationName: string;
-  initialPlan: string;
+  planContext: AdminOrgPlanContext;
   initialUsers: AdminUserRow[];
 };
 
-export function AdminOrgUsersPanel({ organizationId, organizationName, initialPlan, initialUsers }: Props) {
-  const [plan, setPlan] = useState(initialPlan);
+export function AdminOrgUsersPanel({
+  organizationId,
+  organizationName,
+  planContext,
+  initialUsers,
+}: Props) {
+  const [subscriptionPlanId, setSubscriptionPlanId] = useState(
+    planContext.initialSubscriptionPlanId || NONE_PLAN_VALUE
+  );
   const [orgMessage, setOrgMessage] = useState<string | null>(null);
   const [orgSaving, setOrgSaving] = useState(false);
 
@@ -34,7 +41,15 @@ export function AdminOrgUsersPanel({ organizationId, organizationName, initialPl
     }))
   );
 
-  const planDirty = useMemo(() => plan !== initialPlan, [plan, initialPlan]);
+  const planDirty = useMemo(
+    () => subscriptionPlanId !== (planContext.initialSubscriptionPlanId || NONE_PLAN_VALUE),
+    [subscriptionPlanId, planContext.initialSubscriptionPlanId]
+  );
+
+  const legacyMismatch =
+    planContext.pinnedPlanLabel &&
+    planContext.legacyPlanSlug !== 'none' &&
+    !planContext.pinnedPlanLabel.toLowerCase().includes(planContext.legacyPlanSlug);
 
   async function savePlan() {
     setOrgSaving(true);
@@ -43,7 +58,9 @@ export function AdminOrgUsersPanel({ organizationId, organizationName, initialPl
       const res = await fetch(`/api/admin/organizations/${organizationId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({
+          subscriptionPlanId: subscriptionPlanId || null,
+        }),
         credentials: 'include',
       });
       const j = await res.json().catch(() => ({}));
@@ -51,7 +68,9 @@ export function AdminOrgUsersPanel({ organizationId, organizationName, initialPl
         setOrgMessage(typeof j.error === 'string' ? j.error : 'Save failed');
         return;
       }
-      setOrgMessage('Plan saved. Stripe billing may still reflect the previous subscription until reconciled.');
+      setOrgMessage(
+        'Subscription plan saved in Tailnote. Stripe billing may still need a separate change if this org has an active Stripe subscription.'
+      );
     } finally {
       setOrgSaving(false);
     }
@@ -80,25 +99,52 @@ export function AdminOrgUsersPanel({ organizationId, organizationName, initialPl
 
       <Card>
         <CardHeader>
-          <CardTitle>Organization plan</CardTitle>
-          <CardDescription>Updates the org record only; Stripe may need a separate change.</CardDescription>
+          <CardTitle>Subscription plan</CardTitle>
+          <CardDescription>
+            Assigns a built plan from Plans (pinned by document id). Updates organization limits and
+            legacy org.plan slug. Stripe may still need a separate change.
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4 max-w-md">
+        <CardContent className="space-y-4 max-w-lg">
+          {planContext.pinnedPlanLabel ? (
+            <p className="text-sm text-muted-foreground">
+              Currently pinned: <span className="font-medium text-foreground">{planContext.pinnedPlanLabel}</span>
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground">No subscription plan pinned.</p>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Legacy org.plan slug: <span className="font-mono">{planContext.legacyPlanSlug}</span>
+            {' · '}
+            Subscription status: <span className="font-mono">{planContext.subscriptionStatus}</span>
+          </p>
+          {legacyMismatch ? (
+            <p className="text-xs text-amber-700 dark:text-amber-400">
+              Legacy slug and pinned plan may be out of sync. Saving will align org.plan with the selected
+              plan.
+            </p>
+          ) : null}
           <div className="space-y-2">
             <Label htmlFor="org-plan">Plan</Label>
             <select
               id="org-plan"
               className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
-              value={plan}
-              onChange={(e) => setPlan(e.target.value)}
+              value={subscriptionPlanId}
+              onChange={(e) => setSubscriptionPlanId(e.target.value)}
             >
-              {PLANS.map((p) => (
-                <option key={p} value={p}>
-                  {p}
+              <option value={NONE_PLAN_VALUE}>None</option>
+              {planContext.assignablePlans.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.label}
                 </option>
               ))}
             </select>
           </div>
+          {planContext.assignablePlans.length === 0 ? (
+            <p className="text-xs text-muted-foreground">
+              No assignable plans. Create one under Admin → Plans.
+            </p>
+          ) : null}
           {orgMessage ? <p className="text-sm text-muted-foreground">{orgMessage}</p> : null}
           <Button type="button" disabled={!planDirty || orgSaving} onClick={() => void savePlan()}>
             {orgSaving ? 'Saving…' : 'Save plan'}

@@ -36,7 +36,7 @@ export default async function AdminOrganizationsPage() {
               organizations.map((o) => (
                 <tr key={o._id} className="border-b last:border-0">
                   <td className="p-3 font-medium">{o.name}</td>
-                  <td className="p-3">{o.plan}</td>
+                  <td className="p-3">{o.planDisplayName}</td>
                   <td className="p-3">{o.subscriptionStatus}</td>
                   <td className="p-3">{o.userCount}</td>
                   <td className="p-3 text-muted-foreground whitespace-nowrap">

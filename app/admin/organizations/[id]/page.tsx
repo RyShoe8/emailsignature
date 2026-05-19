@@ -2,7 +2,11 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { connectMongoose } from '@/lib/mongoose';
 import { OrganizationModel } from '@/models/Organization';
-import { isValidObjectIdString, listUsersInOrganization } from '@/lib/admin/data';
+import {
+  getOrganizationAdminPlanContext,
+  isValidObjectIdString,
+  listUsersInOrganization,
+} from '@/lib/admin/data';
 import { AdminOrgUsersPanel } from '@/components/admin/AdminOrgUsersPanel';
 
 export const dynamic = 'force-dynamic';
@@ -19,7 +23,10 @@ export default async function AdminOrganizationDetailPage({ params }: PageProps)
   if (!org) {
     notFound();
   }
-  const users = await listUsersInOrganization(id);
+  const [users, planContext] = await Promise.all([
+    listUsersInOrganization(id),
+    getOrganizationAdminPlanContext(id),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -29,7 +36,7 @@ export default async function AdminOrganizationDetailPage({ params }: PageProps)
       <AdminOrgUsersPanel
         organizationId={id}
         organizationName={String(org.name ?? '')}
-        initialPlan={String(org.plan ?? 'none')}
+        planContext={planContext}
         initialUsers={users}
       />
     </div>
