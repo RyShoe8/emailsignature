@@ -8,17 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-type TemplateOption = { _id: string; name: string; presetId: string };
-
 export default function NewEmployeePage() {
   const router = useRouter();
-  const [templates, setTemplates] = useState<TemplateOption[]>([]);
-  const [templateId, setTemplateId] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [title, setTitle] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [canAddMore, setCanAddMore] = useState(true);
@@ -37,14 +29,6 @@ export default function NewEmployeePage() {
         }
       })
       .catch(() => {});
-
-    fetch('/api/dashboard/templates')
-      .then((r) => r.json())
-      .then((d) => {
-        const list: TemplateOption[] = d.templates || [];
-        setTemplates(list);
-        if (list[0]) setTemplateId(list[0]._id);
-      });
   }, []);
 
   async function onSubmit(e: React.FormEvent) {
@@ -55,14 +39,7 @@ export default function NewEmployeePage() {
       const res = await fetch('/api/dashboard/employees', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          title,
-          email,
-          phone,
-          templateId: templateId || undefined,
-        }),
+        body: JSON.stringify({ email }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -83,7 +60,10 @@ export default function NewEmployeePage() {
       <Card>
         <CardHeader>
           <CardTitle>New employee</CardTitle>
-          <CardDescription>Stored fields map into the signature engine.</CardDescription>
+          <CardDescription>
+            Enter their work email. They&apos;ll use your brand signature template; you can fill in their name and
+            details after creating them.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {limitMessage ? (
@@ -91,40 +71,8 @@ export default function NewEmployeePage() {
           ) : null}
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label>Template</Label>
-              <select
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
-                value={templateId}
-                onChange={(e) => setTemplateId(e.target.value)}
-              >
-                {templates.map((t) => (
-                  <option key={t._id} value={t._id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>First name</Label>
-                <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
-              </div>
-              <div className="space-y-2">
-                <Label>Last name</Label>
-                <Input value={lastName} onChange={(e) => setLastName(e.target.value)} required />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Title</Label>
-              <Input value={title} onChange={(e) => setTitle(e.target.value)} />
-            </div>
-            <div className="space-y-2">
               <Label>Email</Label>
               <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <Label>Phone</Label>
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" disabled={loading || !canAddMore}>

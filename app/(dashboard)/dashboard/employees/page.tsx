@@ -29,7 +29,7 @@ export default async function EmployeesPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <h1 className="text-2xl font-semibold tracking-tight">Employees</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Create and edit team members and assign templates.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Add team members by email and edit their signature details.</p>
         </div>
         {limits.canAddMore ? (
           <Button asChild className="shrink-0 self-start sm:self-auto">

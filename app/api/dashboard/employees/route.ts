@@ -15,6 +15,7 @@ import {
   EmployeeLimitReachedError,
   getEmployeeLimitsForOrganization,
 } from '@/lib/billing/employeeLimits';
+import { nameFromEmail } from '@/lib/employees/nameFromEmail';
 
 type SessionUser = { organizationId?: string };
 
@@ -54,10 +55,10 @@ export async function GET() {
 }
 
 const CreateSchema = z.object({
-  firstName: z.string().min(1),
-  lastName: z.string().min(1),
-  title: z.string().optional(),
   email: z.string().email(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  title: z.string().optional(),
   phone: z.string().optional(),
   website: z.string().optional(),
   linkedin: z.string().optional(),
@@ -114,13 +115,17 @@ export async function POST(request: Request) {
   }
 
   const previewToken = randomBytes(24).toString('hex');
+  const email = parsed.data.email.trim().toLowerCase();
+  const derived = nameFromEmail(email);
+  const firstName = parsed.data.firstName?.trim() || derived.firstName;
+  const lastName = parsed.data.lastName?.trim() ?? derived.lastName;
 
   const employee = await EmployeeModel.create({
     organizationId: org._id,
-    firstName: parsed.data.firstName.trim(),
-    lastName: parsed.data.lastName.trim(),
+    firstName,
+    lastName,
     title: parsed.data.title?.trim() ?? '',
-    email: parsed.data.email.trim().toLowerCase(),
+    email,
     phone: parsed.data.phone?.trim() ?? '',
     website: parsed.data.website?.trim() ?? '',
     linkedin: parsed.data.linkedin?.trim() ?? '',
