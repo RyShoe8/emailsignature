@@ -9,7 +9,7 @@ Configure secrets in the **Vercel Dashboard** — you do not need a local `.env.
 - A **Vercel** account and a **Project** linked to this repo (**Vercel Dashboard** → **Add New…** → **Project** → import the Git repository).
 - **MongoDB Atlas** (or another MongoDB provider) — store the connection string in **Vercel** **Environment Variables**.
 - **Stripe** — API keys and a webhook endpoint aimed at your **Vercel** deployment URL (see below).
-- **Resend** for employee invite emails (and optional password-reset email via `lib/auth/server.ts`).
+- **Brevo** for transactional email (employee invites, password reset) and syncing new signups to your Brevo contact list.
 
 ## Environment variables (Vercel Dashboard)
 
@@ -33,8 +33,10 @@ Add each variable for **Production** (and **Preview** if you want previews fully
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
 | `GOOGLE_REDIRECT_URI` | Optional. Defaults to `{BETTER_AUTH_URL or NEXT_PUBLIC_APP_URL}/api/integrations/gmail/callback`. Must exactly match an **Authorized redirect URI** in [Google Cloud Console](https://console.cloud.google.com/apis/credentials) for the OAuth client. |
 | `GOOGLE_OAUTH_ENCRYPTION_KEY` | Optional. Strong secret used to encrypt stored Gmail refresh tokens at rest; if omitted, a key is derived from `BETTER_AUTH_SECRET` (set an explicit value in production). |
-| `RESEND_API_KEY` | Resend API key for employee invitation emails |
-| `EMAIL_FROM` | Sender address for transactional email, e.g. `Tailnote <invites@yourdomain.com>` (must be verified in Resend) |
+| `BREVO_API_KEY` | Brevo API key (SMTP transactional + contacts API) |
+| `BREVO_SENDER_EMAIL` | Verified sender email in Brevo (e.g. `invites@yourdomain.com`) |
+| `BREVO_SENDER_NAME` | Optional. Display name in inboxes (default `Tailnote Team`) |
+| `BREVO_LIST_ID` | Optional. Brevo list id for new signups (default `3`) |
 
 `BETTER_AUTH_URL` and `NEXT_PUBLIC_APP_URL` must match the URL users open in the browser (**Vercel** default domain or your **Domains** entry), or sessions and redirects will break.
 
@@ -95,7 +97,7 @@ Optional add-ons: **`/admin/addons`** with the same sync pattern.
 
 ## Email password reset
 
-Wire `sendResetPassword` in `lib/auth/server.ts` to your mail provider for **Production** on **Vercel**. Until then, password reset is not suitable for real users.
+Password reset and employee invites use Brevo when `BREVO_API_KEY` and `BREVO_SENDER_EMAIL` are set. New signups are synced to the Brevo list configured by `BREVO_LIST_ID` (default list `3`).
 
 ## Signature HTML engine
 
