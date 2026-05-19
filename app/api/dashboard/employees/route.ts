@@ -120,8 +120,8 @@ export async function POST(request: Request) {
   const inviteToken = generateInviteToken();
   const email = parsed.data.email.trim().toLowerCase();
   const derived = nameFromEmail(email);
-  const firstName = parsed.data.firstName?.trim() || derived.firstName;
-  const lastName = parsed.data.lastName?.trim() ?? derived.lastName;
+  const firstName = parsed.data.firstName?.trim() || derived.firstName || 'New';
+  const lastName = parsed.data.lastName?.trim() || derived.lastName || '';
 
   const employee = await EmployeeModel.create({
     organizationId: org._id,

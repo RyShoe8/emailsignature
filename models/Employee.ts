@@ -4,7 +4,7 @@ const EmployeeSchema = new Schema(
   {
     organizationId: { type: Schema.Types.ObjectId, ref: 'Organization', required: true, index: true },
     firstName: { type: String, required: true, trim: true },
-    lastName: { type: String, required: true, trim: true },
+    lastName: { type: String, default: '', trim: true },
     title: { type: String, default: '', trim: true },
     email: { type: String, required: true, trim: true, lowercase: true },
     phone: { type: String, default: '' },
