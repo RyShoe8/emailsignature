@@ -29,6 +29,8 @@ import {
 } from '@/lib/email/gmailSignatureHtml';
 import type { SignatureProfile, ContentBlockData } from 'emailsignature-engine';
 import { ContentBlocksEditor } from '@/components/signature/ContentBlocksEditor';
+import { EmployeeInviteBadge } from '@/components/dashboard/EmployeeInviteBadge';
+import { getEmployeeInviteStatus } from '@/lib/employees/inviteStatus';
 
 type TemplateOption = { _id: string; name: string; presetId: string; includeAnimationSlot?: boolean };
 type OrgJson = Record<string, unknown>;
@@ -49,6 +51,10 @@ export default function EmployeeDetailPage() {
   const [twitter, setTwitter] = useState('');
   const [contentBlocks, setContentBlocks] = useState<ContentBlockData[]>([]);
   const [previewToken, setPreviewToken] = useState('');
+  const [inviteSentAt, setInviteSentAt] = useState<string | null>(null);
+  const [inviteAcceptedAt, setInviteAcceptedAt] = useState<string | null>(null);
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const [inviteMessage, setInviteMessage] = useState<string | null>(null);
   const [profile, setProfile] = useState<SignatureProfile>({
     firstName: '',
     lastName: '',
@@ -96,6 +102,8 @@ export default function EmployeeDetailPage() {
       setContentBlocks((e as any).contentBlocks || []);
       setTemplateId(String(e.templateId));
       setPreviewToken(e.previewToken);
+      setInviteSentAt(e.inviteSentAt ? String(e.inviteSentAt) : null);
+      setInviteAcceptedAt(e.inviteAcceptedAt ? String(e.inviteAcceptedAt) : null);
       setProfile({
         firstName: e.firstName,
         lastName: e.lastName,
@@ -356,6 +364,29 @@ export default function EmployeeDetailPage() {
     }
   }
 
+  const inviteFields = { inviteSentAt, inviteAcceptedAt };
+  const inviteStatus = getEmployeeInviteStatus(inviteFields);
+
+  async function sendInvite() {
+    setInviteBusy(true);
+    setInviteMessage(null);
+    try {
+      const res = await fetch(`/api/dashboard/employees/${id}/invite`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setInviteMessage(typeof data.error === 'string' ? data.error : 'Could not send invite');
+        return;
+      }
+      setInviteSentAt(data.inviteSentAt ? String(data.inviteSentAt) : new Date().toISOString());
+      setInviteMessage('Invitation email sent.');
+    } finally {
+      setInviteBusy(false);
+    }
+  }
+
   return (
     <div className="max-w-7xl min-w-0 space-y-8 w-full">
       <Link href="/dashboard/employees" className="text-sm text-muted-foreground hover:text-foreground">
@@ -363,6 +394,31 @@ export default function EmployeeDetailPage() {
       </Link>
       <div className="grid gap-8 lg:grid-cols-12 items-start min-w-0">
         <div className="lg:col-span-5 space-y-8 min-w-0">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle>Invitation</CardTitle>
+              <EmployeeInviteBadge employee={inviteFields} />
+            </div>
+            <CardDescription>
+              {inviteStatus === 'accepted'
+                ? inviteAcceptedAt
+                  ? `Accepted on ${new Date(inviteAcceptedAt).toLocaleDateString()}.`
+                  : 'This employee has joined your organization.'
+                : inviteStatus === 'pending'
+                  ? 'Waiting for them to accept the email invitation.'
+                  : 'No invitation email has been sent yet.'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {inviteMessage ? <p className="text-sm text-muted-foreground">{inviteMessage}</p> : null}
+            {inviteStatus !== 'accepted' ? (
+              <Button type="button" variant="secondary" disabled={inviteBusy} onClick={() => void sendInvite()}>
+                {inviteBusy ? 'Sending…' : inviteStatus === 'pending' ? 'Resend invite' : 'Send invite'}
+              </Button>
+            ) : null}
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader>
             <CardTitle>Edit employee</CardTitle>

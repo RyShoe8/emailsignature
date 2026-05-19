@@ -5,6 +5,7 @@ import { connectMongoose } from '@/lib/mongoose';
 import { EmployeeModel } from '@/models/Employee';
 import { Button } from '@/components/ui/button';
 import { getEmployeeLimitsForOrganization } from '@/lib/billing/employeeLimits';
+import { EmployeeInviteBadge } from '@/components/dashboard/EmployeeInviteBadge';
 
 export default async function EmployeesPage() {
   const session = await getServerSession();
@@ -52,14 +53,20 @@ export default async function EmployeesPage() {
             <Link
               key={String(e._id)}
               href={`/dashboard/employees/${e._id}`}
-              className="flex items-center justify-between p-4 hover:bg-muted/40 transition-colors"
+              className="flex items-center justify-between gap-3 p-4 hover:bg-muted/40 transition-colors"
             >
-              <div className="min-w-0 flex-1 pr-3">
+              <div className="min-w-0 flex-1">
                 <p className="truncate font-medium">
                   {e.firstName} {e.lastName}
                 </p>
                 <p className="truncate text-sm text-muted-foreground">{e.email}</p>
               </div>
+              <EmployeeInviteBadge
+                employee={{
+                  inviteSentAt: e.inviteSentAt as Date | string | null | undefined,
+                  inviteAcceptedAt: e.inviteAcceptedAt as Date | string | null | undefined,
+                }}
+              />
               <span className="shrink-0 text-xs text-muted-foreground">Edit</span>
             </Link>
           ))

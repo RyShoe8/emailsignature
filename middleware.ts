@@ -12,15 +12,20 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  const isPublicInvite =
+    pathname.startsWith('/invite/') ||
+    (pathname.startsWith('/api/invite/') && !pathname.endsWith('/accept'));
+
   const needsAuth =
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/api/dashboard') ||
-    pathname.startsWith('/api/admin') ||
-    pathname.startsWith('/api/stripe/checkout') ||
-    pathname.startsWith('/api/stripe/portal') ||
-    pathname.startsWith('/api/onboarding') ||
-    pathname.startsWith('/api/integrations/gmail');
+    !isPublicInvite &&
+    (pathname.startsWith('/admin') ||
+      pathname.startsWith('/dashboard') ||
+      pathname.startsWith('/api/dashboard') ||
+      pathname.startsWith('/api/admin') ||
+      pathname.startsWith('/api/stripe/checkout') ||
+      pathname.startsWith('/api/stripe/portal') ||
+      pathname.startsWith('/api/onboarding') ||
+      pathname.startsWith('/api/integrations/gmail'));
 
   // Gmail OAuth callback must accept unauthenticated requests: Google redirects here with ?code=&state=;
   // the route verifies HMAC state and binds tokens to userId inside state (session cookie may be absent in edge cases).
@@ -41,6 +46,8 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/onboarding',
+    '/invite/:path*',
+    '/api/invite/:path*',
     '/admin',
     '/admin/:path*',
     '/dashboard/:path*',

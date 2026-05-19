@@ -15,6 +15,12 @@ const EmployeeSchema = new Schema(
     /** References SignatureTemplate doc _id */
     templateId: { type: Schema.Types.ObjectId, ref: 'SignatureTemplate', required: true },
     previewToken: { type: String, required: true, unique: true, index: true },
+    inviteToken: { type: String, unique: true, sparse: true, index: true },
+    inviteSentAt: { type: Date },
+    inviteAcceptedAt: { type: Date },
+    inviteExpiresAt: { type: Date },
+    /** Better Auth user id after invite acceptance */
+    userId: { type: String, default: '', index: true },
     /** Up to 2 promotional content blocks displayed in the corporate template. */
     contentBlocks: [
       {

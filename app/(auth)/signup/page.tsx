@@ -1,18 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { authClient } from '@/lib/auth/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const inviteToken = searchParams.get('invite');
+  const inviteEmail = searchParams.get('email');
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(inviteEmail || '');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -31,6 +34,10 @@ export default function SignupPage() {
         setError(err.message || 'Sign up failed');
         return;
       }
+      if (inviteToken) {
+        window.location.href = `/invite/${encodeURIComponent(inviteToken)}?accept=1`;
+        return;
+      }
       router.push('/onboarding');
       router.refresh();
     } catch {
@@ -44,7 +51,11 @@ export default function SignupPage() {
     <Card>
       <CardHeader>
         <CardTitle>Create account</CardTitle>
-        <CardDescription>Start with email and password.</CardDescription>
+        <CardDescription>
+          {inviteToken
+            ? 'Create your account to accept your team invitation.'
+            : 'Start with email and password.'}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-4">
@@ -61,6 +72,7 @@ export default function SignupPage() {
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
               required
+              readOnly={Boolean(inviteEmail)}
             />
           </div>
           <div className="space-y-2">
@@ -87,5 +99,13 @@ export default function SignupPage() {
         </p>
       </CardContent>
     </Card>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="text-sm text-muted-foreground">Loading…</div>}>
+      <SignupForm />
+    </Suspense>
   );
 }

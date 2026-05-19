@@ -12,8 +12,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get('next') || '/dashboard';
-  const [email, setEmail] = useState('');
+  const inviteToken = searchParams.get('invite');
+  const inviteEmail = searchParams.get('email');
+  const next =
+    inviteToken
+      ? `/invite/${encodeURIComponent(inviteToken)}?accept=1`
+      : searchParams.get('next') || '/dashboard';
+  const [email, setEmail] = useState(inviteEmail || '');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -41,7 +46,11 @@ function LoginForm() {
     <Card>
       <CardHeader>
         <CardTitle>Log in</CardTitle>
-        <CardDescription>Access your Tailnote workspace.</CardDescription>
+        <CardDescription>
+          {inviteToken
+            ? 'Sign in with the email that received the invitation.'
+            : 'Access your Tailnote workspace.'}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-4">
@@ -54,6 +63,7 @@ function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              readOnly={Boolean(inviteEmail)}
             />
           </div>
           <div className="space-y-2">

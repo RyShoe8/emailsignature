@@ -14,11 +14,19 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch('/api/dashboard/organization', { credentials: 'include' })
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.organization) router.replace('/dashboard');
-      });
+    Promise.all([
+      fetch('/api/dashboard/organization', { credentials: 'include' }).then((r) => r.json()),
+      fetch('/api/onboarding/pending-invite', { credentials: 'include' }).then((r) => r.json()),
+    ]).then(([orgData, inviteData]) => {
+      if (orgData.organization) {
+        router.replace('/dashboard');
+        return;
+      }
+      const token = inviteData?.inviteToken;
+      if (typeof token === 'string' && token) {
+        router.replace(`/invite/${encodeURIComponent(token)}?accept=1`);
+      }
+    });
   }, [router]);
 
   async function onSubmit(e: React.FormEvent) {

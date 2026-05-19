@@ -9,7 +9,7 @@ Configure secrets in the **Vercel Dashboard** — you do not need a local `.env.
 - A **Vercel** account and a **Project** linked to this repo (**Vercel Dashboard** → **Add New…** → **Project** → import the Git repository).
 - **MongoDB Atlas** (or another MongoDB provider) — store the connection string in **Vercel** **Environment Variables**.
 - **Stripe** — API keys and a webhook endpoint aimed at your **Vercel** deployment URL (see below).
-- Optional: **Resend** (or SMTP) for password-reset email — implement `sendResetPassword` in `lib/auth/server.ts`.
+- **Resend** for employee invite emails (and optional password-reset email via `lib/auth/server.ts`).
 
 ## Environment variables (Vercel Dashboard)
 
@@ -33,6 +33,8 @@ Add each variable for **Production** (and **Preview** if you want previews fully
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
 | `GOOGLE_REDIRECT_URI` | Optional. Defaults to `{BETTER_AUTH_URL or NEXT_PUBLIC_APP_URL}/api/integrations/gmail/callback`. Must exactly match an **Authorized redirect URI** in [Google Cloud Console](https://console.cloud.google.com/apis/credentials) for the OAuth client. |
 | `GOOGLE_OAUTH_ENCRYPTION_KEY` | Optional. Strong secret used to encrypt stored Gmail refresh tokens at rest; if omitted, a key is derived from `BETTER_AUTH_SECRET` (set an explicit value in production). |
+| `RESEND_API_KEY` | Resend API key for employee invitation emails |
+| `EMAIL_FROM` | Sender address for transactional email, e.g. `Tailnote <invites@yourdomain.com>` (must be verified in Resend) |
 
 `BETTER_AUTH_URL` and `NEXT_PUBLIC_APP_URL` must match the URL users open in the browser (**Vercel** default domain or your **Domains** entry), or sessions and redirects will break.
 

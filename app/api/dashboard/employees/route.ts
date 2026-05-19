@@ -16,6 +16,8 @@ import {
   getEmployeeLimitsForOrganization,
 } from '@/lib/billing/employeeLimits';
 import { nameFromEmail } from '@/lib/employees/nameFromEmail';
+import { generateInviteToken, inviteExpiresAtFromNow } from '@/lib/employees/inviteToken';
+import { sendEmployeeInvite } from '@/lib/employees/sendEmployeeInvite';
 
 type SessionUser = { organizationId?: string };
 
@@ -115,6 +117,7 @@ export async function POST(request: Request) {
   }
 
   const previewToken = randomBytes(24).toString('hex');
+  const inviteToken = generateInviteToken();
   const email = parsed.data.email.trim().toLowerCase();
   const derived = nameFromEmail(email);
   const firstName = parsed.data.firstName?.trim() || derived.firstName;
@@ -133,9 +136,29 @@ export async function POST(request: Request) {
     avatarUrl: parsed.data.avatarUrl?.trim() ?? '',
     templateId,
     previewToken,
+    inviteToken,
+    inviteExpiresAt: inviteExpiresAtFromNow(),
   });
 
   void syncStripeSubscriptionSeatsForOrganization(org._id.toString()).catch(() => {});
 
-  return NextResponse.json({ employee: employee.toObject() });
+  const inviteResult = await sendEmployeeInvite(
+    {
+      _id: employee._id,
+      email: employee.email,
+      inviteToken: employee.inviteToken,
+      inviteExpiresAt: employee.inviteExpiresAt,
+      inviteAcceptedAt: employee.inviteAcceptedAt,
+    },
+    org
+  );
+  if (!inviteResult.ok) {
+    console.error('[employees] invite email failed', inviteResult.error);
+  }
+
+  return NextResponse.json({
+    employee: employee.toObject(),
+    inviteEmailSent: inviteResult.ok,
+    inviteError: inviteResult.ok ? undefined : inviteResult.error,
+  });
 }
