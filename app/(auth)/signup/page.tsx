@@ -8,12 +8,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 
 function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get('invite');
   const inviteEmail = searchParams.get('email');
+  const googleCallback = inviteToken
+    ? `/invite/${encodeURIComponent(inviteToken)}?accept=1`
+    : '/onboarding';
   const [name, setName] = useState('');
   const [email, setEmail] = useState(inviteEmail || '');
   const [password, setPassword] = useState('');
@@ -57,7 +61,16 @@ function SignupForm() {
             : 'Start with email and password.'}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        <GoogleSignInButton callbackURL={googleCallback} />
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-card px-2 text-muted-foreground">Or sign up with email</span>
+          </div>
+        </div>
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>

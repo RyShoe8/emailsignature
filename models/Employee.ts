@@ -53,6 +53,7 @@ const EmployeeSchema = new Schema(
             title: { type: String },
             description: { type: String },
             url: { type: String },
+            urlPrefix: { type: String, enum: ['https', 'www'] },
           },
         ],
         imageUrl: { type: String },

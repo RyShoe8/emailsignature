@@ -1,6 +1,14 @@
 import mongoose, { Schema, type InferSchemaType } from 'mongoose';
 
-const PRESET_IDS = ['minimal', 'modern', 'corporate', 'professional'] as const;
+const PRESET_IDS = [
+  'default',
+  'creator',
+  'executive_minimalist',
+  'minimal',
+  'modern',
+  'corporate',
+  'professional',
+] as const;
 
 export type CatalogPresetId = (typeof PRESET_IDS)[number];
 

@@ -137,7 +137,9 @@ export function SignatureWorkspace() {
       }
       const list: TemplateRow[] = tJson.templates || [];
       setTemplates(list);
-      if (list[0]) setSelectedTemplateId(list[0]._id);
+      const defaultRow = list.find((t) => t.presetId === 'default');
+      const pick = defaultRow ?? list[0];
+      if (pick) setSelectedTemplateId(pick._id);
       if (gJson.connected) {
         setGmailConnected(true);
         setGmailEmail(String(gJson.googleEmail || ''));

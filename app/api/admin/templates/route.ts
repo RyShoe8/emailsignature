@@ -8,7 +8,15 @@ import type { CatalogPresetId } from '@/models/SignaturePresetCatalog';
 export const dynamic = 'force-dynamic';
 
 function isCatalogPresetId(id: string): id is CatalogPresetId {
-  return id === 'minimal' || id === 'modern' || id === 'corporate' || id === 'professional';
+  return (
+    id === 'default' ||
+    id === 'creator' ||
+    id === 'executive_minimalist' ||
+    id === 'minimal' ||
+    id === 'modern' ||
+    id === 'corporate' ||
+    id === 'professional'
+  );
 }
 
 export async function GET() {

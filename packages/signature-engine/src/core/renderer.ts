@@ -10,6 +10,10 @@ import { STANDARD_SIGNATURE_TEMPLATE } from './templates/standard';
 import { STACKED_SIGNATURE_TEMPLATE } from './templates/stacked';
 import { CORPORATE_SIGNATURE_TEMPLATE } from './templates/corporate';
 import { PROFESSIONAL_SIGNATURE_TEMPLATE } from './templates/professional';
+import { DEFAULT_SIGNATURE_TEMPLATE } from './templates/default';
+import { CREATOR_SIGNATURE_TEMPLATE } from './templates/creator';
+import { EXECUTIVE_MINIMALIST_SIGNATURE_TEMPLATE } from './templates/executive_minimalist';
+import { normalizePromoUrl } from './normalizePromoUrl';
 import {
   SOCIAL_ICON_DISCORD,
   SOCIAL_ICON_FACEBOOK,
@@ -247,7 +251,9 @@ function buildContentBlockParts(blocks: ContentBlockData[], origin: string): str
       for (const item of items) {
         const titleTrim = (item.title || '').trim();
         const itemDesc = item.description ? escapeHtml(item.description.trim()) : '';
-        const itemUrl = item.url ? item.url.trim() : '';
+        const itemUrl = item.url
+        ? normalizePromoUrl(item.url, item.urlPrefix === 'www' ? 'www' : 'https')
+        : '';
         const boldLabelRaw =
           titleTrim || (itemUrl ? listItemLinkFallbackLabel(itemUrl) : '');
         const boldEscaped = escapeHtml(boldLabelRaw);
@@ -335,6 +341,319 @@ function renderContentBlocksHtml(
 </tr>
 </table>`;
   return { desktop, stacked };
+}
+
+/** Two-column footer for default layout: slot 0 left, slot 1 right. */
+function buildDefaultListFooterHtml(blocks: ContentBlockData[], origin: string): string {
+  const enabled = blocks.filter((b) => b.enabled).slice(0, 2);
+  if (enabled.length === 0) return '';
+
+  function columnHtml(block: ContentBlockData): string {
+    if (block.type !== 'list') return '';
+    const title = escapeHtml((block.listTitle || '').trim());
+    const items = (block.listItems || []).filter(listItemHasBody).slice(0, 4);
+    if (!title && items.length === 0) return '';
+
+    let links = '';
+    for (const item of items) {
+      const titleTrim = (item.title || '').trim();
+      const itemUrl = item.url
+        ? normalizePromoUrl(item.url, item.urlPrefix === 'www' ? 'www' : 'https')
+        : '';
+      const labelRaw = titleTrim || (itemUrl ? listItemLinkFallbackLabel(itemUrl) : '');
+      if (!labelRaw) continue;
+      const label = escapeHtml(labelRaw);
+      const href = itemUrl ? escapeHtml(itemUrl) : '';
+      if (href) {
+        links += `<a href="${href}" style="color: #555555; text-decoration: none; display: block; margin-bottom: 2px;">${label}</a>`;
+      } else {
+        links += `<span style="color: #555555; display: block; margin-bottom: 2px;">${label}</span>`;
+      }
+    }
+    if (!links) return '';
+
+    const header = title
+      ? `<strong style="color: #111111; display: block; margin-bottom: 4px; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">${title}</strong>`
+      : '';
+    return `${header}${links}`;
+  }
+
+  const left = enabled[0] ? columnHtml(enabled[0]) : '';
+  const right = enabled[1] ? columnHtml(enabled[1]) : '';
+  if (!left && !right) return '';
+
+  const leftCell = left
+    ? `<td valign="top" style="padding-right: 25px;">${left}</td>`
+    : '';
+  const rightCell = right ? `<td valign="top">${right}</td>` : '';
+
+  return `<table cellpadding="0" cellspacing="0" border="0" style="font-size: 12px; width: 100%; border-top: 1px solid #eeeeee; padding-top: 10px;">
+  <tr>
+    ${leftCell}
+    ${rightCell}
+  </tr>
+</table>`;
+}
+
+/** Inline P | E | W row for default layout contact line. */
+function buildDefaultContactRowHtml(
+  officePhone: string,
+  mobilePhone: string,
+  officePhoneTelHref: string,
+  mobilePhoneTelHref: string,
+  email: string,
+  website: string,
+  websiteDisplay: string
+): string {
+  const parts: string[] = [];
+
+  if (officePhone || mobilePhone) {
+    let phoneInner = '';
+    if (officePhone && mobilePhone) {
+      phoneInner = `<a href="${escapeHtml(officePhoneTelHref)}" style="color: #555555; text-decoration: none;">${escapeHtml(officePhone)}</a> &nbsp;|&nbsp; <a href="${escapeHtml(mobilePhoneTelHref)}" style="color: #555555; text-decoration: none;">${escapeHtml(mobilePhone)}</a>`;
+    } else if (officePhone) {
+      phoneInner = `<a href="${escapeHtml(officePhoneTelHref)}" style="color: #555555; text-decoration: none;">${escapeHtml(officePhone)}</a>`;
+    } else {
+      phoneInner = `<a href="${escapeHtml(mobilePhoneTelHref)}" style="color: #555555; text-decoration: none;">${escapeHtml(mobilePhone)}</a>`;
+    }
+    parts.push(
+      `<span style="font-weight: 600; color: #111111;">P:</span> ${phoneInner}`
+    );
+  }
+
+  if (email) {
+    parts.push(
+      `<span style="font-weight: 600; color: #111111;">E:</span> <a href="mailto:${escapeHtml(email)}" style="color: #555555; text-decoration: none;">${escapeHtml(email)}</a>`
+    );
+  }
+
+  if (website) {
+    parts.push(
+      `<span style="font-weight: 600; color: #111111;">W:</span> <a href="${escapeHtml(website)}" style="color: #555555; text-decoration: none;">${escapeHtml(websiteDisplay)}</a>`
+    );
+  }
+
+  return parts.join(' &nbsp;|&nbsp; ');
+}
+
+function companySlugForTagline(name: string): string {
+  return name.trim().toLowerCase().replace(/\s+/g, '_');
+}
+
+function buildCreatorTagline(title: string, companyName: string): string {
+  const t = title.trim();
+  const co = companyName.trim();
+  if (!t && !co) return '';
+  if (t && co) {
+    return `&gt; ${escapeHtml(t)} @ ${escapeHtml(companySlugForTagline(co))}`;
+  }
+  if (t) return `&gt; ${escapeHtml(t)}`;
+  return `&gt; @ ${escapeHtml(companySlugForTagline(co))}`;
+}
+
+function buildCreatorContactTableHtml(
+  officePhone: string,
+  mobilePhone: string,
+  officePhoneTelHref: string,
+  mobilePhoneTelHref: string,
+  email: string,
+  website: string,
+  websiteDisplay: string
+): string {
+  const rows: string[] = [];
+  const phone = officePhone || mobilePhone;
+  const phoneHref = officePhone ? officePhoneTelHref : mobilePhoneTelHref;
+  if (phone) {
+    rows.push(`<tr>
+                <td style="padding-bottom: 4px; padding-right: 10px; font-family: 'Courier New', Courier, monospace; color: #80848e;">tel:</td>
+                <td style="padding-bottom: 4px;"><a href="${escapeHtml(phoneHref)}" style="color: #dbdee1; text-decoration: none;">${escapeHtml(phone)}</a></td>
+              </tr>`);
+  }
+  if (email) {
+    rows.push(`<tr>
+                <td style="padding-bottom: 4px; padding-right: 10px; font-family: 'Courier New', Courier, monospace; color: #80848e;">eml:</td>
+                <td style="padding-bottom: 4px;"><a href="mailto:${escapeHtml(email)}" style="color: #dbdee1; text-decoration: none;">${escapeHtml(email)}</a></td>
+              </tr>`);
+  }
+  if (website) {
+    rows.push(`<tr>
+                <td style="padding-bottom: 4px; padding-right: 10px; font-family: 'Courier New', Courier, monospace; color: #80848e;">web:</td>
+                <td style="padding-bottom: 4px;"><a href="${escapeHtml(website)}" style="color: #00b0f4; text-decoration: none;">${escapeHtml(websiteDisplay)}</a></td>
+              </tr>`);
+  }
+  return rows.join('');
+}
+
+function collectFlattenedListItems(blocks: ContentBlockData[]): Array<{
+  title: string;
+  url: string;
+  urlPrefix?: 'https' | 'www';
+}> {
+  const out: Array<{ title: string; url: string; urlPrefix?: 'https' | 'www' }> = [];
+  for (const block of blocks.filter((b) => b.enabled).slice(0, 2)) {
+    if (block.type !== 'list' || !block.listItems) continue;
+    for (const item of block.listItems.filter(listItemHasBody).slice(0, 4)) {
+      out.push({
+        title: (item.title || '').trim(),
+        url: item.url ? normalizePromoUrl(item.url, item.urlPrefix === 'www' ? 'www' : 'https') : '',
+        urlPrefix: item.urlPrefix,
+      });
+    }
+  }
+  return out;
+}
+
+function buildCreatorPromoPillsHtml(blocks: ContentBlockData[]): string {
+  const items = collectFlattenedListItems(blocks);
+  if (items.length === 0) return '';
+
+  let html = '';
+  for (const item of items) {
+    const labelRaw = item.title || (item.url ? listItemLinkFallbackLabel(item.url) : '');
+    if (!labelRaw) continue;
+    const label = escapeHtml(labelRaw);
+    const inner = item.url
+      ? `<a href="${escapeHtml(item.url)}" style="color: #b5bac1; text-decoration: none;">${label}</a>`
+      : label;
+    html += `<span style="display: inline-block; background-color: #2b2d31; padding: 4px 8px; border-radius: 4px; margin: 0 4px 6px 0;">${inner}</span>`;
+  }
+  return html;
+}
+
+function buildExecutiveRoleLine(title: string, companyName: string): string {
+  const t = title.trim();
+  const co = companyName.trim();
+  if (t && co) return `${escapeHtml(t)}, ${escapeHtml(co)}`;
+  if (t) return escapeHtml(t);
+  if (co) return escapeHtml(co);
+  return '';
+}
+
+function buildExecutiveContactLineHtml(
+  officePhone: string,
+  mobilePhone: string,
+  officePhoneTelHref: string,
+  mobilePhoneTelHref: string,
+  email: string,
+  website: string,
+  websiteDisplay: string,
+  primaryColor: string
+): string {
+  const parts: string[] = [];
+  const phone = officePhone || mobilePhone;
+  const phoneHref = officePhone ? officePhoneTelHref : mobilePhoneTelHref;
+  if (phone) {
+    parts.push(
+      `<a href="${escapeHtml(phoneHref)}" style="color: #444444; text-decoration: none;">${escapeHtml(phone.replace(/-/g, '.'))}</a>`
+    );
+  }
+  if (email) {
+    parts.push(
+      `<a href="mailto:${escapeHtml(email)}" style="color: #444444; text-decoration: none;">${escapeHtml(email)}</a>`
+    );
+  }
+  if (website) {
+    parts.push(
+      `<a href="${escapeHtml(website)}" style="color: ${escapeHtml(primaryColor)}; text-decoration: none; font-weight: bold;">${escapeHtml(websiteDisplay)}</a>`
+    );
+  }
+  return parts.join(' &nbsp;&bull;&nbsp; ');
+}
+
+function buildExecutiveSocialLineHtml(links: {
+  linkedin: string;
+  facebook: string;
+  instagram: string;
+  reddit: string;
+  discord: string;
+}): string {
+  const parts: string[] = [];
+  if (links.linkedin) {
+    parts.push(
+      `<a href="${escapeHtml(links.linkedin)}" style="color: #666666; text-decoration: none;">LinkedIn</a>`
+    );
+  }
+  if (links.facebook) {
+    parts.push(
+      `<a href="${escapeHtml(links.facebook)}" style="color: #666666; text-decoration: none;">Facebook</a>`
+    );
+  }
+  if (links.instagram) {
+    parts.push(
+      `<a href="${escapeHtml(links.instagram)}" style="color: #666666; text-decoration: none;">Instagram</a>`
+    );
+  }
+  if (links.reddit) {
+    parts.push(
+      `<a href="${escapeHtml(links.reddit)}" style="color: #666666; text-decoration: none;">Reddit</a>`
+    );
+  }
+  if (links.discord) {
+    parts.push(
+      `<a href="${escapeHtml(links.discord)}" style="color: #666666; text-decoration: none;">Discord</a>`
+    );
+  }
+  return parts.join(' | ');
+}
+
+function buildExecutivePortfolioLineHtml(blocks: ContentBlockData[], primaryColor: string): string {
+  const items = collectFlattenedListItems(blocks);
+  if (items.length === 0) return '';
+
+  const parts: string[] = [];
+  for (const item of items) {
+    const labelRaw = item.title || (item.url ? listItemLinkFallbackLabel(item.url) : '');
+    if (!labelRaw) continue;
+    const label = escapeHtml(labelRaw);
+    if (item.url) {
+      parts.push(
+        `<a href="${escapeHtml(item.url)}" style="color: ${escapeHtml(primaryColor)}; text-decoration: none;">${label}</a>`
+      );
+    } else {
+      parts.push(`<span style="color: ${escapeHtml(primaryColor)};">${label}</span>`);
+    }
+  }
+  return parts.join(' | ');
+}
+
+function layoutSocialTdStyles(
+  linkedin: string,
+  facebook: string,
+  instagram: string,
+  reddit: string,
+  discord: string,
+  gap: string
+): Record<string, string> {
+  let li = '';
+  let fb = '';
+  let ig = '';
+  let rd = '';
+  let dc = '';
+  if (linkedin) {
+    li =
+      facebook || instagram || reddit || discord
+        ? `padding: 0 ${gap} 0 0; vertical-align: middle;`
+        : 'padding: 0; vertical-align: middle;';
+  }
+  if (facebook) {
+    fb = instagram || reddit || discord
+      ? `padding: 0 ${gap} 0 0; vertical-align: middle;`
+      : 'padding: 0; vertical-align: middle;';
+  }
+  if (instagram) {
+    ig = reddit || discord
+      ? `padding: 0 ${gap} 0 0; vertical-align: middle;`
+      : 'padding: 0; vertical-align: middle;';
+  }
+  if (reddit) {
+    rd = discord
+      ? `padding: 0 ${gap} 0 0; vertical-align: middle;`
+      : 'padding: 0; vertical-align: middle;';
+  }
+  if (discord) {
+    dc = 'padding: 0; vertical-align: middle;';
+  }
+  return { li, fb, ig, rd, dc };
 }
 
 /**
@@ -494,15 +813,125 @@ export function mergeRenderContext(
   const contentBlocksRendered = hasContentBlocks
     ? renderContentBlocksHtml(contentBlocks, origin)
     : { desktop: '', stacked: '' };
+  const isDefaultLayout = template.layout === 'default';
+  const isCreatorLayout = template.layout === 'creator';
+  const isExecutiveLayout = template.layout === 'executive_minimalist';
+  const usesCustomPromoLayout = isDefaultLayout || isCreatorLayout || isExecutiveLayout;
   const useVerticalBlocksOnly = template.layout === 'stacked';
-  const contentBlocksHtml = useVerticalBlocksOnly
-    ? contentBlocksRendered.stacked
-    : contentBlocksRendered.desktop;
-  const contentBlocksHtmlStacked = contentBlocksRendered.stacked;
+  const contentBlocksHtml = usesCustomPromoLayout
+    ? ''
+    : useVerticalBlocksOnly
+      ? contentBlocksRendered.stacked
+      : contentBlocksRendered.desktop;
+  const contentBlocksHtmlStacked = usesCustomPromoLayout ? '' : contentBlocksRendered.stacked;
+
+  const defaultListFooterHtml = isDefaultLayout
+    ? buildDefaultListFooterHtml(contentBlocks, origin)
+    : '';
+  const hasDefaultListFooter = Boolean(defaultListFooterHtml);
+
+  const fullName = [profile.firstName.trim(), profile.lastName.trim()].filter(Boolean).join(' ');
+  const defaultContactRowHtml =
+    isDefaultLayout && hasContact
+      ? buildDefaultContactRowHtml(
+          officePhone,
+          mobilePhone,
+          officePhoneTelHref,
+          mobilePhoneTelHref,
+          profile.email.trim(),
+          website,
+          websiteDisplay
+        )
+      : '';
+  const hasDefaultContactRow = Boolean(defaultContactRowHtml);
+
+  let defaultSocialTdLiStyle = '';
+  let defaultSocialTdFbStyle = '';
+  let defaultSocialTdIgStyle = '';
+  let defaultSocialTdRedditStyle = '';
+  let defaultSocialTdDiscordStyle = '';
+  if (isDefaultLayout && linkedin) {
+    defaultSocialTdLiStyle =
+      facebook || instagram || reddit || discord
+        ? 'padding: 0 8px 0 0; vertical-align: middle;'
+        : 'padding: 0; vertical-align: middle;';
+  }
+  if (isDefaultLayout && facebook) {
+    defaultSocialTdFbStyle = instagram || reddit || discord
+      ? 'padding: 0 8px 0 0; vertical-align: middle;'
+      : 'padding: 0; vertical-align: middle;';
+  }
+  if (isDefaultLayout && instagram) {
+    defaultSocialTdIgStyle = reddit || discord
+      ? 'padding: 0 8px 0 0; vertical-align: middle;'
+      : 'padding: 0; vertical-align: middle;';
+  }
+  if (isDefaultLayout && reddit) {
+    defaultSocialTdRedditStyle = discord
+      ? 'padding: 0 8px 0 0; vertical-align: middle;'
+      : 'padding: 0; vertical-align: middle;';
+  }
+  if (isDefaultLayout && discord) {
+    defaultSocialTdDiscordStyle = 'padding: 0; vertical-align: middle;';
+  }
+
+  const creatorTagline =
+    isCreatorLayout && (hasTitle || brand.companyName.trim())
+      ? buildCreatorTagline(profile.title.trim(), brand.companyName.trim())
+      : '';
+  const hasCreatorTagline = Boolean(creatorTagline);
+  const creatorContactTableHtml =
+    isCreatorLayout && hasContact
+      ? buildCreatorContactTableHtml(
+          officePhone,
+          mobilePhone,
+          officePhoneTelHref,
+          mobilePhoneTelHref,
+          profile.email.trim(),
+          website,
+          websiteDisplay
+        )
+      : '';
+  const hasCreatorContactTable = Boolean(creatorContactTableHtml);
+  const creatorPromoPillsHtml = isCreatorLayout ? buildCreatorPromoPillsHtml(contentBlocks) : '';
+  const hasCreatorPromoPills = Boolean(creatorPromoPillsHtml);
+
+  const creatorSocial = isCreatorLayout
+    ? layoutSocialTdStyles(linkedin, facebook, instagram, reddit, discord, '4px')
+    : { li: '', fb: '', ig: '', rd: '', dc: '' };
+
+  const executiveRoleLine =
+    isExecutiveLayout && (hasTitle || brand.companyName.trim())
+      ? buildExecutiveRoleLine(profile.title.trim(), brand.companyName.trim())
+      : '';
+  const hasExecutiveRoleLine = Boolean(executiveRoleLine);
+  const executiveContactLineHtml =
+    isExecutiveLayout && hasContact
+      ? buildExecutiveContactLineHtml(
+          officePhone,
+          mobilePhone,
+          officePhoneTelHref,
+          mobilePhoneTelHref,
+          profile.email.trim(),
+          website,
+          websiteDisplay,
+          brand.primaryColor.trim() || '#901a1e'
+        )
+      : '';
+  const hasExecutiveContactLine = Boolean(executiveContactLineHtml);
+  const executiveSocialLineHtml =
+    isExecutiveLayout && showSocialBlock
+      ? buildExecutiveSocialLineHtml({ linkedin, facebook, instagram, reddit, discord })
+      : '';
+  const hasExecutiveSocialLine = Boolean(executiveSocialLineHtml);
+  const executivePortfolioLineHtml = isExecutiveLayout
+    ? buildExecutivePortfolioLineHtml(contentBlocks, brand.primaryColor.trim() || '#901a1e')
+    : '';
+  const hasExecutivePortfolio = Boolean(executivePortfolioLineHtml);
 
   /** Standard layout: optional third column for blocks (stacked keeps blocks below). */
   const sideColumnContentBlocks =
-    template.layout !== 'stacked' && hasContentBlocks;
+    template.layout !== 'stacked' && !usesCustomPromoLayout && hasContentBlocks;
   const signatureRootColspan =
     template.layout === 'standard' && hasContentBlocks ? '3' : '2';
 
@@ -526,9 +955,19 @@ export function mergeRenderContext(
     hasContentBlocks,
     sideColumnContentBlocks,
     hasWebsite: Boolean(website),
+    hasDefaultListFooter,
+    hasDefaultContactRow,
+    hasCreatorTagline,
+    hasCreatorContactTable,
+    hasCreatorPromoPills,
+    hasExecutiveRoleLine,
+    hasExecutiveContactLine,
+    hasExecutiveSocialLine,
+    hasExecutivePortfolio,
   };
 
   const stringCtx: Record<string, string> = {
+    fullName: escapeHtml(fullName),
     firstName: escapeHtml(profile.firstName.trim()),
     lastName: escapeHtml(profile.lastName.trim()),
     title: escapeHtml(profile.title.trim()),
@@ -565,12 +1004,34 @@ export function mergeRenderContext(
     contentBlocksHtml,
     contentBlocksHtmlStacked,
     signatureRootColspan,
+    defaultListFooterHtml,
+    defaultContactRowHtml,
+    defaultSocialTdLiStyle,
+    defaultSocialTdFbStyle,
+    defaultSocialTdIgStyle,
+    defaultSocialTdRedditStyle,
+    defaultSocialTdDiscordStyle,
+    creatorTagline,
+    creatorContactTableHtml,
+    creatorPromoPillsHtml,
+    creatorSocialTdLiStyle: creatorSocial.li,
+    creatorSocialTdFbStyle: creatorSocial.fb,
+    creatorSocialTdIgStyle: creatorSocial.ig,
+    creatorSocialTdRedditStyle: creatorSocial.rd,
+    creatorSocialTdDiscordStyle: creatorSocial.dc,
+    executiveRoleLine,
+    executiveContactLineHtml,
+    executiveSocialLineHtml,
+    executivePortfolioLineHtml,
   };
 
   return { evalCtx, stringCtx };
 }
 
 function pickTemplate(layout: SignatureTemplate['layout']): string {
+  if (layout === 'creator') return CREATOR_SIGNATURE_TEMPLATE;
+  if (layout === 'executive_minimalist') return EXECUTIVE_MINIMALIST_SIGNATURE_TEMPLATE;
+  if (layout === 'default') return DEFAULT_SIGNATURE_TEMPLATE;
   if (layout === 'stacked') return STACKED_SIGNATURE_TEMPLATE;
   if (layout === 'corporate') return CORPORATE_SIGNATURE_TEMPLATE;
   if (layout === 'professional') return PROFESSIONAL_SIGNATURE_TEMPLATE;

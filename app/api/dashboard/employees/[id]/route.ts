@@ -52,6 +52,7 @@ const ContentBlockListItemSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
   url: z.string().optional(),
+  urlPrefix: z.enum(['https', 'www']).optional(),
 });
 
 const ContentBlockSchema = z.object({

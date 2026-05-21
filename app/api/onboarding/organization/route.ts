@@ -7,6 +7,7 @@ import { getAuth } from '@/lib/auth/server';
 import { OrganizationModel } from '@/models/Organization';
 import { SignatureTemplateModel } from '@/models/SignatureTemplate';
 import { seedDefaultTemplates } from '@/lib/seedOrgTemplates';
+import { ensureOwnerEmployee } from '@/lib/employees/ensureOwnerEmployee';
 
 const BodySchema = z.object({
   name: z.string().min(1).max(120),
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  const user = session.user as { id: string; organizationId?: string };
+  const user = session.user as { id: string; email?: string; name?: string | null; organizationId?: string };
   if (user.organizationId) {
     return NextResponse.json({ error: 'Organization already exists' }, { status: 400 });
   }
@@ -58,6 +59,14 @@ export async function POST(request: Request) {
     await SignatureTemplateModel.deleteMany({ organizationId: org._id });
     await OrganizationModel.findByIdAndDelete(org._id);
     return NextResponse.json({ error: 'Could not link organization to your account' }, { status: 500 });
+  }
+
+  if (user.email) {
+    await ensureOwnerEmployee(org._id, {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    });
   }
 
   return NextResponse.json({ organization: org.toObject() });

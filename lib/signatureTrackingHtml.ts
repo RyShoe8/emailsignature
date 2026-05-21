@@ -4,6 +4,7 @@ import type { OrganizationDoc } from '@/models/Organization';
 import type { SignatureClickKind } from '@/models/SignatureClickEvent';
 import { createSignatureTrackingToken } from '@/lib/signatureTrackingToken';
 import { getSignatureTrackingSecret } from '@/lib/signatureTrackingSecret';
+import { normalizePromoUrl } from '@/lib/urls/normalizePromoUrl';
 
 function decodeHtmlEntities(s: string): string {
   return s
@@ -128,7 +129,8 @@ function buildClassificationContext(input: RenderSignatureInput) {
         for (const it of block.listItems) {
           const raw = it.url?.trim();
           if (!raw) continue;
-          const h = normalizeHref(raw);
+          const absolute = normalizePromoUrl(raw, it.urlPrefix === 'www' ? 'www' : 'https');
+          const h = normalizeHref(absolute);
           if (h) contentBlockUrlMap.set(h, kind);
         }
       } else if (block.type === 'image' && block.imageLinkUrl) {

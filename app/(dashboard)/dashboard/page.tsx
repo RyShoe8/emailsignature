@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { OverviewOrganizationCard } from '@/components/dashboard/OverviewOrganizationCard';
 import { getOrgEnabledPromoBlockSlots } from '@/lib/signatureContentBlockAnalytics';
 import { getEnabledPresetIds } from '@/lib/templates/getEnabledPresets';
+import { resolveViewerEmployeeId } from '@/lib/analytics/resolveViewerEmployee';
 
 function sumKinds(byKind: Record<string, number>, keys: string[]) {
   return keys.reduce((acc, k) => acc + (byKind[k] ?? 0), 0);
@@ -19,7 +20,7 @@ function sumKinds(byKind: Record<string, number>, keys: string[]) {
 export default async function DashboardHomePage() {
   const session = await getServerSession();
   if (!session?.user) redirect('/login');
-  const user = session.user as { organizationId?: string; role?: string };
+  const user = session.user as { id?: string; organizationId?: string; role?: string };
   if (!user.organizationId) {
     redirect('/onboarding');
   }
@@ -30,6 +31,23 @@ export default async function DashboardHomePage() {
   const enabledPresetIds = await getEnabledPresetIds();
   const enabledPresetList = [...enabledPresetIds];
 
+  const isOwnerOrAdmin = user.role === 'owner' || user.role === 'admin';
+  let clickMatch: Record<string, unknown> = {
+    organizationId: oid,
+    createdAt: { $gte: since30 },
+  };
+  if (!isOwnerOrAdmin && user.id) {
+    const viewerEmployeeId = await resolveViewerEmployeeId({
+      organizationId: user.organizationId,
+      userId: user.id,
+    });
+    if (viewerEmployeeId) {
+      clickMatch = { ...clickMatch, employeeId: viewerEmployeeId };
+    } else {
+      clickMatch = { ...clickMatch, employeeId: new mongoose.Types.ObjectId() };
+    }
+  }
+
   const [seatLimits, templates, clickAgg, orgDoc, promoSlots] = await Promise.all([
     getEmployeeLimitsForOrganization(user.organizationId),
     SignatureTemplateModel.countDocuments({
@@ -37,7 +55,7 @@ export default async function DashboardHomePage() {
       presetId: { $in: enabledPresetList },
     }),
     SignatureClickEventModel.aggregate<{ _id: string; count: number }>([
-      { $match: { organizationId: oid, createdAt: { $gte: since30 } } },
+      { $match: clickMatch },
       { $group: { _id: '$kind', count: { $sum: 1 } } },
     ]),
     OrganizationModel.findById(user.organizationId),
@@ -151,8 +169,12 @@ export default async function DashboardHomePage() {
       <div>
         <h2 className="text-lg font-semibold tracking-tight mb-1">Signature clicks (last 30 days)</h2>
         <p className="text-sm text-muted-foreground mb-4">
-          Counts when recipients follow links in sent signatures. Tracking is on by default; turn it off in the
-          Organization section below if you do not want click logging.
+          {isOwnerOrAdmin
+            ? 'Organization-wide counts when recipients follow links in sent signatures.'
+            : 'Your signature link clicks when recipients follow tracked links.'}{' '}
+          <Link href="/dashboard/analytics" className="underline underline-offset-4">
+            View analytics
+          </Link>
         </p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Card>

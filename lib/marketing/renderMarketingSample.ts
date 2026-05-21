@@ -29,6 +29,55 @@ function marketingContentBlocks(
   const img = promoImageUrl(origin);
 
   switch (presetId) {
+    case 'default':
+      return [
+        {
+          type: 'list',
+          enabled: true,
+          listTitle: 'Business Tools',
+          listItems: [
+            { title: 'Nucleas', url: 'https://www.acmecorp.com/nucleas' },
+            { title: 'The Ad Shop', url: 'https://www.acmecorp.com/ad-shop' },
+            { title: 'Tailnote', url: 'https://www.acmecorp.com/tailnote' },
+          ],
+        },
+        {
+          type: 'list',
+          enabled: true,
+          listTitle: 'Content Sites',
+          listItems: [
+            { title: 'The Frugal Gambler', url: 'https://www.acmecorp.com/frugal' },
+            { title: 'DocSpot', url: 'https://www.acmecorp.com/docspot' },
+          ],
+        },
+      ];
+    case 'creator':
+      return [
+        {
+          type: 'list',
+          enabled: true,
+          listItems: [
+            { title: 'Nucleas', url: 'https://www.acmecorp.com/nucleas' },
+            { title: 'The Ad Shop', url: 'https://www.acmecorp.com/ad-shop' },
+            { title: 'Tailnote', url: 'https://www.acmecorp.com/tailnote' },
+            { title: 'The Frugal Gambler', url: 'https://www.acmecorp.com/frugal' },
+          ],
+        },
+      ];
+    case 'executive_minimalist':
+      return [
+        {
+          type: 'list',
+          enabled: true,
+          listItems: [
+            { title: 'Nucleas', url: 'https://www.acmecorp.com/nucleas' },
+            { title: 'The Ad Shop', url: 'https://www.acmecorp.com/ad-shop' },
+            { title: 'Tailnote', url: 'https://www.acmecorp.com/tailnote' },
+            { title: 'The Frugal Gambler', url: 'https://www.acmecorp.com/frugal' },
+            { title: 'DocSpot', url: 'https://www.acmecorp.com/docspot' },
+          ],
+        },
+      ];
     case 'minimal':
       return [
         {

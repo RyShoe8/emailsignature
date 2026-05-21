@@ -9,6 +9,7 @@ import { SignOutButton } from '@/components/dashboard/SignOutButton';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+import { FeedbackFab } from '@/components/feedback/FeedbackFab';
 
 export type DashboardNavLink = { href: string; label: string };
 
@@ -127,6 +128,7 @@ export function DashboardShell({ email, navLinks, showPlatformAdmin, children }:
       </aside>
 
       <main className="min-h-0 min-w-0 flex-1 overflow-auto p-4 md:p-6 lg:p-10">{children}</main>
+      <FeedbackFab />
     </div>
   );
 }

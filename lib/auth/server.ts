@@ -23,6 +23,10 @@ export async function getAuth() {
   authInstance = betterAuth({
     secret,
     baseURL: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    session: {
+      expiresIn: 60 * 60 * 24 * 30,
+      updateAge: 60 * 60 * 24,
+    },
     database: mongodbAdapter(db as never, { client: client as never }),
     databaseHooks: {
       user: {
@@ -38,6 +42,16 @@ export async function getAuth() {
         },
       },
     },
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? {
+          socialProviders: {
+            google: {
+              clientId: process.env.GOOGLE_CLIENT_ID,
+              clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            },
+          },
+        }
+      : {}),
     emailAndPassword: {
       enabled: true,
       sendResetPassword: async ({ user, url }) => {

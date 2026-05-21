@@ -6,6 +6,7 @@ export type {
   SignatureLayout,
   ContentBlockData,
   ContentBlockListItem,
+  PromoUrlPrefix,
   RenderSignatureInput,
 } from './core/types';
 
@@ -15,6 +16,8 @@ export {
   ensureAbsolutePublicUrl,
   unwrapImageProxyUrl,
 } from './core/renderer';
+
+export { normalizePromoUrl } from './core/normalizePromoUrl';
 
 export {
   SOCIAL_ICON_LINKEDIN,
@@ -28,6 +31,9 @@ export { STANDARD_SIGNATURE_TEMPLATE } from './core/templates/standard';
 export { STACKED_SIGNATURE_TEMPLATE } from './core/templates/stacked';
 export { CORPORATE_SIGNATURE_TEMPLATE } from './core/templates/corporate';
 export { PROFESSIONAL_SIGNATURE_TEMPLATE } from './core/templates/professional';
+export { DEFAULT_SIGNATURE_TEMPLATE } from './core/templates/default';
+export { CREATOR_SIGNATURE_TEMPLATE } from './core/templates/creator';
+export { EXECUTIVE_MINIMALIST_SIGNATURE_TEMPLATE } from './core/templates/executive_minimalist';
 
 export {
   mockSignatureBrand,

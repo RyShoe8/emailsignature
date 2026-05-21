@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'Organizations' },
+  { href: '/admin/feedback', label: 'Feedback' },
   { href: '/admin/plans', label: 'Plans' },
   { href: '/admin/plans/archived', label: 'Archived plans' },
   { href: '/admin/addons', label: 'Add-ons' },

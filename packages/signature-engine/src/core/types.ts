@@ -7,11 +7,15 @@ export type SignatureProfile = {
   mobilePhone?: string;
 };
 
+export type PromoUrlPrefix = 'https' | 'www';
+
 export type ContentBlockListItem = {
   /** Optional when `url` or `description` alone should render (hostname used as link text when URL-only). */
   title?: string;
   description?: string;
   url?: string;
+  /** Applied when url has no scheme: https:// (default) or www. → https://www. */
+  urlPrefix?: PromoUrlPrefix;
 };
 
 export type ContentBlockData = {
@@ -77,7 +81,14 @@ export type SignatureElement =
   | { type: 'animation' }
   | { type: 'contentBlocks' };
 
-export type SignatureLayout = 'standard' | 'stacked' | 'corporate' | 'professional';
+export type SignatureLayout =
+  | 'standard'
+  | 'stacked'
+  | 'corporate'
+  | 'professional'
+  | 'default'
+  | 'creator'
+  | 'executive_minimalist';
 
 export type SignatureTemplate = {
   id: string;

@@ -13,7 +13,15 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-const PRESET_IDS = ['minimal', 'modern', 'corporate', 'professional'] as const;
+const PRESET_IDS = [
+  'default',
+  'creator',
+  'executive_minimalist',
+  'minimal',
+  'modern',
+  'corporate',
+  'professional',
+] as const;
 
 function parsePresetId(raw: string): CatalogPresetId | null {
   return PRESET_IDS.includes(raw as CatalogPresetId) ? (raw as CatalogPresetId) : null;

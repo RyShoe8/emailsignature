@@ -40,19 +40,19 @@ assert.ok(
 
 const iconBase = `${origin}/email-assets/`;
 assert.ok(
-  htmlStandard.includes(`${iconBase}icon-linkedin.png?v=2`),
+  htmlStandard.includes(`${iconBase}icon-linkedin.png?v=6`),
   'standard: LinkedIn icon resolves to publicSiteOrigin /email-assets/ with cache-bust query'
 );
 assert.ok(
-  htmlStandard.includes(`${iconBase}icon-facebook.png?v=2`),
+  htmlStandard.includes(`${iconBase}icon-facebook.png?v=6`),
   'standard: Facebook icon resolves to publicSiteOrigin /email-assets/ with cache-bust query'
 );
 assert.ok(
-  htmlStandard.includes(`${iconBase}icon-instagram.png?v=2`),
+  htmlStandard.includes(`${iconBase}icon-instagram.png?v=6`),
   'standard: Instagram icon resolves to publicSiteOrigin /email-assets/ with cache-bust query'
 );
 assert.ok(
-  htmlStandard.includes(`${iconBase}icon-reddit.png?v=5`),
+  htmlStandard.includes(`${iconBase}icon-reddit.png?v=6`),
   'standard: Reddit icon resolves to publicSiteOrigin /email-assets/ with cache-bust query'
 );
 
@@ -68,7 +68,7 @@ const htmlDiscord = renderSignature({
   publicSiteOrigin: origin,
 });
 assert.ok(
-  htmlDiscord.includes(`${iconBase}icon-discord.png?v=2`),
+  htmlDiscord.includes(`${iconBase}icon-discord.png?v=6`),
   'standard: Discord icon resolves to publicSiteOrigin /email-assets/ with cache-bust query'
 );
 assert.match(
@@ -757,6 +757,96 @@ assert.ok(
   !htmlStackedTwoBlocks.includes('sig-content-block-cell-right'),
   'stacked: no border-top line above second promo block title'
 );
+
+// Default layout regression
+const htmlDefault = renderSignature({
+  profile,
+  brand: {
+    ...mockSignatureBrand,
+    contentBlocks: [
+      {
+        type: 'list',
+        enabled: true,
+        listTitle: 'Offers',
+        listItems: [{ title: 'Promo', url: 'https://example.com/promo' }],
+      },
+    ],
+  },
+  template: mockSignatureTemplate('default'),
+  publicSiteOrigin: origin,
+});
+assert.ok(
+  htmlDefault.includes('border-right: 2px solid') && htmlDefault.includes('font-weight: 600; color: #111111;">P:</'),
+  'default: accent border and P|E|W contact row'
+);
+
+// Creator layout
+const htmlCreator = renderSignature({
+  profile,
+  brand: {
+    ...mockSignatureBrand,
+    primaryColor: '#ff4655',
+    socialLinks: {
+      linkedin: 'https://www.linkedin.com/company/example',
+      reddit: 'https://www.reddit.com/user/example',
+      discord: 'https://discord.gg/example',
+    },
+    contentBlocks: [
+      {
+        type: 'list',
+        enabled: true,
+        listItems: [
+          { title: 'Nucleas', url: 'https://example.com/nucleas' },
+          { title: 'Tailnote', url: 'https://example.com/tailnote' },
+        ],
+      },
+    ],
+  },
+  template: mockSignatureTemplate('creator'),
+  publicSiteOrigin: origin,
+});
+assert.ok(htmlCreator.includes('background-color: #1e1f22'), 'creator: dark card background');
+assert.ok(htmlCreator.includes('border-collapse: collapse'), 'creator: nested tables');
+assert.ok(htmlCreator.includes(`${iconBase}icon-linkedin.png?v=6`), 'creator: hosted LinkedIn icon');
+assert.doesNotMatch(htmlCreator, /flaticon\.com/i, 'creator: no external flaticon CDN');
+assert.doesNotMatch(htmlCreator, /src="http:\/\//i, 'creator: no non-HTTPS images');
+assert.ok(htmlCreator.includes('mailto:test@example.com'), 'creator: mailto link');
+assert.ok(htmlCreator.includes('tel:'), 'creator: tel link');
+assert.ok(htmlCreator.includes('background-color: #2b2d31'), 'creator: promo pill styling');
+assert.ok(htmlCreator.includes('Nucleas'), 'creator: promo pill label');
+
+// Executive Minimalist layout
+const htmlExecutive = renderSignature({
+  profile,
+  brand: {
+    ...mockSignatureBrand,
+    primaryColor: '#901a1e',
+    socialLinks: {
+      linkedin: 'https://www.linkedin.com/company/example',
+      reddit: 'https://www.reddit.com/user/example',
+    },
+    contentBlocks: [
+      {
+        type: 'list',
+        enabled: true,
+        listItems: [
+          { title: 'Nucleas', url: 'https://example.com/nucleas' },
+          { title: 'Tailnote', url: 'https://example.com/tailnote' },
+        ],
+      },
+    ],
+  },
+  template: mockSignatureTemplate('executive_minimalist'),
+  publicSiteOrigin: origin,
+});
+assert.ok(htmlExecutive.includes('Times New Roman'), 'executive: serif name styling');
+assert.ok(htmlExecutive.includes('border-bottom: 1px solid #dddddd'), 'executive: header divider');
+assert.ok(htmlExecutive.includes('>Connect:</'), 'executive: connect row label');
+assert.match(htmlExecutive, /<a href="https:\/\/www\.linkedin\.com[^"]*"[^>]*>LinkedIn<\/a>/, 'executive: text LinkedIn link');
+assert.doesNotMatch(htmlExecutive, /icon-linkedin\.png/, 'executive: no social icon images');
+assert.ok(htmlExecutive.includes('>Portfolio:</'), 'executive: portfolio row label');
+assert.ok(htmlExecutive.includes('Nucleas') && htmlExecutive.includes('|'), 'executive: portfolio pipe separators');
+assert.ok(htmlExecutive.includes('#901a1e'), 'executive: primary color on portfolio links');
 
 // Legacy custom block still renders for back-compat reads — but without "Learn more".
 const htmlLegacyCustom = renderSignature({

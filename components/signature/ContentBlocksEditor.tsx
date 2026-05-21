@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { ContentBlockData, ContentBlockListItem } from 'emailsignature-engine';
+import type { ContentBlockData, ContentBlockListItem, PromoUrlPrefix } from 'emailsignature-engine';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -315,6 +315,7 @@ function ListEditor({
       title: typeof it?.title === 'string' ? it.title : '',
       description: typeof it?.description === 'string' ? it.description : undefined,
       url: typeof it?.url === 'string' ? it.url : undefined,
+      urlPrefix: (it?.urlPrefix === 'www' ? 'www' : 'https') as PromoUrlPrefix,
     }));
   const title = block.listTitle ?? (block.type === 'custom' ? block.customTitle ?? '' : '');
 
@@ -322,7 +323,7 @@ function ListEditor({
     const padded: ContentBlockListItem[] = [];
     const maxLen = Math.max(items.length, index + 1);
     for (let i = 0; i < maxLen; i += 1) {
-      padded[i] = items[i] ?? { title: '' };
+      padded[i] = items[i] ?? { title: '', urlPrefix: 'https' };
     }
     padded[index] = { ...padded[index], ...next } as ContentBlockListItem;
     const base =
@@ -391,11 +392,27 @@ function ListEditor({
                 className="resize-none"
                 rows={2}
               />
-              <Input
-                value={item.url || ''}
-                onChange={(e) => updateItem(i, { url: e.target.value })}
-                placeholder="Optional link URL (https://...)"
-              />
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <div className="flex shrink-0 items-center gap-2">
+                  <Label className="text-xs whitespace-nowrap">Link prefix</Label>
+                  <select
+                    className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+                    value={item.urlPrefix === 'www' ? 'www' : 'https'}
+                    onChange={(e) =>
+                      updateItem(i, { urlPrefix: e.target.value as PromoUrlPrefix })
+                    }
+                  >
+                    <option value="https">https://</option>
+                    <option value="www">www.</option>
+                  </select>
+                </div>
+                <Input
+                  className="flex-1"
+                  value={item.url || ''}
+                  onChange={(e) => updateItem(i, { url: e.target.value })}
+                  placeholder="example.com/page"
+                />
+              </div>
             </div>
           );
         })}

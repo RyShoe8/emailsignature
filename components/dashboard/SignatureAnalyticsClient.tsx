@@ -1,0 +1,211 @@
+'use client';
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+
+type AnalyticsPayload = {
+  from: string;
+  to: string;
+  scope: string;
+  employeeId?: string;
+  byKind: Record<string, number>;
+  byDay: { date: string; count: number }[];
+  employees: { id: string; name: string; email: string }[];
+  canFilterByEmployee: boolean;
+};
+
+function defaultFromDate(): string {
+  const d = new Date(Date.now() - 30 * 864e5);
+  return d.toISOString().slice(0, 10);
+}
+
+function defaultToDate(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function kindLabel(kind: string): string {
+  return kind
+    .replace(/^social_/, '')
+    .replace(/^content_block_/, 'Promo ')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+export function SignatureAnalyticsClient() {
+  const [from, setFrom] = useState(defaultFromDate);
+  const [to, setTo] = useState(defaultToDate);
+  const [employeeId, setEmployeeId] = useState('');
+  const [data, setData] = useState<AnalyticsPayload | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams({ from: `${from}T00:00:00.000Z`, to: `${to}T23:59:59.999Z` });
+      if (employeeId) params.set('employeeId', employeeId);
+      const res = await fetch(`/api/dashboard/analytics/signature-clicks?${params}`, {
+        credentials: 'include',
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(typeof json.error === 'string' ? json.error : 'Could not load analytics');
+        setData(null);
+        return;
+      }
+      setData(json as AnalyticsPayload);
+    } catch {
+      setError('Could not load analytics');
+      setData(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [from, to, employeeId]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const kindChartData = useMemo(() => {
+    if (!data) return [];
+    return Object.entries(data.byKind)
+      .map(([kind, count]) => ({ kind: kindLabel(kind), count }))
+      .sort((a, b) => b.count - a.count);
+  }, [data]);
+
+  const totalClicks = useMemo(
+    () => kindChartData.reduce((sum, row) => sum + row.count, 0),
+    [kindChartData]
+  );
+
+  return (
+    <div className="mx-auto min-w-0 max-w-4xl space-y-8">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
+        <p className="mt-1 text-muted-foreground">
+          Signature link clicks over a date range
+          {data?.scope === 'self' ? ' for your account' : data?.scope === 'employee' ? ' for one team member' : ''}.
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Date range</CardTitle>
+          <CardDescription>Up to 90 days. Adjust filters and apply.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="from">From</Label>
+              <Input id="from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="to">To</Label>
+              <Input id="to" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+            </div>
+          </div>
+          {data?.canFilterByEmployee ? (
+            <div className="space-y-2">
+              <Label htmlFor="employee">Team member</Label>
+              <select
+                id="employee"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={employeeId}
+                onChange={(e) => setEmployeeId(e.target.value)}
+              >
+                <option value="">All team members</option>
+                {data.employees.map((emp) => (
+                  <option key={emp.id} value={emp.id}>
+                    {emp.name} ({emp.email})
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+          <Button type="button" onClick={() => void load()} disabled={loading}>
+            {loading ? 'Loading…' : 'Apply'}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+
+      {loading && !data ? (
+        <p className="text-sm text-muted-foreground">Loading analytics…</p>
+      ) : data ? (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle>Total clicks</CardTitle>
+              <CardDescription>
+                {new Date(data.from).toLocaleDateString()} – {new Date(data.to).toLocaleDateString()}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold tabular-nums">{totalClicks}</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Clicks over time</CardTitle>
+              <CardDescription>Daily tracked link clicks</CardDescription>
+            </CardHeader>
+            <CardContent className="h-72">
+              {data.byDay.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No clicks in this range.</p>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={data.byDay}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="count" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>By link type</CardTitle>
+              <CardDescription>Logo, website, email, phone, social, and promo blocks</CardDescription>
+            </CardHeader>
+            <CardContent className="h-80">
+              {kindChartData.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No clicks in this range.</p>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={kindChartData} layout="vertical" margin={{ left: 8, right: 16 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
+                    <YAxis type="category" dataKey="kind" width={120} tick={{ fontSize: 11 }} />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      ) : null}
+    </div>
+  );
+}

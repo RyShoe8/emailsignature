@@ -15,7 +15,15 @@ export type CatalogPresetRow = {
 };
 
 function isCatalogPresetId(id: string): id is CatalogPresetId {
-  return id === 'minimal' || id === 'modern' || id === 'corporate' || id === 'professional';
+  return (
+    id === 'default' ||
+    id === 'creator' ||
+    id === 'executive_minimalist' ||
+    id === 'minimal' ||
+    id === 'modern' ||
+    id === 'corporate' ||
+    id === 'professional'
+  );
 }
 
 /** Active catalog entries: enabled and not soft-deleted. */

@@ -4,9 +4,10 @@ import { EmployeeModel } from '@/models/Employee';
 import { OrganizationModel } from '@/models/Organization';
 import { OrganizationSubscriptionModel } from '@/models/OrganizationSubscription';
 import { SubscriptionPlanModel, type SubscriptionPlanDoc } from '@/models/SubscriptionPlan';
+import { ensureOwnerEmployeeForOrganization } from '@/lib/employees/ensureOwnerEmployee';
 
 export type EmployeeLimitInfo = {
-  /** Seats in use (employee documents, minimum 1 for the account owner). */
+  /** Seats in use (employee documents, including owner). */
   currentCount: number;
   maxEmployees: number | null;
   /** Included users on the plan, when a plan is resolved. */
@@ -15,9 +16,9 @@ export type EmployeeLimitInfo = {
   canAddBeyondIncluded: boolean;
 };
 
-/** Owner always occupies at least one seat; never double-count beyond employee documents. */
+/** Billable seat count from employee documents (owner row ensured before counting). */
 export function getEffectiveSeatCount(employeeDocumentCount: number): number {
-  return Math.max(employeeDocumentCount, 1);
+  return employeeDocumentCount;
 }
 
 export class EmployeeLimitReachedError extends Error {
@@ -87,6 +88,7 @@ export async function getEmployeeLimitsForOrganization(
       ? new mongoose.Types.ObjectId(organizationId)
       : organizationId;
 
+  await ensureOwnerEmployeeForOrganization(orgId);
   const employeeDocumentCount = await EmployeeModel.countDocuments({ organizationId: orgId });
   const currentCount = getEffectiveSeatCount(employeeDocumentCount);
 

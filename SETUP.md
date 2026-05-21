@@ -29,9 +29,11 @@ Add each variable for **Production** (and **Preview** if you want previews fully
 | `STRIPE_BASIC_PRICE_ID` | Optional fallback Basic Price id during migration (prefer seeded plans + admin sync) |
 | `STRIPE_PRO_PRICE_ID` | Optional fallback Pro Price id during migration |
 | `BLOB_READ_WRITE_TOKEN` | [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) read/write token for dashboard logo uploads (`POST /api/dashboard/organization/logo`) |
-| `GOOGLE_CLIENT_ID` | Google OAuth client id for **Connect Gmail** / signature apply |
+| `GOOGLE_CLIENT_ID` | Google OAuth client id for **sign in with Google** and **Connect Gmail** |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
 | `GOOGLE_REDIRECT_URI` | Optional. Defaults to `{BETTER_AUTH_URL or NEXT_PUBLIC_APP_URL}/api/integrations/gmail/callback`. Must exactly match an **Authorized redirect URI** in [Google Cloud Console](https://console.cloud.google.com/apis/credentials) for the OAuth client. |
+
+Better Auth sessions last **30 days** by default (refreshed daily while active). Users stay signed in until they log out or the session expires.
 | `GOOGLE_OAUTH_ENCRYPTION_KEY` | Optional. Strong secret used to encrypt stored Gmail refresh tokens at rest; if omitted, a key is derived from `BETTER_AUTH_SECRET` (set an explicit value in production). |
 | `BREVO_API_KEY` | Brevo API key (SMTP transactional + contacts API) |
 | `BREVO_SENDER_EMAIL` | Verified sender email in Brevo (e.g. `invites@yourdomain.com`) |
@@ -46,7 +48,9 @@ Users with `platformAdmin: true` on their Better Auth document in the **`user`**
 
 ### Gmail integration
 
-1. In **Google Cloud Console**, create an OAuth **Web application** client. Add redirect URI: `https://<your-app>/api/integrations/gmail/callback` (or the value of `GOOGLE_REDIRECT_URI` if you set it).
+1. In **Google Cloud Console**, create an OAuth **Web application** client. Add **Authorized redirect URIs**:
+   - `https://<your-app>/api/auth/callback/google` (sign in / sign up)
+   - `https://<your-app>/api/integrations/gmail/callback` (or the value of `GOOGLE_REDIRECT_URI` if you set it)
 2. Enable the **Gmail API** for the project.
 3. OAuth consent screen: add scope `https://www.googleapis.com/auth/gmail.settings.basic` (sensitive; may require verification for public apps).
 4. Put `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in **Vercel** env vars and redeploy.

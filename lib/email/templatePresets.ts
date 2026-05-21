@@ -1,6 +1,13 @@
 import type { SignatureElement, SignatureTemplate, SignatureLayout } from 'emailsignature-engine';
 
-export type TemplatePresetId = 'minimal' | 'modern' | 'corporate' | 'professional';
+export type TemplatePresetId =
+  | 'default'
+  | 'creator'
+  | 'executive_minimalist'
+  | 'minimal'
+  | 'modern'
+  | 'corporate'
+  | 'professional';
 
 export type TemplatePresetMeta = {
   id: TemplatePresetId;
@@ -9,6 +16,24 @@ export type TemplatePresetMeta = {
 };
 
 export const TEMPLATE_PRESET_META: TemplatePresetMeta[] = [
+  {
+    id: 'default',
+    name: 'Default',
+    description:
+      'Logo column with brand accent border, name and title band, P|E|W contact row, social icons, and two-column promo list footer.',
+  },
+  {
+    id: 'creator',
+    name: 'Creator',
+    description:
+      'Dark card layout with logo and social in a side column, monospace tagline, terminal-style contact rows, and pill-style promo links.',
+  },
+  {
+    id: 'executive_minimalist',
+    name: 'Executive Minimalist',
+    description:
+      'Serif name band with logo on the right, inline contact row, and text-only Connect and Portfolio link rows.',
+  },
   {
     id: 'minimal',
     name: 'Minimal',
@@ -55,6 +80,25 @@ function elementsModern(): SignatureElement[] {
   ];
 }
 
+function elementsDefault(): SignatureElement[] {
+  return [
+    { type: 'logo' },
+    { type: 'name' },
+    { type: 'title' },
+    { type: 'contact' },
+    { type: 'social' },
+    { type: 'contentBlocks' },
+  ];
+}
+
+function elementsCreator(): SignatureElement[] {
+  return elementsDefault();
+}
+
+function elementsExecutiveMinimalist(): SignatureElement[] {
+  return elementsDefault();
+}
+
 function elementsCorporate(): SignatureElement[] {
   return [
     { type: 'logo' },
@@ -82,6 +126,27 @@ export function presetToEngineTemplate(
   displayName?: string
 ): SignatureTemplate {
   switch (presetId) {
+    case 'default':
+      return {
+        id: templateDocId,
+        name: displayName ?? 'Default',
+        layout: 'default',
+        elements: elementsDefault(),
+      };
+    case 'creator':
+      return {
+        id: templateDocId,
+        name: displayName ?? 'Creator',
+        layout: 'creator',
+        elements: elementsCreator(),
+      };
+    case 'executive_minimalist':
+      return {
+        id: templateDocId,
+        name: displayName ?? 'Executive Minimalist',
+        layout: 'executive_minimalist',
+        elements: elementsExecutiveMinimalist(),
+      };
     case 'minimal':
       return {
         id: templateDocId,

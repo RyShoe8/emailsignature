@@ -2,7 +2,15 @@ import type { Types } from 'mongoose';
 import { SignatureTemplateModel } from '@/models/SignatureTemplate';
 import { getActiveCatalogPresets } from '@/lib/templates/getEnabledPresets';
 
-export const ORG_TEMPLATE_PRESETS = ['minimal', 'modern', 'corporate', 'professional'] as const;
+export const ORG_TEMPLATE_PRESETS = [
+  'default',
+  'creator',
+  'executive_minimalist',
+  'minimal',
+  'modern',
+  'corporate',
+  'professional',
+] as const;
 
 export async function seedDefaultTemplates(organizationId: Types.ObjectId) {
   const presets = await getActiveCatalogPresets();
@@ -37,6 +45,12 @@ export async function ensureOrgPresetTemplates(organizationId: Types.ObjectId | 
 }
 
 export async function getDefaultTemplateForOrg(organizationId: Types.ObjectId) {
+  const defaultTmpl = await SignatureTemplateModel.findOne({
+    organizationId,
+    presetId: 'default',
+  }).sort({ createdAt: 1 });
+  if (defaultTmpl) return defaultTmpl;
+
   const minimal = await SignatureTemplateModel.findOne({
     organizationId,
     presetId: 'minimal',
@@ -44,7 +58,7 @@ export async function getDefaultTemplateForOrg(organizationId: Types.ObjectId) {
   if (minimal) return minimal;
 
   const presets = await getActiveCatalogPresets();
-  const firstPresetId = presets[0]?.presetId ?? 'minimal';
+  const firstPresetId = presets[0]?.presetId ?? 'default';
   return SignatureTemplateModel.findOne({ organizationId, presetId: firstPresetId }).sort({
     createdAt: 1,
   });

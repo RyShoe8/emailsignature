@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import { z } from 'zod';
 import { renderSignature, type RenderSignatureInput } from 'emailsignature-engine';
 import { connectMongoose } from '@/lib/mongoose';
@@ -205,6 +206,18 @@ export async function POST(request: Request) {
     }),
     publicSiteOrigin,
   };
+
+  if (!employeeIdForTracking) {
+    const selfEmp = await EmployeeModel.findOne({
+      organizationId: org._id,
+      userId: user.id,
+    })
+      .select('_id')
+      .lean<{ _id: mongoose.Types.ObjectId }>();
+    if (selfEmp?._id) {
+      employeeIdForTracking = String(selfEmp._id);
+    }
+  }
 
   let html = renderSignature(renderInput);
   html = appendSignatureClickTrackingIfEnabled({
