@@ -38,11 +38,8 @@ export const EXECUTIVE_MINIMALIST_SIGNATURE_TEMPLATE = `<table cellpadding="0" c
         {{executiveSocialLineHtml}}
       </div>
       {{/if}}
-      {{#if hasExecutivePortfolio}}
-      <div style="font-size: 10px; color: #888888; text-transform: uppercase;">
-        <strong>Portfolio:</strong> &nbsp;
-        {{executivePortfolioLineHtml}}
-      </div>
+      {{#if hasExecutivePromoRows}}
+      {{executivePromoRowsHtml}}
       {{/if}}
     </td>
   </tr>

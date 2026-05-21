@@ -52,7 +52,7 @@ assert.ok(
   'standard: Instagram icon resolves to publicSiteOrigin /email-assets/ with cache-bust query'
 );
 assert.ok(
-  htmlStandard.includes(`${iconBase}icon-reddit.png?v=6`),
+  htmlStandard.includes(`${iconBase}icon-reddit.png?v=7`),
   'standard: Reddit icon resolves to publicSiteOrigin /email-assets/ with cache-bust query'
 );
 
@@ -814,6 +814,12 @@ assert.ok(htmlCreator.includes('mailto:test@example.com'), 'creator: mailto link
 assert.ok(htmlCreator.includes('tel:'), 'creator: tel link');
 assert.ok(htmlCreator.includes('background-color: #2b2d31'), 'creator: promo pill styling');
 assert.ok(htmlCreator.includes('Nucleas'), 'creator: promo pill label');
+assert.ok(htmlCreator.includes('color: #b5bac1'), 'creator: tagline uses readable light text on dark card');
+assert.doesNotMatch(
+  htmlCreator,
+  /font-size: 13px; color: #0a0a0a|font-size: 13px; color: {{primaryColor}}/,
+  'creator: tagline does not use dark primary color on dark background'
+);
 
 // Executive Minimalist layout
 const htmlExecutive = renderSignature({
@@ -829,6 +835,7 @@ const htmlExecutive = renderSignature({
       {
         type: 'list',
         enabled: true,
+        listTitle: 'Featured work',
         listItems: [
           { title: 'Nucleas', url: 'https://example.com/nucleas' },
           { title: 'Tailnote', url: 'https://example.com/tailnote' },
@@ -844,7 +851,8 @@ assert.ok(htmlExecutive.includes('border-bottom: 1px solid #dddddd'), 'executive
 assert.ok(htmlExecutive.includes('>Connect:</'), 'executive: connect row label');
 assert.match(htmlExecutive, /<a href="https:\/\/www\.linkedin\.com[^"]*"[^>]*>LinkedIn<\/a>/, 'executive: text LinkedIn link');
 assert.doesNotMatch(htmlExecutive, /icon-linkedin\.png/, 'executive: no social icon images');
-assert.ok(htmlExecutive.includes('>Portfolio:</'), 'executive: portfolio row label');
+assert.ok(htmlExecutive.includes('>Featured work:</'), 'executive: promo row uses listTitle from content block');
+assert.doesNotMatch(htmlExecutive, />Portfolio:</, 'executive: no hardcoded Portfolio label');
 assert.ok(htmlExecutive.includes('Nucleas') && htmlExecutive.includes('|'), 'executive: portfolio pipe separators');
 assert.ok(htmlExecutive.includes('#901a1e'), 'executive: primary color on portfolio links');
 

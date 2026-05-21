@@ -14,7 +14,8 @@
     "migrate:legacy": "npx tsx scripts/migrate-legacy.ts",
     "verify:signature": "npm run email-client-smoke --workspace=emailsignature-engine",
     "verify:list-tracking": "npx tsx scripts/signature-tracking-list-smoke.ts",
-    "verify:gmail-signature": "npx tsx scripts/gmail-signature-html-smoke.ts"
+    "verify:gmail-signature": "npx tsx scripts/gmail-signature-html-smoke.ts",
+    "icons:reddit": "node scripts/generate-reddit-icon.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

@@ -40,7 +40,7 @@ export const CREATOR_SIGNATURE_TEMPLATE = `<table cellpadding="0" cellspacing="0
             <div style="font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px; margin-bottom: 2px;">{{fullName}}</div>
             {{/if}}
             {{#if hasCreatorTagline}}
-            <div style="font-family: 'Courier New', Courier, monospace; font-size: 13px; color: {{primaryColor}}; font-weight: bold; margin-bottom: 12px; text-transform: lowercase;">{{creatorTagline}}</div>
+            <div style="font-family: 'Courier New', Courier, monospace; font-size: 13px; color: #b5bac1; font-weight: bold; margin-bottom: 12px; text-transform: lowercase;">{{creatorTagline}}</div>
             {{/if}}
             {{#if hasCreatorContactTable}}
             <table cellpadding="0" cellspacing="0" border="0" style="font-size: 13px; color: #b5bac1; margin-bottom: 15px; border-collapse: collapse;">

@@ -596,24 +596,48 @@ function buildExecutiveSocialLineHtml(links: {
   return parts.join(' | ');
 }
 
-function buildExecutivePortfolioLineHtml(blocks: ContentBlockData[], primaryColor: string): string {
-  const items = collectFlattenedListItems(blocks);
+function buildExecutiveListBlockLineHtml(block: ContentBlockData, primaryColor: string): string {
+  const items = (block.listItems || []).filter(listItemHasBody).slice(0, 4);
   if (items.length === 0) return '';
 
   const parts: string[] = [];
   for (const item of items) {
-    const labelRaw = item.title || (item.url ? listItemLinkFallbackLabel(item.url) : '');
+    const labelRaw = (item.title || '').trim() || (item.url ? listItemLinkFallbackLabel(item.url) : '');
     if (!labelRaw) continue;
     const label = escapeHtml(labelRaw);
-    if (item.url) {
+    const url = item.url
+      ? normalizePromoUrl(item.url, item.urlPrefix === 'www' ? 'www' : 'https')
+      : '';
+    if (url) {
       parts.push(
-        `<a href="${escapeHtml(item.url)}" style="color: ${escapeHtml(primaryColor)}; text-decoration: none;">${label}</a>`
+        `<a href="${escapeHtml(url)}" style="color: ${escapeHtml(primaryColor)}; text-decoration: none;">${label}</a>`
       );
     } else {
       parts.push(`<span style="color: ${escapeHtml(primaryColor)};">${label}</span>`);
     }
   }
   return parts.join(' | ');
+}
+
+function buildExecutivePromoRowsHtml(blocks: ContentBlockData[], primaryColor: string): string {
+  const enabled = blocks.filter((b) => b.enabled).slice(0, 2);
+  const rows: string[] = [];
+
+  for (const block of enabled) {
+    if (block.type !== 'list') continue;
+    const sectionLabel = (block.listTitle || block.customTitle || '').trim();
+    const lineHtml = buildExecutiveListBlockLineHtml(block, primaryColor);
+    if (!sectionLabel && !lineHtml) continue;
+
+    const labelPart = sectionLabel
+      ? `<strong>${escapeHtml(sectionLabel)}:</strong> &nbsp;`
+      : '';
+    rows.push(
+      `<div style="font-size: 10px; color: #888888; text-transform: uppercase; margin-bottom: 4px;">${labelPart}${lineHtml}</div>`
+    );
+  }
+
+  return rows.join('');
 }
 
 function layoutSocialTdStyles(
@@ -924,10 +948,10 @@ export function mergeRenderContext(
       ? buildExecutiveSocialLineHtml({ linkedin, facebook, instagram, reddit, discord })
       : '';
   const hasExecutiveSocialLine = Boolean(executiveSocialLineHtml);
-  const executivePortfolioLineHtml = isExecutiveLayout
-    ? buildExecutivePortfolioLineHtml(contentBlocks, brand.primaryColor.trim() || '#901a1e')
+  const executivePromoRowsHtml = isExecutiveLayout
+    ? buildExecutivePromoRowsHtml(contentBlocks, brand.primaryColor.trim() || '#901a1e')
     : '';
-  const hasExecutivePortfolio = Boolean(executivePortfolioLineHtml);
+  const hasExecutivePromoRows = Boolean(executivePromoRowsHtml);
 
   /** Standard layout: optional third column for blocks (stacked keeps blocks below). */
   const sideColumnContentBlocks =
@@ -963,7 +987,7 @@ export function mergeRenderContext(
     hasExecutiveRoleLine,
     hasExecutiveContactLine,
     hasExecutiveSocialLine,
-    hasExecutivePortfolio,
+    hasExecutivePromoRows,
   };
 
   const stringCtx: Record<string, string> = {
@@ -1022,7 +1046,7 @@ export function mergeRenderContext(
     executiveRoleLine,
     executiveContactLineHtml,
     executiveSocialLineHtml,
-    executivePortfolioLineHtml,
+    executivePromoRowsHtml,
   };
 
   return { evalCtx, stringCtx };
